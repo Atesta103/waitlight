@@ -65,7 +65,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
                         }
                         onClick={() => setVisible((v) => !v)}
                         className={cn(
-                            "absolute inset-y-0 right-0 flex items-center px-3",
+                            "absolute inset-y-0 right-0 flex cursor-pointer items-center px-3",
                             "text-text-secondary transition-colors hover:text-text-primary",
                             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus focus-visible:rounded-md",
                         )}

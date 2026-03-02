@@ -59,6 +59,7 @@ import { SettingsPanel } from "@/components/sections/SettingsPanel"
 import { Divider } from "@/components/ui/Divider"
 import { PasswordInput } from "@/components/composed/PasswordInput"
 import { AuthErrorBanner } from "@/components/composed/AuthErrorBanner"
+import { SocialAuthButtons } from "@/components/composed/SocialAuthButtons"
 import { LoginForm } from "@/components/sections/LoginForm"
 import { RegisterForm } from "@/components/sections/RegisterForm"
 import { ForgotPasswordForm } from "@/components/sections/ForgotPasswordForm"
@@ -1260,16 +1261,68 @@ export default function DesignSystemPage() {
                             </div>
                         </SubSection>
 
+                        {/* ── Molecule: SocialAuthButtons ── */}
+                        <SubSection title="Molecule — SocialAuthButtons">
+                            <div className="flex flex-wrap gap-8">
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-xs text-text-secondary">
+                                        label “Continuer” (défaut)
+                                    </p>
+                                    <div className="w-72">
+                                        <SocialAuthButtons
+                                            onProvider={async () => {}}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-xs text-text-secondary">
+                                        label “Se connecter”
+                                    </p>
+                                    <div className="w-72">
+                                        <SocialAuthButtons
+                                            label="Se connecter"
+                                            onProvider={async () => {}}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-xs text-text-secondary">
+                                        label “S’inscrire”
+                                    </p>
+                                    <div className="w-72">
+                                        <SocialAuthButtons
+                                            label="S'inscrire"
+                                            onProvider={async () => {}}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-xs text-text-secondary">
+                                        disabled
+                                    </p>
+                                    <div className="w-72">
+                                        <SocialAuthButtons
+                                            onProvider={async () => {}}
+                                            disabled
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </SubSection>
+
                         {/* ── Organism: LoginForm ── */}
                         <SubSection title="Organism — LoginForm">
                             <div className="grid gap-8 sm:grid-cols-2">
                                 <div>
                                     <p className="mb-3 text-xs text-text-secondary">
-                                        État initial
+                                        Avec OAuth (Google + Apple)
                                     </p>
                                     <div className="rounded-lg border border-border-default bg-surface-card p-6">
                                         <LoginForm
                                             action={async () => ({
+                                                data: null,
+                                            })}
+                                            socialAction={async () => ({
                                                 data: null,
                                             })}
                                         />
@@ -1284,6 +1337,9 @@ export default function DesignSystemPage() {
                                             action={async () => ({
                                                 error: "Adresse e-mail ou mot de passe incorrect.",
                                             })}
+                                            socialAction={async () => ({
+                                                data: null,
+                                            })}
                                         />
                                     </div>
                                 </div>
@@ -1295,11 +1351,14 @@ export default function DesignSystemPage() {
                             <div className="grid gap-8 sm:grid-cols-2">
                                 <div>
                                     <p className="mb-3 text-xs text-text-secondary">
-                                        État initial
+                                        Avec OAuth (Google + Apple)
                                     </p>
                                     <div className="rounded-lg border border-border-default bg-surface-card p-6">
                                         <RegisterForm
                                             action={async () => ({
+                                                data: null,
+                                            })}
+                                            socialAction={async () => ({
                                                 data: null,
                                             })}
                                         />
@@ -1313,6 +1372,9 @@ export default function DesignSystemPage() {
                                         <RegisterForm
                                             action={async () => ({
                                                 error: "Un compte avec cette adresse existe déjà.",
+                                            })}
+                                            socialAction={async () => ({
+                                                data: null,
                                             })}
                                         />
                                     </div>

@@ -4,16 +4,27 @@ import { useTransition, useState } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { Divider } from "@/components/ui/Divider"
 import { PasswordInput } from "@/components/composed/PasswordInput"
 import { AuthErrorBanner } from "@/components/composed/AuthErrorBanner"
+import { SocialAuthButtons } from "@/components/composed/SocialAuthButtons"
 
 type RegisterAction = (
     formData: FormData,
 ) => Promise<{ data: unknown } | { error: string }>
 
+type SocialAction = (
+    provider: "google" | "apple",
+) => Promise<{ data: unknown } | { error: string }>
+
 type RegisterFormProps = {
     /** Server Action — validated with Zod, returns { data } | { error }. */
     action: RegisterAction
+    /**
+     * Optional OAuth server action. When provided the Google + Apple buttons
+     * are rendered below the email/password form.
+     */
+    socialAction?: SocialAction
 }
 
 /**
@@ -22,7 +33,7 @@ type RegisterFormProps = {
  *
  * TODO: replace hardcoded strings with next-intl keys once i18n is scaffolded.
  */
-function RegisterForm({ action }: RegisterFormProps) {
+function RegisterForm({ action, socialAction }: RegisterFormProps) {
     const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
 
@@ -101,6 +112,19 @@ function RegisterForm({ action }: RegisterFormProps) {
                     Se connecter
                 </Link>
             </p>
+
+            {socialAction ? (
+                <>
+                    <Divider label="ou" />
+                    <SocialAuthButtons
+                        label="S'inscrire"
+                        onProvider={async (provider) => {
+                            await socialAction(provider)
+                        }}
+                        disabled={isPending}
+                    />
+                </>
+            ) : null}
         </form>
     )
 }

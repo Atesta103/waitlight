@@ -46,7 +46,7 @@ function Tabs({ tabs, defaultValue, value, onChange, className }: TabsProps) {
                         aria-selected={isActive}
                         onClick={() => handleChange(tab.value)}
                         className={cn(
-                            "inline-flex min-h-9 min-w-9 flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                            "inline-flex min-h-9 min-w-9 flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                             "focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none",
                             isActive
                                 ? "bg-surface-card text-text-primary shadow-sm"

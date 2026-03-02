@@ -80,7 +80,7 @@ function DialogHeader({ children, onClose, className }: DialogHeaderProps) {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-md p-1 text-text-secondary transition-colors hover:bg-border-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none"
+                    className="cursor-pointer rounded-md p-1 text-text-secondary transition-colors hover:bg-border-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none"
                     aria-label="Fermer"
                 >
                     <X size={20} aria-hidden="true" />

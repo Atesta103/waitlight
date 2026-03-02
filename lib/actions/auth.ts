@@ -5,6 +5,19 @@
 // All actions return { data } | { error: string }, never throw.
 
 /**
+ * Initiate an OAuth sign-in flow with a social provider.
+ * Supabase returns a redirect URL — the caller must redirect the browser to it.
+ */
+export async function oauthSignInAction(
+    provider: "google" | "apple",
+): Promise<{ data: unknown } | { error: string }> {
+    // TODO: createServerClient() → supabase.auth.signInWithOAuth({ provider, options: { redirectTo } })
+    // NOTE: providers must be enabled in the Supabase Auth dashboard first.
+    void provider
+    return { error: `Connexion ${provider} non encore configurée.` }
+}
+
+/**
  * Sign in an existing merchant with email + password.
  */
 export async function loginAction(

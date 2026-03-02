@@ -68,6 +68,7 @@ function Dropdown({
                 }}
                 aria-expanded={open}
                 aria-haspopup="menu"
+                className="cursor-pointer"
             >
                 {trigger}
             </div>
@@ -91,7 +92,7 @@ function Dropdown({
                                 setOpen(false)
                             }}
                             className={cn(
-                                "flex w-full min-h-11 items-center gap-2 px-3 py-2 text-sm transition-colors",
+                                "flex w-full min-h-11 cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors",
                                 "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-border-focus focus-visible:outline-none",
                                 "disabled:pointer-events-none disabled:opacity-50",
                                 item.variant === "destructive"
