@@ -134,6 +134,7 @@ Full page sections that **may fetch data** (via TanStack Query hooks) and orches
 
 1. **Never skip a level.** A molecule must not be used where an atom is sufficient. An organism must not be embedded inside another organism.
 2. **Design tokens or nothing.** If the value you need doesn't have a token, add the token first.
-3. **Framer Motion for state transitions only.** Not for page load flourishes.
-4. **Accessibility first.** Every interactive atom must pass a manual keyboard-only navigation test.
+3. **Framer Motion for state transitions only.** Not for page load flourishes. Always wrap with `useReducedMotion()` — see `doc/accessibility.md`.
+4. **Accessibility first.** Every interactive atom must pass a manual keyboard-only navigation test. Contrast ratio ≥ 4.5:1. Never `outline: none`. Every icon-only button has `aria-label`. Full rules: [`doc/accessibility.md`](./accessibility.md).
 5. **Responsive from 320px.** Test every molecule at 320px (small Android) and 390px (iPhone 14).
+6. **All strings are translatable.** No hardcoded French text in any component — use `next-intl` keys.

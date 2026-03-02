@@ -8,9 +8,17 @@ Wait-Light est une application SaaS de file d'attente virtuelle "Scan & Go". Ell
 
 - **Merchant (Admin)** : Crée son établissement, gère la file (appelle le client suivant, annule, clôture la file) et accède aux statistiques de fréquentation.
 
-- **Customer** : Scanne le QR Code, rejoint la file avec son nom/prénom, et reçoit une notification visuelle/sonore quand son tour approche.
+- **Customer** : Scanne le QR Code, rejoint la file avec son nom/prénom, et reçoit une notification visuelle/sonore quand son tour approche. **Les clients peuvent être de n'importe quelle langue, avoir un handicap visuel, moteur ou auditif.** L'interface coteé client doit être utilisable par tous sans exception.
 
 - **System** : Gère les WebSockets pour la mise à jour instantanée des positions dans la file.
+
+## Accessibilité & Inclusivité
+
+- L'application vise la conformité **WCAG 2.1 Niveau AA** sur toutes les pages.
+- La surface client (`/[slug]/*`) est la priorité absolue : elle doit fonctionner correctement avec un lecteur d'écran (VoiceOver iOS, TalkBack Android), au clavier seul, et à 200% de zoom navigateur.
+- L'interface est disponible en **français** (défaut) et en **anglais** (première addition obligatoire). L'architecture i18n doit permettre d'ajouter d'autres langues sans modification de code.
+- Les alertes de changement de statut (position, tour arrivé) sont communiquées via plusieurs canaux simultanés : visuel (bannière haute visibilité), sonore (`AudioContext`), et haptique (`navigator.vibrate`) — aucun canal n'est suffisant seul.
+- Règles détaillées : [`doc/accessibility.md`](./doc/accessibility.md).
 
 # Technical Stack
 

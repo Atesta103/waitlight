@@ -168,3 +168,4 @@ _(empty — populate as the project progresses)_
 | [`doc/design-system.md`](./doc/design-system.md) | Design tokens, atoms/molecules/organisms         |
 | [`doc/architecture.md`](./doc/architecture.md)   | Next.js & Supabase patterns to follow            |
 | [`doc/security.md`](./doc/security.md)           | Security checklist for every layer               |
+| [`doc/accessibility.md`](./doc/accessibility.md) | WCAG 2.1 AA rules, i18n, motion, screen readers  |
