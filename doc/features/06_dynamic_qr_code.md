@@ -1,10 +1,17 @@
-# 6. QR Code Dynamique
+# Feature 06: QR Code Dynamique
 
-**Description** : Le commerçant affiche un gros QR code sur l'écran tactile face client (ou sur son propre téléphone) pour que le client le scanne pour rejoindre la file d'attente, éliminant le besoin d'une pancarte fixe.
+* **Type** : Évolution d'usage (Evolution)
+* **Dépendances** : [Feature 02: Settings (Slug dispo)](./02_merchant_settings.md)
 
-## Implémentation Backend
-* Rien à modifier sur la BDD. La route `/api/qr` ou la logique statique génère une URL contenant l'identifiant du commerçant.
+**Description** : Mettre à disposition un écran dans l'espace commerçant générant un QR Code permanent scannable par le client, renvoyant vers l'URL d'abonnement à la file.
 
-## Implémentation Frontend
-* Utilisation d'un composant comme `react-qr-code` au sein d'une page Next.js `/(dashboard)/qr-display`. 
-* Cette vue devra empêcher la mise en veille de l'écran via l'**API WakeLock** du navigateur.
+## Sous-tâches d'intégration
+
+### Backend (Supabase)
+- [ ] Aucun impact BDD significatif. L'URL cible sera statique (ex: `https://wait-light.app/[slug]/join`).
+
+### Frontend (Next.js)
+- [ ] Ajouter une vue `/(dashboard)/qr-display`.
+- [ ] Intégrer le package NPM `react-qr-code` ou `qrcode.react`.
+- [ ] Paramétrer l'API Navigateur **WakeLock** (pour empêcher l'écran du device du commerçant de s'éteindre s'il pose la tablette face au client).
+- [ ] Ajouter un bouton de téléchargement du QR Code en PDF / Image haute qualité.
