@@ -126,3 +126,8 @@ In accordance with the project's quality requirement, three testing levels are p
 - Resilience test: simulate connection loss and verify automatic reconnection.
 
 > E2E tests run in the CI against a staging Supabase environment (project separate from the production project).
+
+### Gestion du multilangue
+
+- **Gestion du multilangue** : L'application gère le multilangue via l'utilisation de fichiers de traduction. Ces fichiers sont stockés dans le dossier `locales` et contiennent les traductions pour chaque langue. Les traductions sont chargées dynamiquement en fonction de la langue sélectionnée par l'utilisateur.
+
