@@ -1,15 +1,15 @@
-# Consigne projet
+# Project Instructions
 
-- nouveau projet à terminé avant de le rendre
+- New project to be completed before submission
 
-- Dev front / back1
-- Gestion api
+- Front / back dev
+- API management
 - Responsive
-- Sécurité
-- Déploiment Sécu
+- Security
+- Secure deployment
 
-- Tout choix techique doit être justifé
-- Exigent sur le Front
-- Sévère sur les failles (sécu, perf, etc)
+- All technical choices must be justified
+- High expectations on the Frontend
+- Strict on vulnerabilities (security, performance, etc.)
 
-- Techno libre
+- Free choice of technologies
