@@ -1,26 +1,26 @@
-# Document de Justification Technique - Wait-Light
+# Technical Justification Document - Wait-Light
 
-Ce document détaille les choix technologiques et architecturaux effectués pour le projet Wait-Light, ainsi que les mesures prises pour garantir la sécurité et la performance du produit.
+This document details the technological and architectural choices made for the Wait-Light project, as well as the measures taken to ensure the security and performance of the product.
 
-## Choix de la Stack Technique
+## Technology Stack Choices
 
-### Frontend : Next.js (App Router)
+### Frontend: Next.js (App Router)
 
-- Justification : Nous avons choisi Next.js pour son architecture hybride. Le Server-Side Rendering (SSR) est utilisé pour le dashboard marchand afin de garantir une sécurité accrue des données, tandis que le Client-Side Rendering (CSR) est privilégié pour l'interface client pour sa réactivité.
+- Justification: We chose Next.js for its hybrid architecture. Server-Side Rendering (SSR) is used for the merchant dashboard to ensure increased data security, while Client-Side Rendering (CSR) is preferred for the customer interface for its responsiveness.
 
-- Performance : L'optimisation native des images et le "code-splitting" automatique nous permettent d'atteindre un score Lighthouse > 90, crucial pour des clients utilisant la 4G/5G à l'extérieur des commerces.
+- Performance: Native image optimization and automatic code-splitting allow us to achieve a Lighthouse score > 90, which is crucial for customers using 4G/5G outside stores.
 
-### Styling : Tailwind CSS & Framer Motion
+### Styling: Tailwind CSS & Framer Motion
 
-- Justification : Tailwind permet une itération rapide sur le design tout en garantissant un bundle CSS minimal.
+- Justification: Tailwind allows rapid iteration on the design while ensuring a minimal CSS bundle.
 
-- Expérience Utilisateur (UX) : L'utilisation de Framer Motion permet d'animer les changements de position dans la file de manière fluide. Cela réduit la perception du temps d'attente chez l'utilisateur (psychologie de l'attente).
+- User Experience (UX): Using Framer Motion allows animating position changes in the queue smoothly. This reduces the user's perception of wait time (psychology of waiting).
 
-### Backend & Realtime : Supabase (PostgreSQL)
+### Backend & Realtime: Supabase (PostgreSQL)
 
-- Justification : Plutôt que de monter un serveur WebSocket complexe, nous utilisons Supabase Realtime. Cela permet de synchroniser l'état de la file d'attente instantanément entre le marchand (qui appelle un client) et le client (qui voit son rang diminuer) directement via les événements de la base de données.
+- Justification: Rather than setting up a complex WebSocket server, we use Supabase Realtime. This allows synchronizing the queue state instantly between the merchant (who calls a customer) and the customer (who sees their rank decrease) directly via database events.
 
-- **Canaux filtrés (impératif de sécurité et de performance)** : Chaque client Realtime s'abonne à un canal **filtré par `merchant_id`**, pas à la table entière :
+- **Filtered channels (security and performance imperative)**: Each Realtime client subscribes to a channel **filtered by `merchant_id`**, not to the entire table:
     ```ts
     supabase
         .channel(`queue:merchant_id=eq.${merchantId}`)
@@ -36,93 +36,93 @@ Ce document détaille les choix technologiques et architecturaux effectués pour
         )
         .subscribe()
     ```
-    Sans ce filtre, chaque client recevrait les changements de **tous** les commerces → fuite de données + surcharge réseau inacceptable.
+    Without this filter, each client would receive the changes for **all** businesses → data leak + unacceptable network overload.
 
 ### Coexistence TanStack Query + Supabase Realtime
 
-- **Problème potentiel** : TanStack Query gère le cache côté client, mais les mises à jour Realtime arrivent via un canal WebSocket Supabase — les deux mécanismes ne se connaissent pas nativement.
+- **Potential problem**: TanStack Query manages the cache on the client side, but Realtime updates arrive via a Supabase WebSocket channel — the two mechanisms are not natively aware of each other.
 
-- **Stratégie adoptée** : lorsqu'un événement Realtime est reçu, le handler appelle `queryClient.invalidateQueries({ queryKey: ['queue', merchantId] })`. Cette approche simple garantit la cohérence sans logique de merge complexe.
+- **Adopted strategy**: when a Realtime event is received, the handler calls `queryClient.invalidateQueries({ queryKey: ['queue', merchantId] })`. This simple approach guarantees consistency without complex merge logic.
 
-    Pour les mises à jour très fréquentes (file très active), une mise à jour **optimiste du cache** (`queryClient.setQueryData`) peut être privilégiée pour éviter un round-trip réseau inutile.
+    For very frequent updates (highly active queue), an **optimistic cache update** (`queryClient.setQueryData`) can be preferred to avoid an unnecessary network round-trip.
 
-## Sécurité & Robustesse
+## Security & Robustness
 
-Le jury étant sévère sur les failles, nous avons implémenté les couches de protection suivantes :
+Since the jury is strict on vulnerabilities, we implemented the following protection layers:
 
-### Sécurité des données (RLS)
+### Data Security (RLS)
 
-Nous n'utilisons pas d'API "ouverte". Chaque accès à la base de données est filtré par des Row Level Security (RLS) policies au niveau SQL :
+We do not use an "open" API. Every access to the database is filtered by Row Level Security (RLS) policies at the SQL level:
 
-- Un client peut créer un ticket mais ne peut pas modifier celui d'un autre.
-- Un commerçant ne peut agir que sur sa propre file d'attente.
-- Les informations sensibles (noms des autres clients) sont masquées : le client ne reçoit que le nombre de personnes devant lui, pas leur identité.
+- A customer can create a ticket but cannot modify someone else's.
+- A merchant can only act on their own queue.
+- Sensitive information (names of other customers) is masked: the customer only receives the number of people ahead of them, not their identity.
 
-### Protection contre les abus (Anti-Spam)
+### Abuse Protection (Anti-Spam)
 
-Pour éviter qu'un utilisateur malveillant ne sature une file d'attente à distance :
+To prevent a malicious user from filling a queue remotely:
 
-- Rate Limiting : Implémentation d'une limite de requêtes par IP via les Edge Functions.
-- Validation de schéma : Utilisation de Zod pour valider strictement chaque entrée utilisateur côté serveur, empêchant les injections de scripts (XSS) ou de données corrompues.
+- Rate Limiting: Implementation of a request limit per IP via Edge Functions.
+- Schema validation: Use of Zod to strictly validate every user input on the server side, preventing script injections (XSS) or corrupted data.
 
-### Intégrité du Déploiement
+### Deployment Integrity
 
-- **Environment Variables** : Aucune clé secrète n'est committée. Utilisation de variables d'environnement gérées par Vercel (chiffrées au repos). Les clés Supabase `anon` (publique) et `service_role` (secrète, côté serveur uniquement) sont strictement séparées.
+- **Environment Variables**: No secret keys are committed. Use of environment variables managed by Vercel (encrypted at rest). Supabase `anon` (public) and `service_role` (secret, server-side only) keys are strictly separated.
 
-- **Headers de sécurité** : Configuration dans `next.config.ts` :
-    - `Content-Security-Policy` : restreint les sources de scripts/styles pour prévenir XSS.
-    - `X-Frame-Options: DENY` : empêche l'intégration dans des iframes (clickjacking).
-    - `Strict-Transport-Security` : force HTTPS.
-    - `X-Content-Type-Options: nosniff` : empêche le MIME sniffing.
+- **Security Headers**: Configuration in `next.config.ts`:
+    - `Content-Security-Policy`: restricts script/style sources to prevent XSS.
+    - `X-Frame-Options: DENY`: prevents embedding in iframes (clickjacking).
+    - `Strict-Transport-Security`: forces HTTPS.
+    - `X-Content-Type-Options: nosniff`: prevents MIME sniffing.
 
-### RGPD — Consentement Utilisateur
+### GDPR — User Consent
 
-La spec mentionne la conformité RGPD, mais elle nécessite une implémentation concrète dans le flux client :
+The spec mentions GDPR compliance, but it requires a concrete implementation in the user flow:
 
-- **Bannière de consentement** sur le formulaire `/[slug]/join` : _"En rejoignant cette file, vous acceptez que votre prénom soit utilisé pour vous appeler. Il sera supprimé automatiquement à la fin de la session."_ avec un lien vers la politique de confidentialité.
+- **Consent banner** on the `/[slug]/join` form: *"By joining this queue, you agree that your first name will be used to call you. It will be automatically deleted at the end of the session."* with a link to the privacy policy.
 
-- **Droit à l'oubli** : les tickets `done` et `cancelled` sont **purgés automatiquement après 24h** via un Cron Job Supabase (`DELETE FROM queue_items WHERE status IN ('done','cancelled') AND done_at < NOW() - INTERVAL '24 hours'`).
+- **Right to be forgotten**: `done` and `cancelled` tickets are **purged automatically after 24h** via a Supabase Cron Job (`DELETE FROM queue_items WHERE status IN ('done','cancelled') AND done_at < NOW() - INTERVAL '24 hours'`).
 
-- **Minimisation des données** : seul le prénom (ou un surnom) est collecté. Pas d'email, pas de numéro de téléphone, pas de compte obligatoire.
+- **Data minimization**: only the first name (or nickname) is collected. No email, no phone number, no mandatory account.
 
-## Justification Métier & Commercialisation
+## Business Justification & Commercialization
 
-Wait-Light se distingue par sa simplicité de mise en œuvre :
+Wait-Light stands out for its simplicity of implementation:
 
-- Low Barrier to Entry : Pas d'application à télécharger pour le client (PWA/Web mobile).
-- Scalabilité : L'architecture Serverless permet de supporter une montée en charge soudaine (ex: événement spécial, heure de pointe) sans maintenance manuelle du serveur.
-- RGPD : Nous ne collectons que le strict minimum (Nom/Prénom). Les données de la file sont purgées automatiquement après chaque session pour respecter la vie privée.
+- Low Barrier to Entry: No app to download for the customer (PWA/Mobile Web).
+- Scalability: The Serverless architecture allows supporting a sudden increase in load (e.g., special event, peak hour) without manual server maintenance.
+- GDPR: We only collect the strict minimum (Last Name/First Name). Queue data is automatically purged after each session to respect privacy.
 
-## Stratégie de Déploiement
+## Deployment Strategy
 
-- **Vercel** : Choisi pour sa gestion native des branches de "Preview" (indispensable pour les tests en groupe de 3) et son CDN mondial garantissant une latence minimale.
-- **CI/CD Pipeline** : Chaque push sur `main` déclenche via GitHub Actions :
-    1. `pnpm lint` — vérification ESLint.
-    2. `pnpm test` — tests unitaires (Vitest).
-    3. `pnpm build` — vérification du build Next.js.
-    4. Si tout passe → déploiement automatique sur Vercel.
-    - En cas d'échec sur n'importe quelle étape, le déploiement est annulé et une alerte est envoyée.
+- **Vercel**: Chosen for its native management of "Preview" branches (essential for group tests of 3) and its global CDN ensuring minimal latency.
+- **CI/CD Pipeline**: Every push to `main` triggers via GitHub Actions:
+    1. `pnpm lint` — ESLint check.
+    2. `pnpm test` — Unit tests (Vitest).
+    3. `pnpm build` — Next.js build check.
+    4. If everything passes → automatic deployment on Vercel.
+    - In case of failure at any step, the deployment is cancelled and an alert is sent.
 
-## Stratégie de Tests
+## Testing Strategy
 
-Conformément à l'exigence de qualité du projet, trois niveaux de tests sont prévus :
+In accordance with the project's quality requirement, three testing levels are planned:
 
-### Tests Unitaires (Vitest)
+### Unit Tests (Vitest)
 
-- Validation des schémas Zod (inputs malformés, XSS, injection SQL).
-- Logique de calcul de position et de temps d'attente moyen.
-- Fonctions utilitaires (formatage de temps, génération de slugs).
+- Zod schema validation (malformed inputs, XSS, SQL injection).
+- Position and average wait time calculation logic.
+- Utility functions (time formatting, slug generation).
 
-### Tests d'Intégration (Vitest + Supabase local)
+### Integration Tests (Vitest + local Supabase)
 
-- Vérification des RLS policies : s'assurer qu'un client ne peut pas lire les tickets d'un autre marchand.
-- Test du trigger `check_queue_capacity` : comportement à capacité max.
-- Test des Edge Functions avec des payloads valides et invalides.
+- RLS policies check: ensure a customer cannot read another merchant's tickets.
+- `check_queue_capacity` trigger test: behavior at max capacity.
+- Edge Functions test with valid and invalid payloads.
 
-### Tests E2E (Playwright)
+### E2E Tests (Playwright)
 
-- Flux complet **client** : scan URL → rejoindre la file → voir sa position diminuer → recevoir l'alerte.
-- Flux complet **marchand** : connexion → appeler le suivant → voir la file se mettre à jour en temps réel.
-- Test de résilience : simuler une perte de connexion et vérifier la reconnexion automatique.
+- Full **customer** flow: scan URL → join queue → see position decrease → receive alert.
+- Full **merchant** flow: login → call next → see queue update in real-time.
+- Resilience test: simulate connection loss and verify automatic reconnection.
 
-> Les tests E2E tournent dans la CI contre un environnement Supabase de staging (projet séparé du projet de production).
+> E2E tests run in the CI against a staging Supabase environment (project separate from the production project).
