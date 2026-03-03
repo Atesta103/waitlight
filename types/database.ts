@@ -17,6 +17,9 @@ export type Database = {
                     slug: string
                     is_open: boolean
                     avg_wait_time: number | null
+                    logo_url: string | null
+                    default_prep_time_min: number
+                    slug_last_changed_at: string | null
                     created_at: string
                 }
                 Insert: {
@@ -25,6 +28,9 @@ export type Database = {
                     slug: string
                     is_open?: boolean
                     avg_wait_time?: number | null
+                    logo_url?: string | null
+                    default_prep_time_min?: number
+                    slug_last_changed_at?: string | null
                     created_at?: string
                 }
                 Update: {
@@ -33,6 +39,9 @@ export type Database = {
                     slug?: string
                     is_open?: boolean
                     avg_wait_time?: number | null
+                    logo_url?: string | null
+                    default_prep_time_min?: number
+                    slug_last_changed_at?: string | null
                     created_at?: string
                 }
                 Relationships: []
@@ -80,18 +89,24 @@ export type Database = {
                     max_capacity: number
                     welcome_message: string | null
                     qr_regenerated_at: string | null
+                    notifications_enabled: boolean
+                    auto_close_enabled: boolean
                 }
                 Insert: {
                     merchant_id: string
                     max_capacity?: number
                     welcome_message?: string | null
                     qr_regenerated_at?: string | null
+                    notifications_enabled?: boolean
+                    auto_close_enabled?: boolean
                 }
                 Update: {
                     merchant_id?: string
                     max_capacity?: number
                     welcome_message?: string | null
                     qr_regenerated_at?: string | null
+                    notifications_enabled?: boolean
+                    auto_close_enabled?: boolean
                 }
                 Relationships: [
                     {
@@ -142,6 +157,10 @@ export type Database = {
             get_position: {
                 Args: { ticket_id: string }
                 Returns: number
+            }
+            check_slug_available: {
+                Args: { p_slug: string; p_exclude_merchant_id?: string }
+                Returns: boolean
             }
         }
         Enums: Record<string, never>

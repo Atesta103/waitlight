@@ -11,8 +11,8 @@
 
 - [x] Configurer Supabase Auth (Email / Mot de passe) — projet connecté via `.env.local`.
 - [x] Variables d'environnement Supabase configurées (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
-- [ ] Créer la table `merchants` dans Supabase (profil public du commerce lié à `auth.uid()`).
-- [ ] Mettre en place les règles RLS sur `merchants` (le commerçant ne peut modifier que son propre profil).
+- [x] Créer la table `merchants` dans Supabase (profil public du commerce lié à `auth.uid()`).
+- [x] Mettre en place les règles RLS sur `merchants` (le commerçant ne peut modifier que son propre profil).
 
 ### Frontend (Next.js)
 

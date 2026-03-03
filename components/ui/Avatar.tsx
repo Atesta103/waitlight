@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils/cn"
+import Image from "next/image"
 
 type AvatarProps = {
     name: string
+    imageUrl?: string
     className?: string
     size?: "sm" | "md" | "lg"
 }
@@ -41,7 +43,29 @@ function getColorFromName(name: string): string {
     return colors[Math.abs(hash) % colors.length]
 }
 
-function Avatar({ name, className, size = "md" }: AvatarProps) {
+function Avatar({ name, imageUrl, className, size = "md" }: AvatarProps) {
+    if (imageUrl) {
+        return (
+            <span
+                aria-label={name}
+                className={cn(
+                    "relative inline-flex shrink-0 overflow-hidden rounded-full",
+                    avatarSizes[size].split(" ").slice(0, 2).join(" "),
+                    className,
+                )}
+            >
+                <Image
+                    src={imageUrl}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                    sizes="56px"
+                    unoptimized
+                />
+            </span>
+        )
+    }
+
     return (
         <span
             role="img"

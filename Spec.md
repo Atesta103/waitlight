@@ -62,12 +62,12 @@ Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail c
 
 ### Tables
 
-| Table                | Key columns                                                                                                                                    | Description                                                                                                                                                    |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `merchants`          | `id` (PK), `name`, `slug` (Unique), `is_open` (Bool), `avg_wait_time` (calculated)                                                             | Business info and queue state. `avg_wait_time` is updated by a **Postgres trigger** on every `called → done` transition, not manually.                         |
-| `queue_items`        | `id` (PK, UUID v4), `merchant_id` (FK), `customer_name`, `status` (`waiting`/`called`/`done`/`cancelled`), `joined_at`, `called_at`, `done_at` | The "tickets" in the queue. `done_at` is needed to calculate the actual service duration.                                                                      |
-| `settings`           | `merchant_id` (FK), `max_capacity`, `welcome_message`, `qr_regenerated_at`                                                                     | Custom configuration. `qr_regenerated_at` allows the merchant to regenerate their QR Code (invalidating the previous one).                                     |
-| `push_subscriptions` | `id` (PK), `queue_item_id` (FK), `endpoint`, `p256dh`, `auth`, `created_at`                                                                    | Web Push subscriptions associated with a ticket (not an account, as customers are anonymous).                                                                  |
+| Table                | Key columns                                                                                                                                             | Description                                                                                                                                                                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `merchants`          | `id` (PK), `name`, `slug` (Unique), `is_open` (Bool), `avg_wait_time` (calculated), `logo_url` (nullable), `default_prep_time_min` (default 5)          | Business info and queue state. `avg_wait_time` is updated by a **Postgres trigger** on every `called → done` transition, not manually. `logo_url` stores the public URL of the Supabase Storage object. `default_prep_time_min` is used for wait time estimation when no historical data is available. |
+| `queue_items`        | `id` (PK, UUID v4), `merchant_id` (FK), `customer_name`, `status` (`waiting`/`called`/`done`/`cancelled`), `joined_at`, `called_at`, `done_at`          | The "tickets" in the queue. `done_at` is needed to calculate the actual service duration.                                                                                                                                                                                                              |
+| `settings`           | `merchant_id` (FK), `max_capacity`, `welcome_message`, `qr_regenerated_at`, `notifications_enabled` (default true), `auto_close_enabled` (default true) | Custom configuration. `notifications_enabled` gates Web Push delivery. `auto_close_enabled` controls the 5-min auto-done trigger. `qr_regenerated_at` allows the merchant to regenerate their QR Code.                                                                                                 |
+| `push_subscriptions` | `id` (PK), `queue_item_id` (FK), `endpoint`, `p256dh`, `auth`, `created_at`                                                                             | Web Push subscriptions associated with a ticket (not an account, as customers are anonymous).                                                                                                                                                                                                          |
 
 > **Mandatory index (performance)**: position in the queue is calculated dynamically via a `COUNT(*)`. Without an index, every recalculation is a full scan on the entire table.
 >
@@ -127,17 +127,17 @@ CREATE TRIGGER enforce_queue_capacity
 
 ## Routes (Next.js App Router)
 
-| Route                     | Role                                                                                 | Render         | Auth required     |
-| ------------------------- | ------------------------------------------------------------------------------------ | -------------- | ----------------- |
-| `/`                       | Public landing page (product presentation)                                           | SSR            | No                |
-| `/login`                  | Merchant authentication                                                              | CSR            | No                |
-| `/onboarding`             | Merchant account + `slug` creation                                                   | CSR            | Yes (merchant)    |
-| `/[slug]`                 | Public business page (QR landing: open/closed status, est. wait time)                | SSR            | No                |
-| `/[slug]/join`            | Queue joining form (first name + GDPR consent)                                       | CSR            | No                |
-| `/[slug]/wait/[ticketId]` | Real-time position tracking (customer)                                               | CSR + Realtime | No (UUID in URL)  |
-| `/dashboard`              | Real-time merchant queue                                                             | SSR + Realtime | Yes (merchant)    |
-| `/dashboard/settings`     | Manage QR Code, max capacity, welcome message                                        | SSR            | Yes (merchant)    |
-| `/dashboard/stats`        | Footfall statistics                                                                  | SSR            | Yes (merchant)    |
+| Route                     | Role                                                                  | Render         | Auth required    |
+| ------------------------- | --------------------------------------------------------------------- | -------------- | ---------------- |
+| `/`                       | Public landing page (product presentation)                            | SSR            | No               |
+| `/login`                  | Merchant authentication                                               | CSR            | No               |
+| `/onboarding`             | Merchant account + `slug` creation                                    | CSR            | Yes (merchant)   |
+| `/[slug]`                 | Public business page (QR landing: open/closed status, est. wait time) | SSR            | No               |
+| `/[slug]/join`            | Queue joining form (first name + GDPR consent)                        | CSR            | No               |
+| `/[slug]/wait/[ticketId]` | Real-time position tracking (customer)                                | CSR + Realtime | No (UUID in URL) |
+| `/dashboard`              | Real-time merchant queue                                              | SSR + Realtime | Yes (merchant)   |
+| `/dashboard/settings`     | Manage QR Code, max capacity, welcome message                         | SSR            | Yes (merchant)   |
+| `/dashboard/stats`        | Footfall statistics                                                   | SSR            | Yes (merchant)   |
 
 > **Security for `/dashboard/*` routes**: protected by a Next.js middleware verifying the Supabase session cookie. Any unauthenticated access attempt redirects to `/login`.
 
@@ -183,29 +183,47 @@ RETURNS INTEGER AS $$
 $$ LANGUAGE sql SECURITY DEFINER;
 ```
 
+### Slug Availability Check
+
+Slug uniqueness is verified via a **Postgres RPC function** (`SECURITY DEFINER`) to prevent brute-force enumeration of existing slugs through the anon key:
+
+```sql
+CREATE OR REPLACE FUNCTION check_slug_available(p_slug TEXT, p_exclude_merchant_id UUID DEFAULT NULL)
+RETURNS BOOLEAN
+LANGUAGE sql SECURITY DEFINER AS $$
+  SELECT NOT EXISTS (
+    SELECT 1 FROM merchants
+    WHERE slug = p_slug
+      AND (p_exclude_merchant_id IS NULL OR id != p_exclude_merchant_id)
+  );
+$$;
+```
+
+The `p_exclude_merchant_id` parameter lets a merchant re-save their current slug without it being reported as taken.
+
 ## Error States
 
 Every error case must have a dedicated page or component — no blank page or raw error exposed to the user:
 
-| Scenario                              | Page / Behavior                                                                                            |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Inexistent `slug`                     | Custom 404 page "This business does not exist."                                                            |
-| Business closed (`is_open = false`)   | `/[slug]` page displays "The queue is closed for today." with opening time if available.                   |
-| Queue full (`max_capacity` reached)   | `/[slug]/join` page displays "The queue is full, please return later."                                     |
-| Invalid or expired `ticketId`         | `/[slug]/wait/[ticketId]` page displays "This ticket is no longer valid." with a link to join again.       |
-| Realtime connection loss              | Persistent banner + reconnection attempt every 5s (exponential backoff up to 30s).                         |
-| Edge Function error (5xx)             | User-friendly error message + automatic Sentry log.                                                        |
+| Scenario                            | Page / Behavior                                                                                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Inexistent `slug`                   | Custom 404 page "This business does not exist."                                                      |
+| Business closed (`is_open = false`) | `/[slug]` page displays "The queue is closed for today." with opening time if available.             |
+| Queue full (`max_capacity` reached) | `/[slug]/join` page displays "The queue is full, please return later."                               |
+| Invalid or expired `ticketId`       | `/[slug]/wait/[ticketId]` page displays "This ticket is no longer valid." with a link to join again. |
+| Realtime connection loss            | Persistent banner + reconnection attempt every 5s (exponential backoff up to 30s).                   |
+| Edge Function error (5xx)           | User-friendly error message + automatic Sentry log.                                                  |
 
 ## Statistics
 
 The merchant dashboard exposes the following metrics (calculated from `queue_items`):
 
-| Metric                             | Calculation                                                    |
-| ---------------------------------- | -------------------------------------------------------------- |
-| Number of customers served today   | `COUNT(*) WHERE status = 'done' AND DATE(done_at) = TODAY`     |
-| Average wait time                  | `AVG(called_at - joined_at) WHERE status IN ('called','done')` |
-| Abandonment rate                   | `COUNT(cancelled) / COUNT(*) * 100`                            |
-| Footfall by hour                   | `COUNT(*) GROUP BY EXTRACT(HOUR FROM joined_at)`               |
-| Peak frequency                     | Hour with the highest number of `joined_at`                    |
+| Metric                           | Calculation                                                    |
+| -------------------------------- | -------------------------------------------------------------- |
+| Number of customers served today | `COUNT(*) WHERE status = 'done' AND DATE(done_at) = TODAY`     |
+| Average wait time                | `AVG(called_at - joined_at) WHERE status IN ('called','done')` |
+| Abandonment rate                 | `COUNT(cancelled) / COUNT(*) * 100`                            |
+| Footfall by hour                 | `COUNT(*) GROUP BY EXTRACT(HOUR FROM joined_at)`               |
+| Peak frequency                   | Hour with the highest number of `joined_at`                    |
 
 > These metrics are calculated via **Postgres views** (or RPC functions) and cached on the Next.js side with `revalidate` to avoid overloading the database on every render.

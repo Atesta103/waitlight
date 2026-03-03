@@ -160,12 +160,13 @@ _(empty — populate as the project progresses)_
 
 ## 4. Reference Documents
 
-| Document                                         | Purpose                                          |
-| ------------------------------------------------ | ------------------------------------------------ |
-| [`Spec.md`](./Spec.md)                           | Full product specification, data model, RLS, SQL |
-| [`FLOWS.md`](./FLOWS.md)                         | All 4 user flows in detail                       |
-| [`Jusification.md`](./Jusification.md)           | Technical choices rationale                      |
-| [`doc/design-system.md`](./doc/design-system.md) | Design tokens, atoms/molecules/organisms         |
-| [`doc/architecture.md`](./doc/architecture.md)   | Next.js & Supabase patterns to follow            |
-| [`doc/security.md`](./doc/security.md)           | Security checklist for every layer               |
-| [`doc/accessibility.md`](./doc/accessibility.md) | WCAG 2.1 AA rules, i18n, motion, screen readers  |
+| Document                                                                   | Purpose                                                              |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [`Spec.md`](./Spec.md)                                                     | Full product specification, data model, RLS, SQL                     |
+| [`FLOWS.md`](./FLOWS.md)                                                   | All 4 user flows in detail                                           |
+| [`Jusification.md`](./Jusification.md)                                     | Technical choices rationale                                          |
+| [`doc/design-system.md`](./doc/design-system.md)                           | Design tokens, atoms/molecules/organisms                             |
+| [`doc/architecture.md`](./doc/architecture.md)                             | Next.js & Supabase patterns to follow                                |
+| [`doc/security.md`](./doc/security.md)                                     | Security checklist for every layer                                   |
+| [`doc/accessibility.md`](./doc/accessibility.md)                           | WCAG 2.1 AA rules, i18n, motion, screen readers                      |
+| [`doc/features/11_i18n_next_intl.md`](./doc/features/11_i18n_next_intl.md) | i18n task: next-intl setup, component translation, language switcher |

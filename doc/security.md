@@ -37,6 +37,13 @@ Applied on every Edge Function that mutates the DB:
 - Implementation: track counts in Supabase `kv` or use Upstash Redis via `@upstash/ratelimit`.
 - On limit exceeded: return `429` with `Retry-After` header. Never expose the rate limit algorithm in the response body.
 
+#### Slug change rate limit
+
+- Max **1 slug change per hour** per merchant, enforced in `updateMerchantIdentityAction`.
+- Implementation: `merchants.slug_last_changed_at` column (TIMESTAMPTZ) set to `NOW()` on every slug change. The Server Action checks `Date.now() - slug_last_changed_at < 1h` before writing.
+- When the limit is hit, the action returns a user-friendly error with the number of minutes remaining — no `429` is surfaced to the browser (Server Action, not HTTP).
+- Purpose: prevents automated slug enumeration via rapid rename attempts.
+
 ### Input Validation (defense-in-depth)
 
 Three-layer validation for every mutation:
