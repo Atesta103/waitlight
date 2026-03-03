@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react"
 import Link from "next/link"
+import { CheckCircle2 } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Divider } from "@/components/ui/Divider"
@@ -11,11 +12,11 @@ import { SocialAuthButtons } from "@/components/composed/SocialAuthButtons"
 
 type LoginAction = (
     formData: FormData,
-) => Promise<{ data: unknown } | { error: string }>
+) => Promise<{ data?: unknown } | { error: string }>
 
 type SocialAction = (
     provider: "google" | "apple",
-) => Promise<{ data: unknown } | { error: string }>
+) => Promise<{ data: { url: string } } | { error: string }>
 
 type LoginFormProps = {
     /** Server Action — validated with Zod, returns { data } | { error }. */
@@ -25,6 +26,10 @@ type LoginFormProps = {
      * are rendered below the email/password form.
      */
     socialAction?: SocialAction
+    /** Shown as a success banner — used for the ?reset=success redirect. */
+    successMessage?: string
+    /** Shown as an error banner — used for the ?error=auth_callback_error redirect. */
+    initialError?: string
 }
 
 /**
@@ -33,8 +38,13 @@ type LoginFormProps = {
  *
  * TODO: replace hardcoded strings with next-intl keys once i18n is scaffolded.
  */
-function LoginForm({ action, socialAction }: LoginFormProps) {
-    const [error, setError] = useState<string | null>(null)
+function LoginForm({
+    action,
+    socialAction,
+    successMessage,
+    initialError,
+}: LoginFormProps) {
+    const [error, setError] = useState<string | null>(initialError ?? null)
     const [isPending, startTransition] = useTransition()
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -55,6 +65,20 @@ function LoginForm({ action, socialAction }: LoginFormProps) {
             aria-label="Formulaire de connexion"
             className="flex flex-col gap-5"
         >
+            {successMessage ? (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex items-start gap-3 rounded-md border border-feedback-success/30 bg-feedback-success-bg px-4 py-3 text-sm text-feedback-success"
+                >
+                    <CheckCircle2
+                        size={18}
+                        className="mt-0.5 shrink-0"
+                        aria-hidden="true"
+                    />
+                    {successMessage}
+                </div>
+            ) : null}
             {error ? <AuthErrorBanner message={error} /> : null}
 
             <Input
@@ -110,7 +134,12 @@ function LoginForm({ action, socialAction }: LoginFormProps) {
                     <SocialAuthButtons
                         label="Se connecter"
                         onProvider={async (provider) => {
-                            await socialAction(provider)
+                            const result = await socialAction(provider)
+                            if ("error" in result) {
+                                setError(result.error)
+                            } else {
+                                window.location.href = result.data.url
+                            }
                         }}
                         disabled={isPending}
                     />

@@ -1323,7 +1323,7 @@ export default function DesignSystemPage() {
                                                 data: null,
                                             })}
                                             socialAction={async () => ({
-                                                data: null,
+                                                data: { url: "" },
                                             })}
                                         />
                                     </div>
@@ -1338,7 +1338,7 @@ export default function DesignSystemPage() {
                                                 error: "Adresse e-mail ou mot de passe incorrect.",
                                             })}
                                             socialAction={async () => ({
-                                                data: null,
+                                                data: { url: "" },
                                             })}
                                         />
                                     </div>
@@ -1359,7 +1359,7 @@ export default function DesignSystemPage() {
                                                 data: null,
                                             })}
                                             socialAction={async () => ({
-                                                data: null,
+                                                data: { url: "" },
                                             })}
                                         />
                                     </div>
@@ -1374,7 +1374,7 @@ export default function DesignSystemPage() {
                                                 error: "Un compte avec cette adresse existe déjà.",
                                             })}
                                             socialAction={async () => ({
-                                                data: null,
+                                                data: { url: "" },
                                             })}
                                         />
                                     </div>

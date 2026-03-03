@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react"
 import Link from "next/link"
+import { CheckCircle2 } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Divider } from "@/components/ui/Divider"
@@ -11,11 +12,11 @@ import { SocialAuthButtons } from "@/components/composed/SocialAuthButtons"
 
 type RegisterAction = (
     formData: FormData,
-) => Promise<{ data: unknown } | { error: string }>
+) => Promise<{ data: null } | { error: string }>
 
 type SocialAction = (
     provider: "google" | "apple",
-) => Promise<{ data: unknown } | { error: string }>
+) => Promise<{ data: { url: string } } | { error: string }>
 
 type RegisterFormProps = {
     /** Server Action — validated with Zod, returns { data } | { error }. */
@@ -35,6 +36,7 @@ type RegisterFormProps = {
  */
 function RegisterForm({ action, socialAction }: RegisterFormProps) {
     const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState(false)
     const [isPending, startTransition] = useTransition()
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -53,8 +55,41 @@ function RegisterForm({ action, socialAction }: RegisterFormProps) {
 
         startTransition(async () => {
             const result = await action(formData)
-            if ("error" in result) setError(result.error)
+            if ("error" in result) {
+                setError(result.error)
+            } else {
+                setSuccess(true)
+            }
         })
+    }
+
+    if (success) {
+        return (
+            <div
+                role="status"
+                aria-live="polite"
+                className="flex flex-col items-center gap-4 py-6 text-center"
+            >
+                <CheckCircle2
+                    size={48}
+                    className="text-feedback-success"
+                    aria-hidden="true"
+                />
+                <p className="text-base font-medium text-text-primary">
+                    Compte créé&nbsp;!
+                </p>
+                <p className="max-w-xs text-sm text-text-secondary">
+                    Un e-mail de confirmation vous a été envoyé. Cliquez sur le
+                    lien pour activer votre compte, puis connectez-vous.
+                </p>
+                <Link
+                    href="/login"
+                    className="mt-2 text-sm font-medium text-brand-primary hover:underline focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus"
+                >
+                    Aller à la connexion
+                </Link>
+            </div>
+        )
     }
 
     return (
@@ -119,7 +154,12 @@ function RegisterForm({ action, socialAction }: RegisterFormProps) {
                     <SocialAuthButtons
                         label="S'inscrire"
                         onProvider={async (provider) => {
-                            await socialAction(provider)
+                            const result = await socialAction(provider)
+                            if ("error" in result) {
+                                setError(result.error)
+                            } else {
+                                window.location.href = result.data.url
+                            }
                         }}
                         disabled={isPending}
                     />

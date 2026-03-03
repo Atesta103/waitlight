@@ -1,17 +1,31 @@
 import type { Metadata } from "next"
 import { LoginForm } from "@/components/sections/LoginForm"
-import { loginAction } from "@/lib/actions/auth"
+import { loginAction, oauthSignInAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
     title: "Connexion — Wait-Light",
     description: "Connectez-vous à votre espace marchand Wait-Light.",
 }
 
+type LoginPageProps = {
+    searchParams: Promise<{ reset?: string; error?: string }>
+}
+
 /**
  * Login page (Server Component).
- * Delegates UI to the LoginForm organism; injects the server action.
+ * Reads searchParams to display post-redirect success/error banners.
  */
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+    const params = await searchParams
+    const successMessage =
+        params.reset === "success"
+            ? "Mot de passe mis à jour. Vous pouvez vous connecter."
+            : undefined
+    const initialError =
+        params.error === "auth_callback_error"
+            ? "Le lien a expiré ou est invalide. Veuillez réessayer."
+            : undefined
+
     return (
         <>
             <div className="mb-6 text-center">
@@ -23,7 +37,12 @@ export default function LoginPage() {
                 </p>
             </div>
 
-            <LoginForm action={loginAction} />
+            <LoginForm
+                action={loginAction}
+                socialAction={oauthSignInAction}
+                successMessage={successMessage}
+                initialError={initialError}
+            />
         </>
     )
 }

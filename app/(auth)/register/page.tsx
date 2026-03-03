@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { RegisterForm } from "@/components/sections/RegisterForm"
-import { registerAction } from "@/lib/actions/auth"
+import { registerAction, oauthSignInAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
     title: "Créer un compte — Wait-Light",
@@ -25,7 +25,10 @@ export default function RegisterPage() {
                 </p>
             </div>
 
-            <RegisterForm action={registerAction} />
+            <RegisterForm
+                action={registerAction}
+                socialAction={oauthSignInAction}
+            />
         </>
     )
 }
