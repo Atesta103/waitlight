@@ -18,6 +18,10 @@
     2. **Shortcut Catalog (Visual Buttons)**: If the POS is not connectable, the merchant interface offers a grid of large buttons corresponding to the products. The merchant "taps" the items to build the ticket in 2 seconds, without ever using their keyboard.
     3. **Smart Scan (Receipt OCR)**: (more experimental) The merchant uses their smartphone camera to scan one of their outgoing receipts, and the app automatically extracts items and amounts.
 
+- **Little games for customers**
+  - **How to integrate it?**: Create a "Games" section in the merchant interface. The games are displayed on the customer interface when they scan the QR code.
+  - **How to make it fun?**: The games should be simple and quick to play, with a focus on luck and chance. They should also be visually appealing and engaging, with a focus on bright colors and fun animations.
+
 ## Discarded Ideas (Out of Scope)
 
 It is important to keep focus on the main value proposition of the application. Here are ideas that deviate too far from the initial concept or that would require disproportionate efforts compared to their current usefulness:

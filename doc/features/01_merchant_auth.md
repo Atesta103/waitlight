@@ -39,3 +39,4 @@
 - [ ] Add a "Forgot password" link to the login page
 - [ ] Suggest a message of Welcome
 - [ ] Add step skippable to modified settings
+- [ ] Add paywall or licence key

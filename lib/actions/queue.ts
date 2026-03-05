@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 import {
     TicketIdSchema,
     ToggleQueueSchema,
+    JoinQueueSchema,
     type TicketIdInput,
     type ToggleQueueInput,
+    type JoinQueueInput,
 } from "@/lib/validators/queue"
 import type { Database } from "@/types/database"
 
@@ -207,4 +209,84 @@ export async function toggleQueueOpenAction(
     }
 
     return { data: null }
+}
+
+/**
+ * Join the queue as an anonymous customer.
+ * Validates the QR token, checks business state, and inserts a ticket.
+ * No authentication required — customers are anonymous.
+ */
+export async function joinQueueAction(
+    input: JoinQueueInput,
+): Promise<{ data: { ticketId: string; merchantId: string } } | { error: string }> {
+    const parsed = JoinQueueSchema.safeParse(input)
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0]?.message ?? "Données invalides." }
+    }
+
+    const { customerName, token, slug } = parsed.data
+    const supabase = await createClient()
+
+    // ── 1. Look up merchant by slug ──────────────────────────────────────────
+    const { data: merchant, error: merchantError } = await supabase
+        .from("merchants")
+        .select("id, is_open")
+        .eq("slug", slug)
+        .single()
+
+    if (merchantError || !merchant) {
+        return { error: "Commerce introuvable." }
+    }
+
+    if (!merchant.is_open) {
+        return { error: "La file d'attente est actuellement fermée." }
+    }
+
+    // ── 2. Validate QR token ─────────────────────────────────────────────────
+    const { data: tokenValid, error: tokenError } = await supabase.rpc(
+        "validate_qr_token",
+        { p_nonce: token, p_slug: slug },
+    )
+
+    if (tokenError || !tokenValid) {
+        return {
+            error: "Ce QR code a expiré ou a déjà été utilisé. Veuillez scanner le QR code actuel.",
+        }
+    }
+
+    // ── 3. Check capacity ────────────────────────────────────────────────────
+    const { data: settings } = await supabase
+        .from("settings")
+        .select("max_capacity")
+        .eq("merchant_id", merchant.id)
+        .single()
+
+    if (settings) {
+        const { count } = await supabase
+            .from("queue_items")
+            .select("*", { count: "exact", head: true })
+            .eq("merchant_id", merchant.id)
+            .in("status", ["waiting", "called"])
+
+        if ((count ?? 0) >= settings.max_capacity) {
+            return { error: "La file d'attente est pleine. Veuillez réessayer plus tard." }
+        }
+    }
+
+    // ── 4. Insert ticket ─────────────────────────────────────────────────────
+    const { data: ticket, error: insertError } = await supabase
+        .from("queue_items")
+        .insert({
+            merchant_id: merchant.id,
+            customer_name: customerName,
+            status: "waiting",
+        })
+        .select("id")
+        .single()
+
+    if (insertError || !ticket) {
+        return { error: "Impossible de rejoindre la file. Veuillez réessayer." }
+    }
+
+    return { data: { ticketId: ticket.id, merchantId: merchant.id } }
 }
