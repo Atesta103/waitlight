@@ -20,9 +20,9 @@ This document describes the 3 critical flows of the application. They must be va
   INSERT INTO merchants + INSERT INTO settings
     ↓
 [/dashboard]  ←  Automatic redirection
-  → Display generated QR Code from slug
-  → Button "Download QR Code" (PNG)
+  → Access the QR Display screen (rotating secure QR code)
   → Button "Open the queue" (UPDATE merchants SET is_open = true)
+  → QR code starts rotating every 15s — customers can scan to join
 ```
 
 **Points of attention:**
@@ -33,18 +33,25 @@ This document describes the 3 critical flows of the application. They must be va
 
 ---
 
-## Flow 2 — Customer Joins the Queue
+## Flow 2 — Customer Joins the Queue (via Secure Rotating QR Code)
 
 ```
-[Customer scans QR Code]
+[Customer scans rotating QR Code on merchant's screen]
     ↓
-[/[slug]]  →  SSR Page
+  QR encodes: /[slug]/join?token=<one-time-nonce>
+    ↓
+[/[slug]/join?token=abc123]  →  CSR Page
+  ├─ If no token param → "Please scan the QR code at the counter" message
+  ├─ Call validate_qr_token(nonce, slug) RPC (SECURITY DEFINER)
+  │   ├─ If token invalid/expired/already used → "QR code expired" page
+  │   │     + Message: "Please scan the current code on the merchant's screen"
+  │   └─ If token valid → Token marked as used (single-use), proceed ↓
   ├─ If business does not exist → Custom 404
   ├─ If is_open = false → "Queue closed" Page
   ├─ If queue full (count >= max_capacity) → "Queue full" Page
-  └─ Else → Display estimated wait time + "Join" button
+  └─ Else → Display join form
     ↓
-[/[slug]/join]  →  CSR Form
+[Join Form]
   1. Enter first name (or nickname)
   2. GDPR consent (mandatory checkbox)
   3. (Optional) Request permission for Web Push notifications
@@ -65,6 +72,9 @@ This document describes the 3 critical flows of the application. They must be va
 - If the user already has a valid ticket (`waiting` or `called`) in localStorage for this slug, redirect directly to `/wait/[ticketId]` without going through the form again.
 - Web Push permission is requested **after** enrollment (recommended UX pattern: never ask for permission on initial load).
 - The form must be submitted via an Edge Function, not directly via the Supabase client, to allow for IP rate limiting.
+- **Token validation is the first step** — the join form is never shown if the token is invalid. This prevents anyone without physical access to the merchant's screen from joining.
+- **Single-use tokens**: Each QR code token can only be used by one person. If two people scan the same frame, only the first to load the page successfully joins; the second sees an "expired" message and must scan the next rotation.
+- **No direct `/[slug]/join` access**: Without a valid token, the join page only shows an instruction to scan the QR code. There is no manual URL-based joining.
 
 ---
 
@@ -123,7 +133,7 @@ Successful reconnection → Forced data refresh (invalidateQueries)
 
 ---
 
-## Flow 4 — Merchant Dashboard (Real-time)
+## Flow 4 — Merchant Dashboard (Real-time + Rotating QR Display)
 
 ```
 [/dashboard]  →  Initial SSR (list of current tickets)
@@ -136,7 +146,23 @@ Successful reconnection → Forced data refresh (invalidateQueries)
   │  Button "Cancel" → UPDATE status = 'cancelled'         │
   │  Toggle "Open/Close queue" → UPDATE is_open            │
   │  Real-time counter: X people waiting                   │
+  │  Button "Show QR Code" → Opens QR Display view         │
   └───────────────────────────────────────────────────────┘
+    ↓
+  Click "Show QR Code"
+    → Navigate to /(dashboard)/qr-display (fullscreen kiosk view)
+    ↓
+  ┌─ QR Display ──────────────────────────────────────────┐
+  │  Rotating QR code (new token every 15 seconds)         │
+  │  Countdown ring showing time until next rotation        │
+  │  Merchant name + "Scan to join the queue!" subtitle     │
+  │  Fullscreen toggle for kiosk/tablet mode                │
+  │  WakeLock active (screen never sleeps)                  │
+  └───────────────────────────────────────────────────────┘
+    ↓
+  [Customer scans QR]  →  See Flow 2 for token validation + join
+    ↓
+  New ticket appears in dashboard via Realtime (audio chime)
     ↓
   Click "Call next"
     → UPDATE queue_items SET status = 'called' WHERE id = [first ticket]
@@ -146,5 +172,8 @@ Successful reconnection → Forced data refresh (invalidateQueries)
 **Points of attention:**
 
 - The merchant can only call **one customer at a time**: the "Call" button is disabled if a ticket already exists with `status = 'called'`.
-- Closing the queue (`is_open = false`) does not cancel existing tickets — it only prevents new INSERTs.
+- Closing the queue (`is_open = false`) does not cancel existing tickets — it only prevents new INSERTs. The QR display should show a "Queue closed" overlay when `is_open = false`.
 - Dashboard data is protected by RLS: the merchant sees **only** tickets for their `merchant_id`.
+- **Customers join exclusively via QR scan** — there is no manual "Add customer" button. This ensures every person in the queue was physically present at the merchant's location.
+- The **QR Display** can run on a separate device (e.g., a customer-facing tablet) while the merchant manages the queue on their own phone/tablet.
+- If the merchant's device goes offline, QR token generation pauses and a warning banner is shown. The QR display remains on the last valid code until connectivity is restored.
