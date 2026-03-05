@@ -1215,14 +1215,9 @@ export default function DesignSystemPage() {
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
+                                    logoUrl: null,
+                                    defaultPrepTimeMin: 5,
                                 }}
-                                currentWaiting={7}
-                                onSave={(data) =>
-                                    alert(JSON.stringify(data, null, 2))
-                                }
-                                onRegenerateQR={() =>
-                                    alert("QR Code régénéré !")
-                                }
                             />
                         </SubSection>
                     </Section>
