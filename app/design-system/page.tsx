@@ -1128,7 +1128,8 @@ export default function DesignSystemPage() {
                                 merchantId="00000000-0000-0000-0000-000000000001"
                                 initialItems={mockQueue.map((i) => ({
                                     id: i.id,
-                                    merchant_id: "00000000-0000-0000-0000-000000000001",
+                                    merchant_id:
+                                        "00000000-0000-0000-0000-000000000001",
                                     customer_name: i.customerName,
                                     status: i.status,
                                     joined_at: i.joinedAt,
@@ -1223,8 +1224,6 @@ export default function DesignSystemPage() {
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
-                                    logoUrl: null,
-                                    defaultPrepTimeMin: 5,
                                 }}
                             />
                         </SubSection>
