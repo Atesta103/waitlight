@@ -35,6 +35,7 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
         .single()
 
     return (
+
         <JoinClient
             merchant={merchant}
             settings={settings}

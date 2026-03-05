@@ -8,10 +8,11 @@ import {
     Clock,
     XCircle,
     PartyPopper,
+    BellRing,
 } from "lucide-react"
 import type { ReactNode } from "react"
 
-type StatusBannerVariant = "called" | "done" | "closed" | "full" | "error"
+type StatusBannerVariant = "called" | "done" | "closed" | "full" | "error" | "next"
 
 type StatusBannerProps = {
     variant: StatusBannerVariant
@@ -29,6 +30,11 @@ const variantConfig: Record<
         icon: PartyPopper,
         className:
             "border-status-called bg-status-called-bg text-status-called",
+    },
+    next: {
+        icon: BellRing,
+        className:
+            "border-brand-primary bg-brand-primary/10 text-brand-primary",
     },
     done: {
         icon: CheckCircle2,

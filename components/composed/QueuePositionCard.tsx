@@ -94,10 +94,10 @@ function QueuePositionCard({
         )
     }
 
-    // People strictly ahead (position 1 = 0 ahead, position 4 = 3 ahead)
-    const aheadCount = Math.max(0, position - 1)
+    // People strictly ahead
+    const aheadCount = position
     // People behind you
-    const behindCount = Math.max(0, totalWaiting - position)
+    const behindCount = Math.max(0, (totalWaiting || position) - position)
 
     // Dots to render above your dot
     const dotsAhead = Math.min(aheadCount, MAX_DOTS_AHEAD)

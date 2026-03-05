@@ -22,77 +22,6 @@ type QRCodeDisplayProps = {
     className?: string
 }
 
-/* ─── Countdown ring ────────────────────────────────────────────────────────── */
-function CountdownRing({ remaining }: { remaining: number }) {
-    const R = 16
-    const cx = 20
-    const cy = 20
-    const circumference = 2 * Math.PI * R
-    /* fraction of arc still remaining — goes from 1 → 0 */
-    const fraction = remaining / TOTAL_S
-    /* dashoffset: 0 = full ring, circumference = empty ring */
-    const dashOffset = circumference * (1 - fraction)
-
-    /* Color shifts: green ≥ 7 s, orange ≥ 4 s, red < 4 s */
-    const color =
-        remaining >= 7
-            ? "var(--color-feedback-success)"
-            : remaining >= 4
-                ? "var(--color-feedback-warning)"
-                : "var(--color-feedback-error)"
-
-    return (
-        <svg
-            width={40}
-            height={40}
-            viewBox="0 0 40 40"
-            aria-label={`Renouvellement dans ${remaining} secondes`}
-            role="timer"
-        >
-            {/* White disc background so it sits cleanly over the QR corner */}
-            <circle cx={cx} cy={cy} r={19} fill="var(--color-surface-card)" />
-            {/* Track */}
-            <circle
-                cx={cx}
-                cy={cy}
-                r={R}
-                fill="none"
-                strokeWidth={2.5}
-                stroke="var(--color-border-default)"
-            />
-            {/* Progress arc — counter-clockwise: rotate(-90deg) + scaleY(-1) */}
-            <circle
-                cx={cx}
-                cy={cy}
-                r={R}
-                fill="none"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={dashOffset}
-                stroke={color}
-                style={{
-                    transform: "rotate(-90deg) scaleY(-1)",
-                    transformOrigin: `${cx}px ${cy}px`,
-                    transition: "stroke-dashoffset 1s linear, stroke 0.4s ease",
-                }}
-            />
-            {/* Seconds label */}
-            <text
-                x={cx}
-                y={cy}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={10}
-                fontWeight={600}
-                fill={color}
-                style={{ transition: "fill 0.4s ease" }}
-            >
-                {remaining}
-            </text>
-        </svg>
-    )
-}
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
@@ -104,6 +33,7 @@ function QRCodeDisplay({
     const [copied, setCopied] = useState(false)
     const [token, setToken] = useState<string | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
+    const [progress, setProgress] = useState(1) // 0 to 1 for smooth animation
     const [qrVisible, setQrVisible] = useState(false) // Wait for first token
 
     const url = `${baseUrl}/${slug}/join`
@@ -120,6 +50,7 @@ function QRCodeDisplay({
             }
             // Ideally handle error if it fails
             setCountdown(TOTAL_S)
+            setProgress(1)
             setQrVisible(true)
         }, 300)
     }
@@ -134,12 +65,23 @@ function QRCodeDisplay({
         return () => clearInterval(tick)
     }, [])
 
-    /* Per-second countdown */
+    /* Precision timer for smooth animation and exact 0s end */
     useEffect(() => {
-        const tick = setInterval(() => {
-            setCountdown((s) => Math.max(1, s - 1))
-        }, 1000)
-        return () => clearInterval(tick)
+        if (!token) return
+
+        const startTime = Date.now()
+        const endTime = startTime + REFRESH_INTERVAL_MS
+
+        const timer = setInterval(() => {
+            const now = Date.now()
+            const remaining = Math.max(0, endTime - now)
+            const p = remaining / REFRESH_INTERVAL_MS
+            
+            setProgress(p)
+            setCountdown(Math.ceil(remaining / 1000))
+        }, 50) // 20fps for progress updates
+
+        return () => clearInterval(timer)
     }, [token])
 
     const handleCopy = async () => {
@@ -147,6 +89,43 @@ function QRCodeDisplay({
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
+
+    const color =
+        countdown >= 7
+            ? "var(--color-feedback-success)"
+            : countdown >= 4
+                ? "var(--color-feedback-warning)"
+                : "var(--color-feedback-error)"
+
+    // Geometry calculations for pixel-perfect alignment
+    const strokeWidth = 3
+    const qrContainerSize = size + 16 // QR + white padding (rounded-lg)
+    const padding = 8 // larger gap for visibility
+    const viewSize = qrContainerSize + (padding + strokeWidth) * 2
+    
+    const center = viewSize / 2
+    const start = strokeWidth / 2
+    const edge = viewSize - strokeWidth / 2
+    
+    // Exact concentric radius calculation
+    // QR container has rounded-lg (8px). 
+    // The distance from QR edge to stroke center is (padding + strokeWidth/2)
+    const innerRadius = 8
+    const r = innerRadius + padding + strokeWidth / 2
+    
+    // Path d for a rounded rect starting top-center
+    const d = `
+        M ${center} ${start}
+        H ${edge - r}
+        A ${r} ${r} 0 0 1 ${edge} ${start + r}
+        V ${edge - r}
+        A ${r} ${r} 0 0 1 ${edge - r} ${edge}
+        H ${start + r}
+        A ${r} ${r} 0 0 1 ${start} ${edge - r}
+        V ${start + r}
+        A ${r} ${r} 0 0 1 ${start + r} ${start}
+        Z
+    `
 
     return (
         <div
@@ -164,31 +143,85 @@ function QRCodeDisplay({
             </div>
 
             {/* ── QR zone ─────────────────────────────────────────────────── */}
-            <div className="flex flex-col items-center gap-4 px-6 py-5">
-                {/* Frame — CountdownRing badges the top-right corner */}
-                <div className="relative">
-                    {/* Countdown ring — top-right, half-outside the frame */}
-                    <div className="absolute -right-5 -top-5 z-10 drop-shadow-sm">
-                        <CountdownRing remaining={countdown} />
+            <div className="flex flex-col items-center gap-6 px-6 py-8">
+                {/* Countdown Label - Centered above QR */}
+                <div className="flex flex-col items-center gap-1">
+                    <span
+                        className="text-2xl font-bold tabular-nums transition-colors duration-300"
+                        style={{ color }}
+                    >
+                        {countdown}s
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider text-text-secondary">
+                        Prochain code
+                    </span>
+                </div>
+
+                {/* QR Container */}
+                <div 
+                    className="relative flex items-center justify-center"
+                    style={{ width: viewSize, height: viewSize }}
+                >
+                    {/* SVG Progress Border */}
+                    <div className="absolute inset-0 z-0">
+                        <svg
+                            width={viewSize}
+                            height={viewSize}
+                            viewBox={`0 0 ${viewSize} ${viewSize}`}
+                            className="h-full w-full"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            {/* Background track - subtle but visible */}
+                            <path
+                                d={d}
+                                stroke="currentColor"
+                                strokeWidth={strokeWidth}
+                                className="text-text-secondary/10"
+                            />
+                            {/* Animated path */}
+                            <motion.path
+                                d={d}
+                                stroke={color}
+                                strokeWidth={strokeWidth}
+                                strokeLinecap="round"
+                                initial={{ pathLength: 1 }}
+                                animate={{ pathLength: progress }}
+                                transition={{
+                                    duration: progress > 0.95 ? 0 : 0.05,
+                                    ease: "linear",
+                                }}
+                            />
+                        </svg>
                     </div>
 
-                    {/* Fixed-size container — height never shifts during refresh */}
-                    <div
-                        style={{ width: size, height: size }}
-                        className="relative"
+                    {/* QR Code itself */}
+                    <div 
+                        className="relative z-10 overflow-hidden rounded-lg bg-white p-2 shadow-sm"
+                        style={{ 
+                            width: qrContainerSize, 
+                            height: qrContainerSize,
+                            boxShadow: "0 0 0 1px rgba(0,0,0,0.05)" // Subtle inner border
+                        }}
                     >
-                        <QRCodeCanvas
-                            value={qrValue}
-                            size={size}
-                            marginSize={0}
-                            aria-label="QR Code pour rejoindre la file d'attente"
-                            style={{ display: "block", borderRadius: "6px" }}
-                        />
-                        {!qrVisible && (
-                            <div className="absolute inset-0">
-                                <Skeleton className="h-full w-full rounded" />
-                            </div>
-                        )}
+                        <div className="relative flex h-full w-full items-center justify-center">
+                            <QRCodeCanvas
+                                value={qrValue}
+                                size={size}
+                                marginSize={0}
+                                aria-label="QR Code pour rejoindre la file d'attente"
+                                style={{
+                                    display: "block",
+                                    width: "100%",
+                                    height: "100%",
+                                }}
+                            />
+                            {!qrVisible && (
+                                <div className="absolute inset-0 z-20">
+                                    <Skeleton className="h-full w-full rounded" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

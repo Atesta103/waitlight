@@ -87,6 +87,9 @@ CREATE POLICY "settings_owner_all"
     ON settings FOR ALL USING (
         auth.uid() = merchant_id
     );
+CREATE POLICY "settings_public_read"
+    ON settings FOR SELECT USING (true);
+
 
 -- queue_items: anyone can insert (join the queue)
 CREATE POLICY "queue_items_public_insert"
