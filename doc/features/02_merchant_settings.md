@@ -1,51 +1,51 @@
-# Feature 02: Configuration du commerce (Merchant Settings)
+# Feature 02: Merchant Settings (Merchant Settings)
 
-- **Type** : Cœur de l'application (Core)
-- **Dépendances** : [Feature 01: Authentification](./01_merchant_auth.md)
-- **Statut** : ✅ Implémenté (2026-03-03) — tâches additionnelles complétées (2026-03-04)
+- **Type**: Core application (Core)
+- **Dependencies**: [Feature 01: Authentication](./01_merchant_auth.md)
+- **Status**: ✅ Implemented (2026-03-03) — additional tasks completed (2026-03-04)
 
-**Description** : Écran de paramétrage permettant au commerçant enregistré de définir l'identité de sa boutique (nom, logo, URL personnalisée "slug", temps d'attente manuel par défaut) ainsi que la configuration de la file (capacité max, message d'accueil, notifications, fermeture automatique).
+**Description**: Configuration screen allowing the registered merchant to define the identity of their shop (name, logo, custom URL "slug", default manual wait time) as well as the queue configuration (max capacity, welcome message, notifications, auto-close).
 
-## Sous-tâches d'intégration
+## Integration sub-tasks
 
 ### Backend (Supabase)
 
-- [x] Ajouter les colonnes `logo_url` et `default_prep_time_min` dans la table `merchants`.
-- [x] Ajouter les colonnes `notifications_enabled` et `auto_close_enabled` dans la table `settings`.
-- [x] Créer un Storage Bucket public `merchant-logos` (512 Ko max, JPEG/PNG/WebP) avec policies RLS propriétaire.
-- [x] Créer la RPC `check_slug_available(p_slug, p_exclude_merchant_id)` — vérifie la disponibilité d'un slug en excluant le commerçant lui-même.
-- [x] Mettre à jour les actions de modification (`updateMerchantIdentityAction`, `updateQueueSettingsAction`, `regenerateQRAction`) avec session auth + Zod.
+- [x] Add `logo_url` and `default_prep_time_min` columns in the `merchants` table.
+- [x] Add `notifications_enabled` and `auto_close_enabled` columns in the `settings` table.
+- [x] Create a public `merchant-logos` Storage Bucket (max 512 KB, JPEG/PNG/WebP) with owner RLS policies.
+- [x] Create the RPC `check_slug_available(p_slug, p_exclude_merchant_id)` — checks a slug's availability excluding the merchant themselves.
+- [x] Update modification actions (`updateMerchantIdentityAction`, `updateQueueSettingsAction`, `regenerateQRAction`) with auth session + Zod.
 
 ### Frontend (Next.js)
 
-- [x] Page `/(dashboard)/dashboard/settings/page.tsx` — Server Component SSR qui charge les données initiales et les passe au `SettingsPanel`.
-- [x] Composant `SettingsPanel` rewired — séparé en deux sections indépendantes (Identité / Configuration file), chacune avec son propre `useTransition` + Server Action.
-- [x] Upload d'image logo — upload client-side vers `merchant-logos` bucket via le Supabase browser client, URL publique sauvegardée via `updateMerchantIdentityAction`.
-- [x] Validation dynamique du slug avec `SlugInput` branché sur `checkSlugAvailabilitySettingsAction` (exclut le slug actuel du commerçant).
-- [x] Mise à jour du composant `Avatar` pour supporter la prop `imageUrl` (affichage `next/image` si disponible).
-- [x] Formulaires avec retours d'erreur inline et confirmation succès.
+- [x] `/(dashboard)/dashboard/settings/page.tsx` page — SSR Server Component that loads initial data and passes it to the `SettingsPanel`.
+- [x] Rewired `SettingsPanel` component — split into two independent sections (Identity / Queue configuration), each with its own `useTransition` + Server Action.
+- [x] Logo image upload — client-side upload to `merchant-logos` bucket via the Supabase browser client, public URL saved via `updateMerchantIdentityAction`.
+- [x] Dynamic slug validation with `SlugInput` hooked to `checkSlugAvailabilitySettingsAction` (excludes the merchant's current slug).
+- [x] Updated `Avatar` component to support the `imageUrl` prop (`next/image` display if available).
+- [x] Forms with inline error feedback and success confirmation.
 
-## Tâches additionnelles identifiées
+## Identified additional tasks
 
-### Qualité & robustesse
+### Quality & robustness
 
-- [x] **Tests Zod** : Ajouter des tests unitaires pour `MerchantIdentitySchema` et `QueueSettingsSchema` (1 cas valide, 2 cas invalides chacun — règle AGENTS.md §2.6). — 19 tests dans `lib/validators/__tests__/settings.test.ts`.
-- [ ] **Tests d'intégration** : Tester `updateMerchantIdentityAction` et `updateQueueSettingsAction` en environment de test.
-- [x] **Suppression de logo** : Ajouter un bouton "Supprimer le logo" (supprime le fichier Supabase Storage + met `logo_url` à `null`).
+- [x] **Zod Tests**: Add unit tests for `MerchantIdentitySchema` and `QueueSettingsSchema` (1 valid case, 2 invalid cases each — AGENTS.md rule §2.6). — 19 tests in `lib/validators/__tests__/settings.test.ts`.
+- [ ] **Integration Tests**: Test `updateMerchantIdentityAction` and `updateQueueSettingsAction` in test environment.
+- [x] **Logo deletion**: Add a "Delete logo" button (deletes the Supabase Storage file + sets `logo_url` to `null`).
 
-### UX & accessibilité
+### UX & accessibility
 
-- [x] **Preview du logo** avant upload (FileReader API) pour éviter un aller-retour réseau inutile.
-- [x] **Confirmation slug** : Avertir l'utilisateur qu'un changement de slug invalide les QR codes déjà imprimés (Dialog de confirmation).
-- [x] **Navigation** : Ajouter un lien "Paramètres" dans la navigation du dashboard.
+- [x] **Logo preview** before upload (FileReader API) to avoid an unnecessary network round-trip.
+- [x] **Slug confirmation**: Warn the user that a slug change invalidates already printed QR codes (Confirmation dialog).
+- [x] **Navigation**: Add a "Settings" link in the dashboard navigation.
 
-### Sécurité
+### Security
 
-- [x] **Rate limit** sur `updateMerchantIdentityAction` (slug change) — `merchants.slug_last_changed_at` + cooldown 1 h enforced server-side (migration `20260303000001_slug_rate_limit.sql`).
+- [x] **Rate limit** on `updateMerchantIdentityAction` (slug change) — `merchants.slug_last_changed_at` + 1h cooldown enforced server-side (migration `20260303000001_slug_rate_limit.sql`).
 
-## Notes d'architecture
+## Architecture Notes
 
-- Le `SettingsPanel` est divisé en deux sections avec états locaux séparés pour éviter de bloquer la section QR/capacité lors de la sauvegarde de l'identité et inversement.
-- L'upload du logo se fait **côté client** via le browser client Supabase (session anonyme avec policy storage) : la clé `service_role` n'est jamais exposée.
-- La RPC `check_slug_available` est `SECURITY DEFINER` : elle ne laisse pas filtrer les slugs existants via brute-force depuis la clé anon.
-- Le QR Code n'est **pas re-généré après un changement de slug** — le composant React le recalcule côté client depuis le slug mis à jour dans l'état local. La sauvegarde met à jour `merchants.slug` en base.
+- The `SettingsPanel` is divided into two sections with separate local states to avoid blocking the QR/capacity section when saving the identity and vice versa.
+- Logo upload is done **client-side** via the Supabase browser client (anonymous session with storage policy): the `service_role` key is never exposed.
+- The `check_slug_available` RPC is `SECURITY DEFINER`: it does not leak existing slugs via brute-force starting from the anon key.
+- The QR Code is **not re-generated after a slug change** — the React component recalculates it client-side from the slug updated in the local state. The save updates `merchants.slug` in the database.

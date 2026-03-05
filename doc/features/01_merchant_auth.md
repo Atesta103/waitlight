@@ -1,36 +1,40 @@
-# Feature 01: Authentification & Gestion de compte (Merchant Auth)
+# Feature 01: Authentication & Account Management (Merchant Auth)
 
-- **Type** : Cœur de l'application (Core)
-- **Dépendances** : Aucune
+- **Type**: Core application (Core)
+- **Dependencies**: None
 
-**Description** : Permettre aux commerçants de créer un compte sécurisé (inscription/connexion/déconnexion) pour accéder et gérer leur espace Waitlight de manière privée. C'est la base indispensable pour isoler les données de chaque commerce (RLS).
+**Description**: Allow merchants to create a secure account (sign up/sign in/sign out) to access and manage their Waitlight space privately. This is the essential foundation to isolate the data of each business (RLS).
 
-## Sous-tâches d'intégration
+## Integration sub-tasks
 
 ### Backend (Supabase)
 
-- [x] Configurer Supabase Auth (Email / Mot de passe) — projet connecté via `.env.local`.
-- [x] Variables d'environnement Supabase configurées (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
-- [x] Créer la table `merchants` dans Supabase (profil public du commerce lié à `auth.uid()`).
-- [x] Mettre en place les règles RLS sur `merchants` (le commerçant ne peut modifier que son propre profil).
+- [x] Configure Supabase Auth (Email / Password) — project connected via `.env.local`.
+- [x] Supabase environment variables configured (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+- [x] Create the `merchants` table in Supabase (public profile of the business linked to `auth.uid()`).
+- [x] Set up RLS rules on `merchants` (the merchant can only modify their own profile).
 
 ### Frontend (Next.js)
 
-- [x] Vues publiques `/(auth)/login`, `/(auth)/register`, `/(auth)/forgot-password`, `/(auth)/reset-password`.
-- [x] Server Actions validées avec Zod (`loginAction`, `registerAction`, `forgotPasswordAction`, `resetPasswordAction`, `signOutAction`) dans `lib/actions/auth.ts`.
-- [x] Schémas Zod dans `lib/validators/auth.ts` (`LoginSchema`, `RegisterSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`).
-- [x] Clients Supabase séparés : `lib/supabase/client.ts` (browser), `lib/supabase/server.ts` (server), `lib/supabase/middleware.ts` (proxy).
-- [x] `proxy.ts` (Next.js 16) — redirige les non-connectés hors du `/(dashboard)` et inversement.
-- [x] Route `/auth/callback` pour l'échange PKCE (confirmation e-mail + reset password).
-- [x] Bouton "Se déconnecter" dans `/(dashboard)/dashboard/page.tsx` via `signOutAction`.
+- [x] Public views `/(auth)/login`, `/(auth)/register`, `/(auth)/forgot-password`, `/(auth)/reset-password`.
+- [x] Server Actions validated with Zod (`loginAction`, `registerAction`, `forgotPasswordAction`, `resetPasswordAction`, `signOutAction`) in `lib/actions/auth.ts`.
+- [x] Zod schemas in `lib/validators/auth.ts` (`LoginSchema`, `RegisterSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`).
+- [x] Separate Supabase clients: `lib/supabase/client.ts` (browser), `lib/supabase/server.ts` (server), `lib/supabase/middleware.ts` (proxy).
+- [x] `proxy.ts` (Next.js 16) — redirects unauthenticated users away from `/(dashboard)` and vice versa.
+- [x] `/auth/callback` route for PKCE exchange (email confirmation + reset password).
+- [x] "Log out" button in `/(dashboard)/dashboard/page.tsx` via `signOutAction`.
 - [x] Redirection `/` → `/login` (`app/page.tsx`).
-- [x] Gestion des erreurs réseau dans les Server Actions (catch `TypeError: fetch failed`).
-- [x] Bannières de succès/erreur post-redirect sur `/login` (`?reset=success`, `?error=auth_callback_error`).
-- [x] État "Vérifiez votre boîte mail" après inscription réussie dans `RegisterForm`.
+- [x] Network error handling in Server Actions (catch `TypeError: fetch failed`).
+- [x] Success/error banners post-redirect on `/login` (`?reset=success`, `?error=auth_callback_error`).
+- [x] "Check your mailbox" state after successful registration in `RegisterForm`.
 
-### Reste à faire
+### To do
 
-- [x] Activer la confirmation e-mail dans le dashboard Supabase (Auth → Email → "Confirm email").
-- [x] Configurer les URLs autorisées dans Supabase (`Site URL` + `Redirect URLs` → `http://localhost:3000/auth/callback`).
-- [x] Créer la table `merchants` et les politiques RLS associées — migration dans `supabase/migrations/20260302000000_initial_schema.sql`.
-- [x] Lier `auth.uid()` à la table `merchants` à la première connexion — implémenté via `/onboarding` (`lib/actions/onboarding.ts`).
+- [x] Enable email confirmation in the Supabase dashboard (Auth → Email → "Confirm email").
+- [x] Configure authorized URLs in Supabase (`Site URL` + `Redirect URLs` → `http://localhost:3000/auth/callback`).
+- [x] Create the `merchants` table and associated RLS policies — migration in `supabase/migrations/20260302000000_initial_schema.sql`.
+- [x] Link `auth.uid()` to the `merchants` table on first connection — implemented via `/onboarding` (`lib/actions/onboarding.ts`).
+- [ ] Improve the design of the password input (green or red depending on password strength as well as telling what to add to have a strong password)
+- [ ] Suggest a strong password to the user during registration
+- [ ] Add a "Forgot password" link to the login page
+- [ ] Suggest a message of Welcome

@@ -1,66 +1,66 @@
-# Feature 11 : Internationalisation (i18n) — next-intl
+# Feature 11: Internationalization (i18n) — next-intl
 
-- **Type** : Transversale (Cross-cutting concern)
-- **Dépendances** : Toutes les autres features (affecte chaque composant avec du texte)
-- **Priorité** : Haute — requis par `doc/accessibility.md` (WCAG 2.1 AA)
-- **Statut** : ⬜ Non commencé
+- **Type**: Cross-cutting concern
+- **Dependencies**: All other features (affects every component with text)
+- **Priority**: High — required by `doc/accessibility.md` (WCAG 2.1 AA)
+- **Status**: ⬜ Not started
 
-**Description** : Remplacer tout le texte français codé en dur dans les composants JSX par des clés `next-intl`. Ajouter le support du français (`fr`) et de l'anglais (`en`) comme première locale additionnelle obligatoire, avec détection automatique via `Accept-Language` et sélecteur de langue dans le footer.
+**Description**: Replace all hardcoded French text in JSX components with `next-intl` keys. Add support for French (`fr`) and English (`en`) as the first mandatory additional locale, with automatic detection via `Accept-Language` and a language selector in the footer.
 
-> ⚠️ Blocage actuel : `next-intl` n'est pas installé. Tout le texte visible est actuellement en dur en français, en violation directe de `doc/accessibility.md` §Internationalisation.
+> ⚠️ Current blocker: `next-intl` is not installed. All visible text is currently hardcoded in French, in direct violation of `doc/accessibility.md` §Internationalisation.
 
 ---
 
-## Sous-tâches d'intégration
+## Integration sub-tasks
 
 ### Infrastructure
 
-- [ ] Installer `next-intl` (`npm install next-intl`) et documenter l'impact bundle (~30 Ko gzip).
-- [ ] Configurer le middleware `next-intl` dans `proxy.ts` pour la détection de locale via `Accept-Language` et le stockage en cookie.
-- [ ] Ajouter le préfixe de locale aux routes publiques : `/fr/[slug]`, `/en/[slug]` (routes marchands non préfixées ou préfixe optionnel selon décision).
-- [ ] Créer `messages/fr.json` et `messages/en.json` — structure de clés par domaine (auth, onboarding, settings, dashboard, queue, common).
-- [ ] Mettre à jour `next.config.ts` pour le support i18n.
-- [ ] Wrapper les Server Components racines avec `NextIntlClientProvider`.
+- [ ] Install `next-intl` (`npm install next-intl`) and document the bundle impact (~30 KB gzip).
+- [ ] Configure the `next-intl` middleware in `proxy.ts` for locale detection via `Accept-Language` and cookie storage.
+- [ ] Add the locale prefix to public routes: `/fr/[slug]`, `/en/[slug]` (merchant routes non-prefixed or optionally prefixed based on decision).
+- [ ] Create `messages/fr.json` and `messages/en.json` — key structure by domain (auth, onboarding, settings, dashboard, queue, common).
+- [ ] Update `next.config.ts` for i18n support.
+- [ ] Wrap the root Server Components with `NextIntlClientProvider`.
 
-### Traduction des composants
+### Component translation
 
-- [ ] `components/sections/` — tous les organismes (`SettingsPanel`, `LoginForm`, `RegisterForm`, `OnboardingForm`, `QueueList`, `CustomerWaitView`, `DashboardHeader`, `StatsPanel`, `ForgotPasswordForm`, `ResetPasswordForm`).
-- [ ] `components/composed/` — toutes les molécules avec texte visible (`SlugInput`, `QRCodeDisplay`, `CapacityIndicator`, `StatusBanner`, `JoinForm`, `WaitTimeEstimate`, `ConnectionStatus`, `ActivityFeed`, `TicketCard`).
-- [ ] `components/ui/` — atomes avec texte (`Toast`, messages d'erreur `Input` / `Textarea`).
-- [ ] `lib/actions/` — messages d'erreur des Server Actions traduits via `next-intl` (utiliser `getTranslations()` côté serveur).
-- [ ] `lib/validators/` — messages d'erreur Zod traduits (passer la fonction `t()` aux schémas ou utiliser `z.setErrorMap`).
-- [ ] Pages `app/` — `<title>` et balises meta (`metadata`) localisés via `generateMetadata`.
+- [ ] `components/sections/` — all organisms (`SettingsPanel`, `LoginForm`, `RegisterForm`, `OnboardingForm`, `QueueList`, `CustomerWaitView`, `DashboardHeader`, `StatsPanel`, `ForgotPasswordForm`, `ResetPasswordForm`).
+- [ ] `components/composed/` — all molecules with visible text (`SlugInput`, `QRCodeDisplay`, `CapacityIndicator`, `StatusBanner`, `JoinForm`, `WaitTimeEstimate`, `ConnectionStatus`, `ActivityFeed`, `TicketCard`).
+- [ ] `components/ui/` — atoms with text (`Toast`, `Input` / `Textarea` error messages).
+- [ ] `lib/actions/` — Server Actions error messages translated via `next-intl` (use `getTranslations()` server-side).
+- [ ] `lib/validators/` — translated Zod error messages (pass the `t()` function to schemas or use `z.setErrorMap`).
+- [ ] `app/` pages — `<title>` and meta tags (`metadata`) localized via `generateMetadata`.
 
-### UX — sélecteur de langue
+### UX — language selector
 
-- [ ] Créer un composant `LanguageSwitcher` dans `components/ui/` : affiche `Français` / `English` (jamais de drapeaux — règle `doc/accessibility.md`).
-- [ ] Intégrer le sélecteur dans le footer du layout public et du layout dashboard.
-- [ ] Persister le choix de langue dans un cookie (`NEXT_LOCALE`) et le relire au chargement.
+- [ ] Create a `LanguageSwitcher` component in `components/ui/`: displays `Français` / `English` (never flags — `doc/accessibility.md` rule).
+- [ ] Integrate the selector in the footer of the public layout and the dashboard layout.
+- [ ] Persist the language choice in a cookie (`NEXT_LOCALE`) and read it on load.
 
-### Formats localisés
+### Localized formats
 
-- [ ] Remplacer tous les `toLocaleString('fr-FR')` par `Intl.DateTimeFormat` passé la locale active.
-- [ ] Remplacer toutes les unités codées en dur (`"min"`, `"h"`, `"Ko"`) par des formats `Intl.NumberFormat` avec unités.
+- [ ] Replace all `toLocaleString('fr-FR')` with `Intl.DateTimeFormat` passed the active locale.
+- [ ] Replace all hardcoded units (`"min"`, `"h"`, `"Ko"`) with `Intl.NumberFormat` formats with units.
 
 ### Tests
 
-- [ ] Vérifier que chaque clé `fr.json` a son équivalent dans `en.json` (script de lint ou CI check).
-- [ ] Test E2E Playwright : changer la langue via le sélecteur et vérifier l'affichage en anglais sur `/[slug]`.
+- [ ] Verify that every `fr.json` key has its equivalent in `en.json` (lint script or CI check).
+- [ ] Playwright E2E Test: change the language via the selector and verify the display in English on `/[slug]`.
 
 ---
 
-## Décisions à prendre avant l'implémentation
+## Decisions to make before implementation
 
-| Question                        | Options                                                                                | Recommandation                                                                                |
-| ------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Stratégie de routing            | Préfixe obligatoire (`/fr/*`, `/en/*`) vs préfixe optionnel (`/*` = locale par défaut) | Préfixe optionnel pour le français (défaut) — évite de casser les QR Codes imprimés existants |
-| Fallback locale                 | `fr` → `en` ou `en` → `fr`                                                             | `en` comme fallback universel (convention `next-intl`)                                        |
-| Traduction des e-mails Supabase | Hors scope `next-intl` — configurer dans le dashboard Supabase                         | Laisser en français pour l'instant, itérer en v2                                              |
+| Question | Options | Recommendation |
+| --- | --- | --- |
+| Routing strategy | Mandatory prefix (`/fr/*`, `/en/*`) vs optional prefix (`/*` = default locale) | Optional prefix for French (default) — avoids breaking existing printed QR Codes |
+| Fallback locale | `fr` → `en` or `en` → `fr` | `en` as universal fallback (`next-intl` convention) |
+| Supabase email translation | Out of `next-intl` scope — configure in the Supabase dashboard | Leave in French for now, iterate in v2 |
 
 ---
 
-## Notes d'architecture
+## Architecture Notes
 
-- Les Server Actions qui retournent `{ error: string }` doivent utiliser `getTranslations()` de `next-intl/server` — ne **jamais** passer la locale comme paramètre de l'action.
-- Les schémas Zod ne doivent **pas** recevoir de strings traduits hardcodés — utiliser `z.setErrorMap` avec la locale active ou surcharger les messages au niveau de l'action après `safeParse`.
-- Le composant `SlugInput` affiche l'URL publique (`waitlight.app/[slug]`) — cette URL n'est pas traduite, mais les labels autour le sont.
+- Server Actions returning `{ error: string }` must use `getTranslations()` from `next-intl/server` — **never** pass the locale as an action parameter.
+- Zod schemas must **not** receive hardcoded translated strings — use `z.setErrorMap` with the active locale or override messages at the action level after `safeParse`.
+- The `SlugInput` component displays the public URL (`waitlight.app/[slug]`) — this URL is not translated, but the labels around it are.

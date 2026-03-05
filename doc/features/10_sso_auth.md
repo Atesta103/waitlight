@@ -1,18 +1,35 @@
-# Feature 10: Authentification Multicanal (SSO Google/Apple)
+# Feature 10: Multichannel Authentication (Google/Apple SSO)
 
-* **Type** : Évolution de conversion (Evolution)
-* **Dépendances** : [Feature 01: Authentification & Gestion de compte](./01_merchant_auth.md)
+* **Type**: Conversion evolution (Evolution)
+* **Dependencies**: [Feature 01: Authentication & Account Management](./01_merchant_auth.md)
 
-**Description** : Simplifier l'inscription des commerçants avec une authentification tiers rapide (Social Login). Cela réduit la friction à l'inscription.
+**Description**: Simplify merchant registration with fast third-party authentication (Social Login). This reduces friction during sign-up and password fatigue.
 
-## Sous-tâches d'intégration
+## Integration sub-tasks
 
 ### Backend (Supabase)
-- [ ] Activer les fournisseurs Google et Apple dans le panneau d'administration de **Supabase Auth**.
-- [ ] Récupérer les identifiants OAuth auprès de Google (Google Cloud Console) et Apple (Developer Portal) et les lier à Supabase.
-- [ ] S'assurer que le trigger de création automatique du profil `merchants` fonctionne aussi avec les connexions sociales (OAuth).
+- [ ] Enable Google and Apple providers in the **Supabase Auth** administration panel.
+- [ ] Retrieve OAuth credentials from Google (Google Cloud Console) and Apple (Developer Portal) and link them to the Supabase project configuration securely.
+- [ ] Ensure that the PostgreSQL database trigger that automatically creates the `merchants` profile upon user creation (`auth.users` insert trigger) natively handles users created via OAuth without breaking.
 
 ### Frontend (Next.js)
-- [ ] Ajouter les boutons "Continuer avec Google" et "Continuer avec Apple" sur la page `/(auth)/login` et `/(auth)/register`.
-- [ ] Lier les boutons avec la méthode `supabase.auth.signInWithOAuth({ provider: 'google' })`.
-- [ ] Gérer les erreurs de redirection d'authentification (ex: refus OAuth) dans l'URL.
+- [ ] Add highly visible "Continue with Google" and "Continue with Apple" branded buttons on the `/(auth)/login` and `/(auth)/register` pages beneath the email form.
+- [ ] Link these buttons with the `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'http://localhost:3000/auth/callback' } })` client method.
+- [ ] Handle authentication redirection parameters on return (e.g., catching errors if the user cancels the popup).
+
+## Identified additional tasks
+
+### Quality & robustness
+- [ ] **Account Linking**: Handle the edge case where a user first creates an account with `john@example.com` + Password, and later clicks "Continue with Google" using the same email address. Supabase Auth must be configured to merge or link these cleanly.
+- [ ] **Apple Private Relay**: If a user selects "Hide My Email" with Apple, ensure the temporary proxy email `...@privaterelay.appleid.com` is safely captured and they can still receive necessary Waitlight notifications.
+
+### UX & accessibility
+- [ ] **Design Guidelines**: Implement the SSO buttons strictly matching Google and Apple's brand guidelines (e.g., Apple button must be black or white with logo, specific corner radii, and padding).
+- [ ] **Error Toasts**: If the OAuth exchange fails, use the `sonner` or `react-hot-toast` libraries to show a friendly error on the login page ("Google authentication cancelled.") instead of a blank screen.
+
+### Security
+- [ ] **Strict Redirect URIs**: Ensure the `Redirect URI` configuration in both Google/Apple and Supabase strictly whitelists the production domain (`https://wait-light.app/auth/callback`) to prevent open redirect vulnerabilities.
+- [ ] **PKCE Flow**: Guarantee the Next.js implementation natively utilizes the PKCE (Proof Key for Code Exchange) flow required for secure Server-Side Rendering (SSR) applications in the `@supabase/ssr` library.
+
+## Architecture Notes
+- By relying entirely on Supabase's managed OAuth flow, the Next.js app never directly visualizes or processes Google/Apple access tokens. The frontend merely initiates a redirect and exchanges a short-lived `#code` for a secure Supabase JWT session cookie inside `middleware.ts` or the `/auth/callback` route.

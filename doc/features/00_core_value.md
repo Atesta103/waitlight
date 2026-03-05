@@ -1,13 +1,28 @@
-# 🎯 L'Intérêt Principal de l'Application (Core Value)
+# 🎯 The Main Goal of the Application (Core Value)
 
-Le but de **Wait-Light** n'est pas d'être une énième application de commande de nourriture en ligne (Click & Collect), mais de **révolutionner la gestion de l'attente sur place**.
+The goal of **Wait-Light** is not to be just another online food ordering application (Click & Collect), but to **revolutionize on-site wait management**.
 
-**Le problème** : Dans les food-trucks, boulangeries, ou fast-foods sans bornes, le client commande au comptoir puis se retrouve bloqué à attendre debout en écoutant un serveur hurler "Le numéro 42 !". C'est stressant pour le commerçant, bruyant, et désagréable pour le client.
+**The problem**: In food trucks, bakeries, or fast-food restaurants without kiosks, the customer orders at the counter and then finds themselves stuck waiting standing up listening to a server shout "Number 42!". It is stressful for the merchant, noisy, and unpleasant for the customer.
 
-**La solution Wait-Light** : Un système d'attente virtuel instantané.
-1. Le client passe sa commande physiquement.
-2. Le commerçant ajoute le client à sa "file d'attente Wait-Light" en 1 clic.
-3. Le client scanne un QR code (sans télécharger d'app) et voit son "ticket virtuel" s'animer en temps réel sur son téléphone. Il peut aller s'asseoir, se promener, et recevoir une alerte quand c'est son tour.
+**The Wait-Light solution**: An instant virtual queue system.
+1. The customer places their order physically.
+2. The merchant adds the customer to their "Wait-Light queue" in 1 click.
+3. The customer scans a QR code (without downloading an app) and sees their "virtual ticket" animated in real time on their phone. They can go sit down, take a walk, and receive an alert when it's their turn.
 
-## 🚫 Ce qui n'est PAS Wait-Light (Hors Périmètre)
-* **La commande en ligne (Le client paie/compose son menu sur son téléphone)** : Cela implique un catalogue, un panier, une gestion des stocks en direct, Stripe (frais), etc. Cela casse la simplicité "1 clic" du produit et entre en concurrence avec Uber Eats ou les bornes de McDonald's. Wait-Light gère l'**attente**, pas la **vente**.
+## 👥 Target Audience & Use Cases
+* **Food Trucks & Pop-up Restaurants**: High volume of orders in a constrained physical space where customers often block the pathway while waiting.
+* **Busy Bakeries & Cafes**: Morning rush hours where waiting inside creates congestion.
+* **Event Catering & Festivals**: Noisy environments where shouting numbers is completely ineffective.
+
+## 📊 Key Success Metrics
+* **For Merchants**: Elimination of the need to shout or physically track down customers. Faster table turnover and reduced counter congestion.
+* **For Customers**: Lower perceived wait time, ability to wait comfortably away from the counter, and a general feeling of VIP service without needing to register or download an app.
+
+## 🚫 What Wait-Light is NOT (Out of Scope)
+* **Online ordering (The customer pays/builds their menu on their phone)**: This implies a catalog, a cart, live inventory management, Stripe (fees), etc. This breaks the "1 click" simplicity of the product and competes with Uber Eats or McDonald's kiosks. Wait-Light manages the **wait**, not the **sale**.
+* **Complex table reservation**: We handle active, on-site, fast-turnaround queues, not long-term bookings.
+
+## 🏗️ Core Architecture & Foundation
+* **Frictionless Onboarding**: Customers must be able to join the queue by simply pointing their phone camera at a code. Absolute zero install constraint.
+* **Real-time Sync**: The connection between the merchant's tablet and the customer's phone must feel instantaneous (powered by Supabase Realtime).
+* **Privacy by Design**: No personal data (PII) is durably stored about the customer. The queue session is highly ephemeral.
