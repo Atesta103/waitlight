@@ -15,11 +15,9 @@ const TOTAL_S = REFRESH_INTERVAL_MS / 1000
 
 type QRCodeDisplayProps = {
     slug: string
-    merchantName: string
     baseUrl?: string
     /** Pixel size of the QR code. Default 220. */
     size?: number
-    showFullscreenButton?: boolean
     className?: string
 }
 
@@ -117,7 +115,7 @@ function CornerBracket({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
     slug,
-    baseUrl = "https://waitlight.app",
+    baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
     size = 220,
     className,
 }: QRCodeDisplayProps) {

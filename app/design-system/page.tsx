@@ -1048,11 +1048,7 @@ export default function DesignSystemPage() {
                         title="Molecules — Côté Marchand"
                     >
                         <SubSection title="QRCodeDisplay">
-                            <QRCodeDisplay
-                                slug="boulangerie-martin"
-                                merchantName="Boulangerie Martin"
-                                showFullscreenButton={false}
-                            />
+                            <QRCodeDisplay slug="boulangerie-martin" />
                         </SubSection>
 
                         <SubSection title="ConfirmDialog">

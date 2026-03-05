@@ -44,9 +44,7 @@ export default async function QrDisplayPage() {
 
             <QRCodeDisplay
                 slug={merchant.slug}
-                merchantName={merchant.name}
                 size={280}
-                showFullscreenButton
             />
 
             <p className="max-w-xs text-center text-xs text-text-secondary print:hidden">
