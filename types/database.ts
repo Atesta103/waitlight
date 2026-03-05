@@ -117,6 +117,40 @@ export type Database = {
                     },
                 ]
             }
+            qr_tokens: {
+                Row: {
+                    id: string
+                    merchant_id: string
+                    nonce: string
+                    used: boolean
+                    created_at: string
+                    expires_at: string
+                }
+                Insert: {
+                    id?: string
+                    merchant_id: string
+                    nonce: string
+                    used?: boolean
+                    created_at?: string
+                    expires_at?: string
+                }
+                Update: {
+                    id?: string
+                    merchant_id?: string
+                    nonce?: string
+                    used?: boolean
+                    created_at?: string
+                    expires_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "qr_tokens_merchant_id_fkey"
+                        columns: ["merchant_id"]
+                        referencedRelation: "merchants"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
             push_subscriptions: {
                 Row: {
                     id: string
@@ -160,6 +194,10 @@ export type Database = {
             }
             check_slug_available: {
                 Args: { p_slug: string; p_exclude_merchant_id?: string }
+                Returns: boolean
+            }
+            validate_qr_token: {
+                Args: { p_nonce: string; p_slug: string }
                 Returns: boolean
             }
         }

@@ -1,49 +1,46 @@
 import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
-import { signOutAction } from "@/lib/actions/auth"
-import { Button } from "@/components/ui/Button"
+import { getQueueAction } from "@/lib/actions/queue"
+import { QueueSection } from "./QueueSection"
 
 export const metadata: Metadata = {
-    title: "Dashboard — Wait-Light",
+    title: "Tableau de bord — Wait-Light",
 }
 
 /**
- * Dashboard home page.
- * Shows the authenticated user's email as a placeholder until the full
- * queue management UI is wired up.
+ * Dashboard queue page — main merchant control center.
+ *
+ * Server Component: fetches initial merchant + queue data, then passes to the
+ * QueueSection client organism which subscribes to Realtime for live updates.
  */
 export default async function DashboardPage() {
     const supabase = await createClient()
+
     const {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Fetch merchant profile (name, open state)
+    const { data: merchant } = await supabase
+        .from("merchants")
+        .select("id, name, is_open")
+        .eq("id", user!.id)
+        .single()
+
+    // Fetch initial active queue for SSR hydration
+    const queueResult = await getQueueAction()
+    const initialItems = "data" in queueResult ? queueResult.data : []
+
+    if (!merchant) {
+        return null // layout already redirects if not found
+    }
+
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-text-primary">
-                        Tableau de bord
-                    </h1>
-                    <p className="mt-1 text-sm text-text-secondary">
-                        Connecté en tant que{" "}
-                        <span className="font-medium text-text-primary">
-                            {user?.email}
-                        </span>
-                    </p>
-                </div>
-
-                <form action={signOutAction}>
-                    <Button type="submit" variant="ghost" size="sm">
-                        Se déconnecter
-                    </Button>
-                </form>
-            </div>
-
-            {/* TODO: wire QueueList, StatsPanel, DashboardHeader */}
-            <div className="rounded-lg border border-border-default bg-surface-card p-8 text-center text-text-secondary">
-                La gestion de file arrive bientôt.
-            </div>
-        </div>
+        <QueueSection
+            merchantId={merchant.id}
+            merchantName={merchant.name}
+            initialIsOpen={merchant.is_open}
+            initialItems={initialItems}
+        />
     )
 }
