@@ -107,11 +107,11 @@ function QueuePositionCard({
     const dotsBehind = Math.min(behindCount, MAX_DOTS_BEHIND)
     const hasMoreBehind = behindCount > MAX_DOTS_BEHIND
 
-    const isYourTurn = position === 0
+    const isYourTurn = false
 
     const direction =
         prevPositionRef.current !== null &&
-        position < (prevPositionRef.current ?? position)
+            position < (prevPositionRef.current ?? position)
             ? -1
             : 1
 
@@ -137,7 +137,7 @@ function QueuePositionCard({
                             : { type: "spring", stiffness: 300, damping: 28 }
                     }
                 >
-                    <QueueDot variant={isYourTurn ? "ahead" : "you"} />
+                    <QueueDot variant="you" />
                 </motion.div>
 
                 {Array.from({ length: dotsBehind }).map((_, i) => (
@@ -167,31 +167,31 @@ function QueuePositionCard({
                                     prefersReduced
                                         ? false
                                         : {
-                                              y: direction > 0 ? 40 : -40,
-                                              opacity: 0,
-                                          }
+                                            y: direction > 0 ? 40 : -40,
+                                            opacity: 0,
+                                        }
                                 }
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={
                                     prefersReduced
                                         ? undefined
                                         : {
-                                              y: direction > 0 ? -40 : 40,
-                                              opacity: 0,
-                                          }
+                                            y: direction > 0 ? -40 : 40,
+                                            opacity: 0,
+                                        }
                                 }
                                 transition={
                                     prefersReduced
                                         ? { duration: 0 }
                                         : {
-                                              type: "spring",
-                                              stiffness: 400,
-                                              damping: 35,
-                                          }
+                                            type: "spring",
+                                            stiffness: 400,
+                                            damping: 35,
+                                        }
                                 }
                                 className="text-4xl font-bold leading-10 text-text-primary"
                             >
-                                {isYourTurn ? "🎉" : position}
+                                {position}
                             </motion.div>
                         </AnimatePresence>
                     </div>
@@ -216,17 +216,13 @@ function QueuePositionCard({
 
                 {/* Label */}
                 <p className="text-sm font-medium text-text-secondary">
-                    {isYourTurn
-                        ? "C'est votre tour !"
-                        : aheadCount === 0
-                          ? "Vous êtes le prochain !"
-                          : aheadCount === 1
-                            ? "1 personne devant vous"
-                            : `${aheadCount} personnes devant vous`}
+                    {aheadCount === 1
+                        ? "1 personne devant vous"
+                        : `${aheadCount} personnes devant vous`}
                 </p>
 
                 {/* Wait time + estimated clock time */}
-                {estimatedMinutes !== null && !isYourTurn && (
+                {estimatedMinutes !== null && (
                     <>
                         <div className="flex items-center gap-1.5 text-xs text-text-secondary">
                             <Clock size={13} aria-hidden="true" />
@@ -234,8 +230,8 @@ function QueuePositionCard({
                                 {estimatedMinutes < 1
                                     ? "Moins d'une minute"
                                     : estimatedMinutes === 1
-                                      ? "~1 minute"
-                                      : `~${estimatedMinutes} min`}
+                                        ? "~1 minute"
+                                        : `~${estimatedMinutes} min`}
                             </span>
                         </div>
                         {estimatedMinutes >= 1 && (

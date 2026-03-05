@@ -23,6 +23,7 @@ See [Feature 06: Secure Rotating QR Code](./06_dynamic_qr_code.md) for full QR i
 - [ ] Set up secure Row Level Security (RLS) policies: merchant X only sees/modifies `queue_items` for `merchant_id = X`.
 - [ ] Write state change mutations (Server Actions): `callTicketAction` (`status = called`), `completeTicketAction` (`status = done`), `cancelTicketAction` (`status = cancelled`).
 - [ ] Implement database indexes on `merchant_id` and `status` to optimize real-time queries.
+- [ ] Setup Supabase Realtime to push updates to the frontend.
 
 ### Frontend (Next.js)
 - [ ] Implement the `/(dashboard)/queue` view serving as the main control center.
@@ -56,3 +57,5 @@ See [Feature 06: Secure Rotating QR Code](./06_dynamic_qr_code.md) for full QR i
 - Real-time subscriptions should be used to keep multiple merchant devices (e.g., two tablets in the same shop) perfectly synchronized without manual refreshing.
 - The **QR Display** is a dedicated sub-route (`/(dashboard)/qr-display`) designed for kiosk-mode tablet display. It can also be opened as a split view alongside the queue list on larger screens.
 - Since the merchant no longer manually adds customers, the `addTicketAction` Server Action is removed. Ticket creation is handled by the customer-facing join flow, validated by the QR token system.
+
+- [ ] button for put qrcode in fullscreen

@@ -35,3 +35,21 @@ export const ToggleQueueSchema = z.object({
 })
 
 export type ToggleQueueInput = z.infer<typeof ToggleQueueSchema>
+
+/**
+ * Schema for a customer joining the queue via QR code.
+ */
+export const JoinQueueSchema = z.object({
+    customerName: z
+        .string()
+        .trim()
+        .min(2, "Le prénom doit contenir au moins 2 caractères.")
+        .max(50, "Le prénom ne peut pas dépasser 50 caractères."),
+    consent: z.literal(true, {
+        message: "Vous devez accepter les conditions pour continuer.",
+    }),
+    token: z.string().min(1, "Token QR manquant."),
+    slug: z.string().min(1, "Slug manquant."),
+})
+
+export type JoinQueueInput = z.infer<typeof JoinQueueSchema>

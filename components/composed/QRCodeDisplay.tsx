@@ -8,6 +8,7 @@ import { Copy, Check, Camera } from "lucide-react"
 import { duration } from "@/lib/utils/motion"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { QR_REFRESH_INTERVAL_MS } from "@/lib/utils/qr-token"
+import { generateQrTokenAction } from "@/lib/actions/qr"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
 const REFRESH_INTERVAL_MS = QR_REFRESH_INTERVAL_MS
@@ -37,8 +38,8 @@ function CountdownRing({ remaining }: { remaining: number }) {
         remaining >= 7
             ? "var(--color-feedback-success)"
             : remaining >= 4
-              ? "var(--color-feedback-warning)"
-              : "var(--color-feedback-error)"
+                ? "var(--color-feedback-warning)"
+                : "var(--color-feedback-error)"
 
     return (
         <svg
@@ -101,24 +102,34 @@ function QRCodeDisplay({
     className,
 }: QRCodeDisplayProps) {
     const [copied, setCopied] = useState(false)
-    const [token, setToken] = useState(() =>
-        Math.floor(Date.now() / REFRESH_INTERVAL_MS),
-    )
+    const [token, setToken] = useState<string | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
-    const [qrVisible, setQrVisible] = useState(true)
+    const [qrVisible, setQrVisible] = useState(false) // Wait for first token
 
     const url = `${baseUrl}/${slug}/join`
-    const qrValue = `${url}?t=${token}`
+    const qrValue = token ? `${url}?t=${token}` : url
+
+    const fetchToken = async () => {
+        setQrVisible(false)
+        const result = await generateQrTokenAction()
+
+        // Wait for skeleton animation
+        setTimeout(() => {
+            if ("data" in result) {
+                setToken(result.data.nonce)
+            }
+            // Ideally handle error if it fails
+            setCountdown(TOTAL_S)
+            setQrVisible(true)
+        }, 300)
+    }
 
     /* Rotate token every REFRESH_INTERVAL_MS */
     useEffect(() => {
+        fetchToken() // Initial fetch
+
         const tick = setInterval(() => {
-            setQrVisible(false)
-            setTimeout(() => {
-                setToken(Math.floor(Date.now() / REFRESH_INTERVAL_MS))
-                setCountdown(TOTAL_S)
-                setQrVisible(true)
-            }, 300)
+            fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
     }, [])
