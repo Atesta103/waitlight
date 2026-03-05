@@ -5,9 +5,10 @@ The goal of **Wait-Light** is not to be just another online food ordering applic
 **The problem**: In food trucks, bakeries, or fast-food restaurants without kiosks, the customer orders at the counter and then finds themselves stuck waiting standing up listening to a server shout "Number 42!". It is stressful for the merchant, noisy, and unpleasant for the customer.
 
 **The Wait-Light solution**: An instant virtual queue system.
-1. The customer places their order physically.
-2. The merchant adds the customer to their "Wait-Light queue" in 1 click.
-3. The customer scans a QR code (without downloading an app) and sees their "virtual ticket" animated in real time on their phone. They can go sit down, take a walk, and receive an alert when it's their turn.
+1. The merchant opens the **QR Display** on their tablet or phone, facing the customer line.
+2. The customer scans the **rotating QR code** displayed on the screen (no app download needed) and enters their name to join the queue.
+3. The customer sees their "virtual ticket" animated in real time on their phone. They can go sit down, take a walk, and receive an alert when it's their turn.
+4. The QR code **rotates every 15 seconds** with a cryptographic one-time token — only the person physically in front of the screen can scan and join, preventing fraud and remote queue stuffing.
 
 ## 👥 Target Audience & Use Cases
 * **Food Trucks & Pop-up Restaurants**: High volume of orders in a constrained physical space where customers often block the pathway while waiting.

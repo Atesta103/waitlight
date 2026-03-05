@@ -2,13 +2,14 @@
 
 ## Goal
 
-Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail customers to join a queue via a QR Code and track their progress in real-time on their smartphone, freeing them from physical waiting on site.
+Wait-Light is a virtual queue SaaS application designed for quick-service merchants such as bakeries, food trucks, and fast-food restaurants.
+The workflow is simple and frictionless: the merchant takes the customer's order as usual, then shows a QR code to the customer on their device. The customer scans it to join the virtual queue and tracks their wait status in real-time via a simple web URL on their smartphone, freeing them from the frustration of waiting physically at the counter.
 
 ## Users / Roles
 
-- **Merchant (Admin)**: Creates their business, manages the queue (calls the next customer, cancels, closes the queue), and accesses footfall statistics.
+- **Merchant (Admin)**: Uses a desktop, tablet, or smartphone device to show the QR Code to the customer. They manage the queue (add/call the next customer, finish, cancel order), configure their settings, and access footfall statistics. The merchant interface must be extremely responsive to adapt to portable point-of-sale devices.
 
-- **Customer**: Scans the QR Code, joins the queue with their first name/nickname, and receives a visual/audio notification when their turn approaches.
+- **Customer**: Uses their smartphone (strictly mobile-first experience) to scan the QR Code shown by the merchant. They join the queue (e.g., entering their first name) without downloading any app, and receive visual/audio notifications when their turn approaches.
 
 - **System**: Manages WebSockets for instantaneous updating of queue positions.
 
@@ -38,8 +39,10 @@ Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail c
 
 - **Security**: Rate Limiting on ticket creation to prevent a prankster from filling the queue remotely (Security Severity).
 
-## Mobile First Strategy (UX/UI)
+## UX/UI & Device Strategy
 
+- **Customer (Mobile-First)**: The customer interface is explicitly designed for smartphones. It requires zero installation and must look and feel premium and native.
+- **Merchant (Ultra-Responsive)**: While the merchant dashboard is fully functional on desktop, it is heavily optimized for tablets and smartphones. Merchants will physically manipulate these devices during the rush to show the QR code to customers and manage tickets.
 - **Offline Resilience**: Graceful handling of connection loss (dead zones in stores) with automatic reconnection attempts (`supabase.channel().subscribe()` with exponential backoff) and immediate visual feedback ("Connection lost - Reconnecting..." banner).
 
 - **Touch Targets**: All interactive elements will adhere to a minimum size of 44×44px to accommodate "thumb" touch usage.
@@ -68,6 +71,7 @@ Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail c
 | `queue_items`        | `id` (PK, UUID v4), `merchant_id` (FK), `customer_name`, `status` (`waiting`/`called`/`done`/`cancelled`), `joined_at`, `called_at`, `done_at`          | The "tickets" in the queue. `done_at` is needed to calculate the actual service duration.                                                                                                                                                                                                              |
 | `settings`           | `merchant_id` (FK), `max_capacity`, `welcome_message`, `qr_regenerated_at`, `notifications_enabled` (default true), `auto_close_enabled` (default true) | Custom configuration. `notifications_enabled` gates Web Push delivery. `auto_close_enabled` controls the 5-min auto-done trigger. `qr_regenerated_at` allows the merchant to regenerate their QR Code.                                                                                                 |
 | `push_subscriptions` | `id` (PK), `queue_item_id` (FK), `endpoint`, `p256dh`, `auth`, `created_at`                                                                             | Web Push subscriptions associated with a ticket (not an account, as customers are anonymous).                                                                                                                                                                                                          |
+| `qr_tokens`          | `id` (PK, UUID), `merchant_id` (FK), `nonce` (Unique), `used` (Bool, default false), `created_at`, `expires_at` (default NOW() + 30s)                    | Short-lived, single-use cryptographic tokens embedded in the rotating QR code. Each token is valid for 30 seconds and can only be used once. A cron job purges expired tokens every 5 minutes.                                                                                                         |
 
 > **Mandatory index (performance)**: position in the queue is calculated dynamically via a `COUNT(*)`. Without an index, every recalculation is a full scan on the entire table.
 >
@@ -94,6 +98,12 @@ To ensure max security and prevent a customer from seeing who is in another busi
 - **`push_subscriptions` table**:
     - `INSERT`: Allowed for all (the customer registers their subscription when joining the queue).
     - `SELECT` / `DELETE`: Only via system Edge Functions (never exposed client-side).
+
+- **`qr_tokens` table**:
+    - `INSERT`: Merchant only (`auth.uid() = merchant_id`) — tokens are generated by the merchant's QR Display page.
+    - `SELECT`: Public (anon) for token validation — needed so the join page can check if a token is valid.
+    - `UPDATE` (mark `used`): Only via `SECURITY DEFINER` RPC `validate_qr_token(nonce, slug)` — prevents client-side tampering.
+    - `DELETE`: System only (Supabase Cron Job cleanup of expired tokens).
 
 ### Postgres Trigger — Last line anti-spam defense
 
@@ -132,24 +142,48 @@ CREATE TRIGGER enforce_queue_capacity
 | `/`                       | Public landing page (product presentation)                            | SSR            | No               |
 | `/login`                  | Merchant authentication                                               | CSR            | No               |
 | `/onboarding`             | Merchant account + `slug` creation                                    | CSR            | Yes (merchant)   |
-| `/[slug]`                 | Public business page (QR landing: open/closed status, est. wait time) | SSR            | No               |
-| `/[slug]/join`            | Queue joining form (first name + GDPR consent)                        | CSR            | No               |
+| `/[slug]`                 | Public business landing page (open/closed status, est. wait time)     | SSR            | No               |
+| `/[slug]/join`            | Queue joining form — **requires valid QR token** in URL params        | CSR            | No (token-gated) |
 | `/[slug]/wait/[ticketId]` | Real-time position tracking (customer)                                | CSR + Realtime | No (UUID in URL) |
 | `/dashboard`              | Real-time merchant queue                                              | SSR + Realtime | Yes (merchant)   |
-| `/dashboard/settings`     | Manage QR Code, max capacity, welcome message                         | SSR            | Yes (merchant)   |
+| `/dashboard/qr-display`   | Fullscreen rotating QR code for customer-facing tablet/kiosk          | CSR            | Yes (merchant)   |
+| `/dashboard/settings`     | Max capacity, welcome message, slug management                        | SSR            | Yes (merchant)   |
 | `/dashboard/stats`        | Footfall statistics                                                   | SSR            | Yes (merchant)   |
 
 > **Security for `/dashboard/*` routes**: protected by a Next.js middleware verifying the Supabase session cookie. Any unauthenticated access attempt redirects to `/login`.
 
 ## Business Logic
 
-### QR Code
+### Secure Rotating QR Code
 
-- The URL encoded in the QR is `/[slug]/join`.
-- The QR Code is **generated client-side** (`qrcode.react` lib) from the merchant's `slug`, without database storage (the slug is enough).
-- The merchant can **regenerate their QR** from `/dashboard/settings`, which updates `settings.qr_regenerated_at`. Old `/join` links remain functional (same URL), but the action updates the printed visual.
+The QR code is the **only way for customers to join the queue**. It is displayed on the merchant's screen and rotates every 15 seconds with a cryptographic one-time token to enforce physical presence.
 
-> ⚠️ If the `slug` is compromised (spam), the merchant can **modify** it from settings, physically invalidating the old printed QR Code.
+**How it works:**
+
+1. The merchant opens `/(dashboard)/qr-display` on a tablet or phone facing the customer line.
+2. Every **15 seconds**, a Server Action generates a new `qr_token` (cryptographic nonce via `crypto.randomUUID()` + HMAC-SHA256 with `QR_TOKEN_SECRET`).
+3. The QR code encodes: `/[slug]/join?token=<nonce>` — the token changes with each rotation.
+4. When a customer scans, the `/[slug]/join` page calls the `validate_qr_token` RPC:
+   - Checks the token exists for the correct merchant, is not expired (30s TTL), and has not been used.
+   - Atomically marks the token as `used = true` (single-use).
+   - If invalid → shows _"QR code expired — please scan the current code on the merchant's screen."_
+   - If valid → renders the join form.
+5. A Supabase Cron Job purges expired tokens every 5 minutes.
+
+**Anti-fraud guarantees:**
+
+| Fraud vector | Mitigation |
+| --- | --- |
+| Screenshot sharing via messaging | Token expires in 30s — too slow to share |
+| Scanning from behind / distance | Code rotates every 15s + single-use — only one person per scan frame |
+| Bot / automated queue stuffing | Token required + IP rate limiting (5 joins/IP/min) |
+| Token replay (reuse) | Single-use flag (`used = true`) set atomically on first validation |
+| Token brute-force | High-entropy nonce (UUID + HMAC) — computationally infeasible |
+| Slug compromise (spam) | Merchant can change slug from settings, invalidating all old links |
+
+**Static flyer option:** The merchant can still print a static QR code pointing to `/[slug]` (the landing page, not `/join`) for marketing purposes. This page shows business info and wait estimates but does **not** allow direct queue joining — the customer must scan the live rotating code at the counter.
+
+> ⚠️ `QR_TOKEN_SECRET` is a **server-only** environment variable. It must never be exposed client-side or prefixed with `NEXT_PUBLIC_`.
 
 ### Ticket Lifecycle
 
@@ -210,6 +244,8 @@ Every error case must have a dedicated page or component — no blank page or ra
 | Inexistent `slug`                   | Custom 404 page "This business does not exist."                                                      |
 | Business closed (`is_open = false`) | `/[slug]` page displays "The queue is closed for today." with opening time if available.             |
 | Queue full (`max_capacity` reached) | `/[slug]/join` page displays "The queue is full, please return later."                               |
+| Invalid / expired QR token          | `/[slug]/join` page displays "This QR code has expired. Please scan the current code at the counter." |
+| No token in URL                     | `/[slug]/join` page displays "Please scan the QR code at the merchant's counter to join the queue."  |
 | Invalid or expired `ticketId`       | `/[slug]/wait/[ticketId]` page displays "This ticket is no longer valid." with a link to join again. |
 | Realtime connection loss            | Persistent banner + reconnection attempt every 5s (exponential backoff up to 30s).                   |
 | Edge Function error (5xx)           | User-friendly error message + automatic Sentry log.                                                  |
