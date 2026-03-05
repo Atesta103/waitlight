@@ -28,6 +28,7 @@ export default function RegisterPage() {
             <RegisterForm
                 action={registerAction}
                 socialAction={oauthSignInAction}
+                enabledProviders={["google"]}
             />
         </>
     )

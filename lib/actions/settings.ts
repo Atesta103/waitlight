@@ -1,3 +1,10 @@
+/**
+ * @module actions/settings
+ * @category Actions
+ *
+ * Server Actions for merchant settings management.
+ * Covers merchant identity, queue config, QR regeneration, logo, and slug.
+ */
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
@@ -42,8 +49,16 @@ export type MerchantSettingsData = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Fetch the current merchant + settings row for the authenticated user.
- * Called from the settings Server Component to populate the initial form data.
+ * Fetch the current merchant profile and settings for the authenticated user.
+ *
+ * Used by the settings Server Component to populate initial form values.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Commerce introuvable."` | No `merchants` row found |
+ * | `"Configuration introuvable."` | No `settings` row found |
  */
 export async function getMerchantSettingsAction(): Promise<
     { data: MerchantSettingsData } | { error: string }
@@ -105,10 +120,24 @@ export async function getMerchantSettingsAction(): Promise<
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Update the merchant identity: name, slug, logo_url, default_prep_time_min.
- * Validates input with Zod before any DB call.
- * Enforces a 1-hour cooldown between slug changes to prevent slug enumeration.
- * Returns the new slug so the UI can update its QR Code accordingly.
+ * Update the merchant's display name, public slug, logo URL, and default prep time.
+ *
+ * Enforces a **1-hour cooldown** on slug changes to prevent enumeration attacks.
+ * Returns the new slug so the caller can refresh QR Code rendering.
+ *
+ * @param input - Merchant identity fields. Validated by {@link MerchantIdentitySchema}.
+ * @returns The (potentially new) slug — use it to refresh QR Code rendering.
+ *
+ * **Errors:**
+ * | `error` string | Cause | Postgres code |
+ * |---|---|---|
+ * | Zod message or `"Données invalides."` | Validation failure | — |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user | — |
+ * | `"Commerce introuvable."` | Merchant row not found | — |
+ * | `"Vous devez attendre encore {N} minute(s)..."` | Slug change cooldown (1 h) | — |
+ * | `"Ce slug est déjà utilisé. Choisissez-en un autre."` | Slug uniqueness conflict | `23505` |
+ * | `"Format du slug invalide."` | DB check constraint violation | `23514` |
+ * | `"Erreur lors de la sauvegarde. Veuillez réessayer."` | Other Supabase error | — |
  */
 export async function updateMerchantIdentityAction(
     input: MerchantIdentityInput,
@@ -188,8 +217,16 @@ export async function updateMerchantIdentityAction(
 }
 
 /**
- * Update queue configuration: max_capacity, welcome_message,
- * notifications_enabled, auto_close_enabled.
+ * Update queue configuration: capacity, welcome message, and notification flags.
+ *
+ * @param input - Validated by {@link QueueSettingsSchema}.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | Zod message or `"Données invalides."` | Validation failure |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la sauvegarde. Veuillez réessayer."` | Supabase update failed |
  */
 export async function updateQueueSettingsAction(
     input: QueueSettingsInput,
@@ -228,9 +265,18 @@ export async function updateQueueSettingsAction(
 }
 
 /**
- * Regenerate the QR Code by updating qr_regenerated_at.
- * Does not change the URL — the slug stays intact.
- * The visual QR is re-rendered client-side from the (unchanged) slug.
+ * Trigger a visual QR Code re-render by bumping `qr_regenerated_at`.
+ *
+ * Does **not** change the merchant slug or join URL. The `qr_regenerated_at`
+ * timestamp is used client-side as a React key to force the QR component to remount.
+ *
+ * @returns ISO 8601 timestamp of the bump — used as a React key to force QR remount.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la régénération du QR Code."` | Supabase update failed |
  */
 export async function regenerateQRAction(): Promise<
     { data: { qr_regenerated_at: string } } | { error: string }
@@ -259,9 +305,17 @@ export async function regenerateQRAction(): Promise<
 }
 
 /**
- * Delete the merchant's logo from Supabase Storage and clear logo_url.
- * Lists all files under the merchant's folder and removes them so the
- * caller doesn't need to track the exact file extension.
+ * Remove the merchant's logo from Supabase Storage and clear `logo_url`.
+ *
+ * Lists all files under `merchant-logos/{merchant_id}/` and removes them
+ * (handles any file extension without needing to track the exact name).
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la suppression du logo."` | Storage `list` or `remove` failed |
+ * | `"Erreur lors de la mise à jour du profil."` | `merchants.logo_url` update failed |
  */
 export async function deleteLogoAction(): Promise<
     { data: null } | { error: string }
@@ -307,9 +361,14 @@ export async function deleteLogoAction(): Promise<
 }
 
 /**
- * Check if a slug is available, excluding the calling merchant's own slug.
- * Returns true if available.
- * Called client-side from SlugInput with a 500ms debounce (settings context).
+ * Check if a slug is available, **excluding the calling merchant's own slug**.
+ *
+ * Used in the Settings context so a merchant can re-save their current slug
+ * without it being reported as taken. Called client-side with a 500ms debounce.
+ * Delegates to the `check_slug_available` RPC (`SECURITY DEFINER`).
+ *
+ * @param slug - The slug string to check.
+ * @returns `true` if available, `false` if taken or on any error (safe default).
  */
 export async function checkSlugAvailabilitySettingsAction(
     slug: string,

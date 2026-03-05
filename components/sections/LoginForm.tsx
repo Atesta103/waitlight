@@ -26,6 +26,8 @@ type LoginFormProps = {
      * are rendered below the email/password form.
      */
     socialAction?: SocialAction
+    /** Restrict which OAuth providers are shown. Defaults to all. */
+    enabledProviders?: ("google" | "apple")[]
     /** Shown as a success banner — used for the ?reset=success redirect. */
     successMessage?: string
     /** Shown as an error banner — used for the ?error=auth_callback_error redirect. */
@@ -41,6 +43,7 @@ type LoginFormProps = {
 function LoginForm({
     action,
     socialAction,
+    enabledProviders,
     successMessage,
     initialError,
 }: LoginFormProps) {
@@ -96,6 +99,7 @@ function LoginForm({
                 name="password"
                 autoComplete="current-password"
                 required
+                placeholder="Entrez votre mot de passe"
                 disabled={isPending}
             />
 
@@ -133,6 +137,7 @@ function LoginForm({
                     <Divider label="ou" />
                     <SocialAuthButtons
                         label="Se connecter"
+                        enabledProviders={enabledProviders}
                         onProvider={async (provider) => {
                             const result = await socialAction(provider)
                             if ("error" in result) {

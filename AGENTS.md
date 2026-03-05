@@ -69,6 +69,10 @@ The `doc/` folder is the **single source of truth** for architecture decisions, 
 - Trivial bug fixes with no broader implication.
 - Temporary workarounds (document those in the **Lessons Learned** section instead).
 
+> **`doc/api/` is auto-generated — never edit it manually.**
+> Run `npm run docs` to regenerate from JSDoc in source files.
+> To document a new action or change a parameter description, update the JSDoc in the source file and re-run `npm run docs`.
+
 ---
 
 ## 2. Coding Standards
@@ -170,3 +174,14 @@ _(empty — populate as the project progresses)_
 | [`doc/security.md`](./doc/security.md)                                     | Security checklist for every layer                                   |
 | [`doc/accessibility.md`](./doc/accessibility.md)                           | WCAG 2.1 AA rules, i18n, motion, screen readers                      |
 | [`doc/features/11_i18n_next_intl.md`](./doc/features/11_i18n_next_intl.md) | i18n task: next-intl setup, component translation, language switcher |
+| [`doc/api/README.md`](./doc/api/README.md)                                 | **Auto-generated** TypeDoc index — run `npm run docs` to regenerate  |
+| [`doc/api/actions/auth.md`](./doc/api/actions/auth.md)                     | Login, register, OAuth, password reset, sign out (generated)         |
+| [`doc/api/actions/queue.md`](./doc/api/actions/queue.md)                   | Queue queries & mutations (call, complete, cancel, toggle) (generated)|
+| [`doc/api/actions/settings.md`](./doc/api/actions/settings.md)             | Merchant identity, queue config, QR regeneration, logo, slug (generated)|
+| [`doc/api/actions/onboarding.md`](./doc/api/actions/onboarding.md)         | Merchant creation, slug availability check (generated)               |
+| [`doc/api/actions/qr.md`](./doc/api/actions/qr.md)                         | Cryptographic QR token generation (generated)                        |
+| [`doc/api/auth-callback.md`](./doc/api/auth-callback.md)                   | Auth callback route handler (generated)                              |
+| [`doc/api/proxy.md`](./doc/api/proxy.md)                                   | Dev proxy routing (generated)                                        |
+| [`doc/api/database.md`](./doc/api/database.md)                             | Supabase Database type definitions (generated)                       |
+| [`doc/api/qr-token.md`](./doc/api/qr-token.md)                             | QR token utility — HMAC-SHA256 sign/verify (generated)               |
+| [`doc/api/validators/`](./doc/api/validators/)                             | Zod schemas per domain — auth, queue, settings, onboarding (generated)|

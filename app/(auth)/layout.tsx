@@ -11,9 +11,9 @@ type AuthLayoutProps = {
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
     return (
-        <div className="flex h-screen items-center justify-center overflow-hidden bg-surface-base px-4">
+        <div className="flex min-h-screen items-center justify-center overflow-y-auto bg-surface-base px-4 py-8">
             {/* Content card */}
-            <div className="w-full max-w-sm rounded-lg border border-border-default bg-surface-card p-8 shadow-sm">
+            <div className="my-auto w-full bg-surface-card px-4 py-5 sm:max-w-md sm:rounded-lg sm:border sm:border-border-default sm:px-8 sm:py-5 sm:shadow-sm">
                 {children}
             </div>
         </div>

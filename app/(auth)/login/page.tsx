@@ -7,6 +7,15 @@ export const metadata: Metadata = {
     description: "Connectez-vous à votre espace marchand Wait-Light.",
 }
 
+/** Maps `?error=` query param values to human-readable messages. */
+const ERROR_MESSAGES: Record<string, string> = {
+    auth_callback_error:
+        "Le lien a expiré ou est invalide. Veuillez réessayer.",
+    oauth_cancelled: "Connexion annulée. Vous pouvez réessayer à tout moment.",
+    oauth_error:
+        "La connexion via ce service a échoué. Veuillez réessayer ou utiliser votre e-mail.",
+}
+
 type LoginPageProps = {
     searchParams: Promise<{ reset?: string; error?: string }>
 }
@@ -21,25 +30,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         params.reset === "success"
             ? "Mot de passe mis à jour. Vous pouvez vous connecter."
             : undefined
-    const initialError =
-        params.error === "auth_callback_error"
-            ? "Le lien a expiré ou est invalide. Veuillez réessayer."
-            : undefined
+    const initialError = params.error
+        ? (ERROR_MESSAGES[params.error] ??
+          "Une erreur est survenue. Veuillez réessayer.")
+        : undefined
 
     return (
         <>
-            <div className="mb-6 text-center">
-                <h1 className="text-2xl font-bold text-text-primary">
-                    Connexion
-                </h1>
-                <p className="mt-1 text-sm text-text-secondary">
-                    Bienvenue&nbsp;! Connectez-vous à votre espace marchand.
-                </p>
-            </div>
-
             <LoginForm
                 action={loginAction}
                 socialAction={oauthSignInAction}
+                enabledProviders={["google"]}
                 successMessage={successMessage}
                 initialError={initialError}
             />

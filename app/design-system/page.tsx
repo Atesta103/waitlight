@@ -1112,7 +1112,6 @@ export default function DesignSystemPage() {
                     >
                         <SubSection title="DashboardHeader">
                             <DashboardHeader
-                                merchantName="Boulangerie Martin"
                                 isOpen={dashboardOpen}
                                 waitingCount={
                                     mockQueue.filter(

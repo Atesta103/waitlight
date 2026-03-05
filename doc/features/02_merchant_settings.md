@@ -37,7 +37,7 @@
 
 - [x] **Logo preview** before upload (FileReader API) to avoid an unnecessary network round-trip.
 - [x] **Slug confirmation**: Warn the user that a slug change invalidates already printed QR codes (Confirmation dialog).
-- [x] **Navigation**: Add a "Settings" link in the dashboard navigation.
+- [x] **Navigation**: Settings is accessible via the `UserMenu` dropdown (avatar menu in the dashboard header).
 
 ### Security
 

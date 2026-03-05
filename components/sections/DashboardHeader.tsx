@@ -1,11 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { Toggle } from "@/components/ui/Toggle"
 import { Badge } from "@/components/ui/Badge"
-import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
-import { Store, Users, QrCode } from "lucide-react"
+import { Users, Store } from "lucide-react"
 
 type DashboardHeaderProps = {
     merchantName: string
@@ -25,53 +23,42 @@ function DashboardHeader({
     return (
         <header
             className={cn(
-                "flex flex-col gap-4 rounded-xl border border-border-default bg-surface-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6",
+                "flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border-default bg-surface-card px-4 py-4 sm:px-6",
                 className,
             )}
         >
-            {/* Left: branding + counter */}
-            <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-brand-primary/10 p-2">
+            {/* Merchant identity */}
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary">
                     <Store
-                        size={24}
-                        className="text-brand-primary"
+                        size={15}
+                        className="text-white"
                         aria-hidden="true"
                     />
-                </div>
-                <div>
-                    <h1 className="text-lg font-bold text-text-primary">
-                        {merchantName}
-                    </h1>
-                    <div
-                        className="flex items-center gap-2 text-sm text-text-secondary"
-                        aria-live="polite"
-                        aria-atomic="true"
-                    >
-                        <Users size={14} aria-hidden="true" />
-                        <span>
-                            {waitingCount === 0
-                                ? "Aucun client en attente"
-                                : waitingCount === 1
-                                  ? "1 client en attente"
-                                  : `${waitingCount} clients en attente`}
-                        </span>
-                    </div>
-                </div>
+                </span>
+                <span className="truncate font-semibold text-text-primary">
+                    {merchantName}
+                </span>
             </div>
 
-            {/* Right: QR button + open/close toggle */}
-            <div className="flex items-center gap-3">
-                <Link href="/dashboard/qr-display" tabIndex={-1}>
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        aria-label="Afficher le QR Code pour les clients"
-                    >
-                        <QrCode size={16} aria-hidden="true" />
-                        Afficher QR
-                    </Button>
-                </Link>
+            {/* Waiting counter */}
+            <div
+                className="flex items-center gap-2 text-sm text-text-secondary"
+                aria-live="polite"
+                aria-atomic="true"
+            >
+                <Users size={14} aria-hidden="true" />
+                <span>
+                    {waitingCount === 0
+                        ? "Aucun client"
+                        : waitingCount === 1
+                          ? "1 client"
+                          : `${waitingCount} clients`}
+                </span>
+            </div>
 
+            {/* Status badge + toggle */}
+            <div className="ml-auto flex items-center gap-3">
                 <Badge
                     status={isOpen ? "called" : "cancelled"}
                     showIcon={false}

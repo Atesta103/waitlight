@@ -15,6 +15,11 @@ type SocialAuthButtonsProps = {
     disabled?: boolean
     /** Override label for screen readers / button text. Defaults to "Continuer". */
     label?: "Continuer" | "S'inscrire" | "Se connecter"
+    /**
+     * Which providers to render. Defaults to all.
+     * Pass ["google"] to hide Apple while the Apple Developer account is not set up.
+     */
+    enabledProviders?: Provider[]
     className?: string
 }
 
@@ -85,9 +90,14 @@ function SocialAuthButtons({
     onProvider,
     disabled = false,
     label = "Continuer",
+    enabledProviders,
     className,
 }: SocialAuthButtonsProps) {
     const [loading, setLoading] = useState<Provider | null>(null)
+
+    const visibleProviders = enabledProviders
+        ? PROVIDERS.filter((p) => enabledProviders.includes(p.id))
+        : PROVIDERS
 
     async function handleClick(provider: Provider) {
         if (loading || disabled) return
@@ -101,7 +111,7 @@ function SocialAuthButtons({
 
     return (
         <div className={cn("flex flex-col gap-3", className)}>
-            {PROVIDERS.map(({ id, name, icon }) => (
+            {visibleProviders.map(({ id, name, icon }) => (
                 <button
                     key={id}
                     type="button"

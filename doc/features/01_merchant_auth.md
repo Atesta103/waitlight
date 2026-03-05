@@ -20,10 +20,10 @@
 - [x] Server Actions validated with Zod (`loginAction`, `registerAction`, `forgotPasswordAction`, `resetPasswordAction`, `signOutAction`) in `lib/actions/auth.ts`.
 - [x] Zod schemas in `lib/validators/auth.ts` (`LoginSchema`, `RegisterSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`).
 - [x] Separate Supabase clients: `lib/supabase/client.ts` (browser), `lib/supabase/server.ts` (server), `lib/supabase/middleware.ts` (proxy).
-- [x] `proxy.ts` (Next.js 16) — redirects unauthenticated users away from `/(dashboard)` and vice versa.
+- [x] `proxy.ts` (Next.js 15) — redirects unauthenticated users away from `/(dashboard)` and vice versa. Handles `/` → `/login` or `/dashboard` based on auth state.
 - [x] `/auth/callback` route for PKCE exchange (email confirmation + reset password).
-- [x] "Log out" button in `/(dashboard)/dashboard/page.tsx` via `signOutAction`.
-- [x] Redirection `/` → `/login` (`app/page.tsx`).
+- [x] "Log out" button accessible via the `UserMenu` dropdown in the dashboard header (avatar → "Se déconnecter").
+- [x] Redirection `/` → `/login` or `/dashboard` (handled in `proxy.ts`).
 - [x] Network error handling in Server Actions (catch `TypeError: fetch failed`).
 - [x] Success/error banners post-redirect on `/login` (`?reset=success`, `?error=auth_callback_error`).
 - [x] "Check your mailbox" state after successful registration in `RegisterForm`.
@@ -34,8 +34,8 @@
 - [x] Configure authorized URLs in Supabase (`Site URL` + `Redirect URLs` → `http://localhost:3000/auth/callback`).
 - [x] Create the `merchants` table and associated RLS policies — migration in `supabase/migrations/20260302000000_initial_schema.sql`.
 - [x] Link `auth.uid()` to the `merchants` table on first connection — implemented via `/onboarding` (`lib/actions/onboarding.ts`).
-- [ ] Improve the design of the password input (green or red depending on password strength as well as telling what to add to have a strong password)
-- [ ] Suggest a strong password to the user during registration
-- [ ] Add a "Forgot password" link to the login page
+- [x] Improve the design of the password input (green or red depending on password strength as well as telling what to add to have a strong password)
+- [x] Suggest a strong password to the user during registration
+- [x] Add a "Forgot password" link to the login page
 - [ ] Suggest a message of Welcome
 - [ ] Add step skippable to modified settings

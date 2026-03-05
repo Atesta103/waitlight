@@ -93,25 +93,6 @@ function CountdownRing({ remaining }: { remaining: number }) {
     )
 }
 
-/* ─── L-shaped corner bracket ──────────────────────────────────────────────── */
-function CornerBracket({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
-    const classes = {
-        tl: "top-0 left-0 border-t-2 border-l-2 rounded-tl-lg",
-        tr: "top-0 right-0 border-t-2 border-r-2 rounded-tr-lg",
-        bl: "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-lg",
-        br: "bottom-0 right-0 border-b-2 border-r-2 rounded-br-lg",
-    }
-    return (
-        <span
-            className={cn(
-                "absolute h-6 w-6 border-brand-primary",
-                classes[position],
-            )}
-            aria-hidden="true"
-        />
-    )
-}
-
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
     slug,
@@ -174,12 +155,7 @@ function QRCodeDisplay({
             {/* ── QR zone ─────────────────────────────────────────────────── */}
             <div className="flex flex-col items-center gap-4 px-6 py-5">
                 {/* Frame — CountdownRing badges the top-right corner */}
-                <div className="relative rounded-xl bg-white p-3 shadow-sm ring-1 ring-border-default">
-                    <CornerBracket position="tl" />
-                    <CornerBracket position="tr" />
-                    <CornerBracket position="bl" />
-                    <CornerBracket position="br" />
-
+                <div className="relative">
                     {/* Countdown ring — top-right, half-outside the frame */}
                     <div className="absolute -right-5 -top-5 z-10 drop-shadow-sm">
                         <CountdownRing remaining={countdown} />

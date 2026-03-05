@@ -1,28 +1,22 @@
 /**
- * QR code token validation utilities.
+ * @module qr-token
+ * @category Utilities
  *
- * Strategy
- * --------
- * The merchant dashboard generates a time-slotted token:
- *   token = Math.floor(Date.now() / REFRESH_INTERVAL_MS)
+ * Client-side time-slot token validation for the rotating QR code.
  *
- * The token is embedded in the join URL: `/[slug]/join?t={token}`
+ * **Strategy:** the merchant dashboard generates a time-slotted integer token:
+ * `token = Math.floor(Date.now() / QR_REFRESH_INTERVAL_MS)`.
+ * The token is embedded in the join URL as `/{slug}/join?t={token}`.
  *
- * Invalidation + grace period
- * ---------------------------
- * When the QR code rotates, the previous token is NO longer the current one.
- * However, a customer may have scanned the QR just as it switched and is still
- * navigating to the join URL. We accept the previous token for GRACE_MS after
- * it expired to cover this race condition.
+ * **Grace period:** when the QR rotates, the previous slot is still accepted
+ * for {@link QR_GRACE_MS} ms to cover customers who scanned just before rotation.
  *
- * Timeline example (REFRESH_INTERVAL_MS = 10 s, GRACE_MS = 5 s):
+ * @example
+ * // 10 s slots, 5 s grace window
+ * isQrTokenValid(currentSlot())           // true  (current slot)
+ * isQrTokenValid(currentSlot() - 1)       // true  (if within grace window)
+ * isQrTokenValid(currentSlot() - 2)       // false (too old)
  *
- *   0s ──── slot N valid ──────────── 10s
- *                          9s: customer scans slot N
- *   10s ──── slot N+1 valid ─────────────────── ...
- *   10s ──── slot N grace ──── 15s: slot N rejected
- *                         12s: customer hits server → slot N still valid ✓
- *                         16s: customer hits server → slot N rejected   ✗
  */
 
 /** Must stay in sync with QRCodeDisplay.tsx */

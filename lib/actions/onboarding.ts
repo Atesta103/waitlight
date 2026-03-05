@@ -1,3 +1,9 @@
+/**
+ * @module actions/onboarding
+ * @category Actions
+ *
+ * Server Actions for the merchant onboarding flow (first-time setup).
+ */
 "use server"
 
 import { redirect } from "next/navigation"
@@ -5,9 +11,16 @@ import { createClient } from "@/lib/supabase/server"
 import { OnboardingSchema } from "@/lib/validators/onboarding"
 
 /**
- * Check whether a slug is already taken.
- * Returns true if available, false if taken.
- * Called client-side from SlugInput with a 500ms debounce.
+ * Check whether a slug is already taken (no merchant exclusion).
+ *
+ * Used during onboarding before a merchant row exists. For the settings
+ * context (where the merchant's own slug must be excluded), use
+ * `checkSlugAvailabilitySettingsAction` instead.
+ *
+ * Called client-side from `SlugInput` with a **500ms debounce**.
+ *
+ * @param slug - Slug string to check.
+ * @returns `true` if available, `false` if taken.
  */
 export async function checkSlugAvailabilityAction(
     slug: string,
@@ -23,9 +36,26 @@ export async function checkSlugAvailabilityAction(
 }
 
 /**
- * Create the merchant profile and settings row for the authenticated user.
- * Called on final step of the OnboardingForm.
- * On success, redirects to /dashboard.
+ * Create the `merchants` and `settings` rows for the authenticated user.
+ * Final step of the onboarding wizard.
+ *
+ * On success, redirects to `/dashboard`. If a merchant row already exists
+ * (e.g. duplicate submission), skips creation and redirects directly.
+ *
+ * **Transaction note:** two sequential inserts with manual rollback — if
+ * `settings.insert` fails, the `merchants` row is deleted to stay consistent.
+ *
+ * @param formData - Mapped to {@link OnboardingSchema} before validation.
+ * @returns Redirects to `/dashboard` on success.
+ *
+ * **Errors:**
+ * | `error` string | Cause | Postgres code |
+ * |---|---|---|
+ * | Zod message or `"Données invalides."` | Validation failure | — |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No session | — |
+ * | `"Ce slug est déjà utilisé. Choisissez-en un autre."` | Slug uniqueness conflict | `23505` |
+ * | `"Erreur lors de la création. Veuillez réessayer."` | `merchants.insert` failed | — |
+ * | `"Erreur lors de la configuration. Veuillez réessayer."` | `settings.insert` failed (+ rollback) | — |
  */
 export async function createMerchantAction(formData: {
     name: string

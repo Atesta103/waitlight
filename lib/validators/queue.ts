@@ -1,3 +1,9 @@
+/**
+ * @module validators/queue
+ * @category Validators
+ *
+ * Zod schemas for queue mutation inputs.
+ */
 import { z } from "zod"
 
 /**

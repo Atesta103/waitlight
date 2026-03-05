@@ -2,16 +2,18 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Maximize2 } from "lucide-react"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"
 import { QueueList } from "@/components/sections/QueueList"
-import { ConnectionStatus } from "@/components/composed/ConnectionStatus"
+import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
+import { Button } from "@/components/ui/Button"
 import { toggleQueueOpenAction, getQueueAction } from "@/lib/actions/queue"
 import type { QueueItem } from "@/lib/actions/queue"
-import type { ConnectionState } from "@/components/composed/ConnectionStatus"
 
 type QueueSectionProps = {
     merchantId: string
     merchantName: string
+    merchantSlug: string
     initialIsOpen: boolean
     initialItems: QueueItem[]
 }
@@ -20,10 +22,13 @@ type QueueSectionProps = {
  * QueueSection — client orchestrator for the dashboard control center.
  * Combines DashboardHeader (open/close + counter) and QueueList (live list).
  * Handles queue open/close mutation with optimistic UI.
+ * When the queue is open, renders a two-column layout: queue on the left, QR
+ * code panel on the right.
  */
 export function QueueSection({
     merchantId,
     merchantName,
+    merchantSlug,
     initialIsOpen,
     initialItems,
 }: QueueSectionProps) {
@@ -71,15 +76,40 @@ export function QueueSection({
                     role="status"
                     className="rounded-xl border border-border-default bg-surface-card p-6 text-center text-sm text-text-secondary"
                 >
-                    La file est fermée. Activez-la pour que les clients puissent rejoindre.
+                    La file est fermée. Activez-la pour que les clients puissent
+                    rejoindre.
                 </div>
             )}
 
             {isOpen && (
-                <QueueList
-                    merchantId={merchantId}
-                    initialItems={initialItems}
-                />
+                <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_auto]">
+                    {/* Left — full-width queue list, always rendered when open */}
+                    <QueueList
+                        merchantId={merchantId}
+                        initialItems={initialItems}
+                    />
+
+                    {/* Right — QR code panel */}
+                    <div className="flex flex-col items-center gap-3">
+                        <QRCodeDisplay slug={merchantSlug} size={220} />
+                        <a
+                            href={`/qr?slug=${encodeURIComponent(merchantSlug)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full"
+                        >
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full"
+                                aria-label="Afficher le QR code en plein écran dans un nouvel onglet"
+                            >
+                                <Maximize2 size={14} aria-hidden="true" />
+                                Plein écran
+                            </Button>
+                        </a>
+                    </div>
+                </div>
             )}
         </div>
     )

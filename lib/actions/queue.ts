@@ -1,3 +1,11 @@
+/**
+ * @module actions/queue
+ * @category Actions
+ *
+ * Server Actions for merchant queue management.
+ * All mutations verify merchant ownership before writing (`merchant_id = auth.uid()`).
+ * RLS provides a second enforcement layer in the database.
+ */
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
@@ -9,6 +17,10 @@ import {
 } from "@/lib/validators/queue"
 import type { Database } from "@/types/database"
 
+/**
+ * A live ticket in the queue (only `waiting` and `called` statuses are returned
+ * by {@link getQueueAction}; `done` and `cancelled` are filtered out).
+ */
 export type QueueItem = {
     id: string
     merchant_id: string
@@ -24,8 +36,18 @@ export type QueueItem = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Fetch active queue items (waiting + called) for the authenticated merchant.
- * Only fetches active tickets to keep the dashboard snappy.
+ * Fetch the active queue (status `waiting` and `called`) for the authenticated merchant.
+ *
+ * Results are ordered by `joined_at ASC` (first joined, first shown).
+ * Only active tickets are fetched to keep the dashboard performant.
+ *
+ * @returns Empty array when the queue is empty.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Impossible de charger la file d'attente."` | Supabase query failed |
  */
 export async function getQueueAction(): Promise<
     { data: QueueItem[] } | { error: string }
@@ -60,15 +82,29 @@ export async function getQueueAction(): Promise<
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Mark a ticket as `called`.
- * Verifies merchant ownership before updating.
+ * Transition a ticket from `waiting` → `called`.
+ *
+ * Sets `called_at` to the current UTC timestamp.
+ * Silently no-ops if the ticket is already in `called`, `done`, or `cancelled` state
+ * (idempotency guard via `.eq("status", "waiting")`).
+ *
+ * @param input - Validated by {@link TicketIdSchema}.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Données invalides."` or Zod message | Invalid UUID format |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Impossible d'appeler ce client. Veuillez réessayer."` | Supabase update failed or ticket not in `waiting` |
  */
 export async function callTicketAction(
     input: TicketIdInput,
 ): Promise<{ data: null } | { error: string }> {
     const parsed = TicketIdSchema.safeParse(input)
     if (!parsed.success) {
-        return { error: parsed.error.issues[0]?.message ?? "Données invalides." }
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
     }
 
     const supabase = await createClient()
@@ -98,15 +134,29 @@ export async function callTicketAction(
 }
 
 /**
- * Mark a ticket as `done`.
- * Verifies merchant ownership before updating.
+ * Transition a ticket from `called` → `done`.
+ *
+ * Sets `done_at` to the current UTC timestamp, which triggers the Postgres
+ * function that recalculates `merchants.avg_wait_time`.
+ * Only tickets in `called` state can be completed — use {@link callTicketAction} first.
+ *
+ * @param input - Validated by {@link TicketIdSchema}.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Données invalides."` or Zod message | Invalid UUID format |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Impossible de terminer ce ticket. Veuillez réessayer."` | Supabase update failed or ticket not in `called` |
  */
 export async function completeTicketAction(
     input: TicketIdInput,
 ): Promise<{ data: null } | { error: string }> {
     const parsed = TicketIdSchema.safeParse(input)
     if (!parsed.success) {
-        return { error: parsed.error.issues[0]?.message ?? "Données invalides." }
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
     }
 
     const supabase = await createClient()
@@ -138,16 +188,27 @@ export async function completeTicketAction(
 }
 
 /**
- * Mark a ticket as `cancelled`.
- * Works from both `waiting` and `called` states.
- * Verifies merchant ownership before updating.
+ * Transition a ticket to `cancelled` from either `waiting` or `called`.
+ *
+ * Silently no-ops if the ticket is already `done` or `cancelled`.
+ *
+ * @param input - Validated by {@link TicketIdSchema}.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Données invalides."` or Zod message | Invalid UUID format |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Impossible d'annuler ce ticket. Veuillez réessayer."` | Supabase update failed |
  */
 export async function cancelTicketAction(
     input: TicketIdInput,
 ): Promise<{ data: null } | { error: string }> {
     const parsed = TicketIdSchema.safeParse(input)
     if (!parsed.success) {
-        return { error: parsed.error.issues[0]?.message ?? "Données invalides." }
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
     }
 
     const supabase = await createClient()
@@ -176,7 +237,19 @@ export async function cancelTicketAction(
 }
 
 /**
- * Toggle the queue open/closed state for the authenticated merchant.
+ * Set the queue open/closed state for the authenticated merchant.
+ *
+ * The `merchants.is_open` column is updated immediately. Customer-facing
+ * pages (`/[slug]`) read this value to show a "Queue closed" banner.
+ *
+ * @param input - Validated by {@link ToggleQueueSchema}.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Données invalides."` | Non-boolean value |
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Impossible de modifier l'état de la file. Veuillez réessayer."` | Supabase update failed |
  */
 export async function toggleQueueOpenAction(
     input: ToggleQueueInput,

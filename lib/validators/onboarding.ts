@@ -1,3 +1,9 @@
+/**
+ * @module validators/onboarding
+ * @category Validators
+ *
+ * Zod schema for the merchant onboarding form.
+ */
 import { z } from "zod"
 
 export const OnboardingSchema = z.object({

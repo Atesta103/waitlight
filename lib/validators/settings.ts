@@ -1,3 +1,9 @@
+/**
+ * @module validators/settings
+ * @category Validators
+ *
+ * Zod schemas for merchant settings form inputs.
+ */
 import { z } from "zod"
 
 /**

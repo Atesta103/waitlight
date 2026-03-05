@@ -42,13 +42,10 @@ export default async function QrDisplayPage() {
                 </Link>
             </div>
 
-            <QRCodeDisplay
-                slug={merchant.slug}
-                size={280}
-            />
+            <QRCodeDisplay slug={merchant.slug} size={280} />
 
             <p className="max-w-xs text-center text-xs text-text-secondary print:hidden">
-                Le QR code se renouvelle automatiquement toutes les 15 secondes.
+                Le QR code se renouvelle automatiquement toutes les 10 secondes.
                 Chaque code n'est valable qu'une seule fois.
             </p>
         </div>

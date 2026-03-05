@@ -1,3 +1,9 @@
+/**
+ * @module validators/auth
+ * @category Validators
+ *
+ * Zod schemas for all merchant authentication flows.
+ */
 import { z } from "zod"
 
 /** Reusable email field */
@@ -6,10 +12,23 @@ const emailField = z
     .min(1, "L'adresse e-mail est requise.")
     .email("Adresse e-mail invalide.")
 
-/** Reusable password field (min 8 chars) */
+/** Reusable password field — enforces strong password rules */
 const passwordField = z
     .string()
     .min(8, "Le mot de passe doit contenir au minimum 8 caractères.")
+    .regex(
+        /[A-Z]/,
+        "Le mot de passe doit contenir au moins une lettre majuscule.",
+    )
+    .regex(
+        /[a-z]/,
+        "Le mot de passe doit contenir au moins une lettre minuscule.",
+    )
+    .regex(/\d/, "Le mot de passe doit contenir au moins un chiffre.")
+    .regex(
+        /[^A-Za-z0-9]/,
+        "Le mot de passe doit contenir au moins un caractère spécial.",
+    )
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 

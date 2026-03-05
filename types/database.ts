@@ -1,11 +1,16 @@
 /**
+ * @module database
+ * @category Types
+ *
  * Supabase database types — auto-generated via:
- *   supabase gen types typescript --project-id <ref> > types/database.ts
+ * ```sh
+ * supabase gen types typescript --project-id <ref> > types/database.ts
+ * ```
  *
  * Until the Supabase project is connected, this file provides a minimal
  * placeholder so all helpers and actions compile correctly.
  *
- * TODO: replace with generated types once the Supabase project is set up.
+ * @remarks TODO: replace with generated types once the Supabase project is set up.
  */
 export type Database = {
     public: {

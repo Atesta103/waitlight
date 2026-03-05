@@ -9,6 +9,8 @@ type PasswordInputProps = Omit<
     "type"
 > & {
     label: string
+    /** Optional element rendered to the right of the label (e.g. a generate button). */
+    labelAction?: React.ReactNode
     error?: string
     hint?: string
 }
@@ -19,7 +21,7 @@ type PasswordInputProps = Omit<
  * The `type` attribute is controlled internally — do not pass it.
  */
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-    ({ label, error, hint, className, id, ...props }, ref) => {
+    ({ label, labelAction, error, hint, className, id, ...props }, ref) => {
         const [visible, setVisible] = useState(false)
         const generatedId = useId()
         const inputId = id ?? generatedId
@@ -30,12 +32,15 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
         return (
             <div className="flex flex-col gap-1.5">
-                <label
-                    htmlFor={inputId}
-                    className="text-sm font-medium text-text-primary"
-                >
-                    {label}
-                </label>
+                <div className="flex items-center justify-between">
+                    <label
+                        htmlFor={inputId}
+                        className="text-sm font-medium text-text-primary"
+                    >
+                        {label}
+                    </label>
+                    {labelAction}
+                </div>
 
                 <div className="relative">
                     <input

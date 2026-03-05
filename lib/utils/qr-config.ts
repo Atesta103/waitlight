@@ -1,5 +1,8 @@
 /**
- * QR Rotating Token — centralized configuration constants.
+ * @module qr-config
+ * @category Utilities
+ *
+ * Centralized configuration constants for the rotating QR code system.
  * Edit here to tune timing without hunting across multiple files.
  */
 

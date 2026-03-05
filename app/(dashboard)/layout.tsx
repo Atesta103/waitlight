@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardProviders } from "./providers"
-import { LayoutDashboard, Settings, Store, QrCode } from "lucide-react"
+import { UserMenu } from "@/components/composed/UserMenu"
+import { LayoutDashboard, QrCode } from "lucide-react"
 
 type DashboardLayoutProps = {
     children: ReactNode
@@ -40,50 +41,44 @@ export default async function DashboardLayout({
     return (
         <DashboardProviders>
             <div className="min-h-screen bg-surface-base">
-                <header className="border-b border-border-default bg-surface-card">
-                    <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-                        <div className="flex items-center gap-2 text-text-primary">
-                            <Store
-                                size={20}
-                                className="text-brand-primary"
-                                aria-hidden="true"
-                            />
-                            <span className="font-semibold">{merchant.name}</span>
-                        </div>
+                <header className="sticky top-0 z-40 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">
+                    <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-2.5">
+                        {/* Left — nav */}
                         <nav aria-label="Navigation du tableau de bord">
-                            <ul className="flex items-center gap-1 list-none m-0 p-0">
+                            <ul className="flex items-center gap-0.5 list-none m-0 p-0">
                                 <li>
                                     <Link
                                         href="/dashboard"
-                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-border-default hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors"
                                     >
                                         <LayoutDashboard
                                             size={16}
                                             aria-hidden="true"
                                         />
-                                        Tableau de bord
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/dashboard/qr-display"
-                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-border-default hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                    >
-                                        <QrCode size={16} aria-hidden="true" />
-                                        Afficher QR
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/dashboard/settings"
-                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-border-default hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                    >
-                                        <Settings size={16} aria-hidden="true" />
-                                        Paramètres
+                                        <span className="hidden sm:inline">
+                                            File d&apos;attente
+                                        </span>
                                     </Link>
                                 </li>
                             </ul>
                         </nav>
+
+                        {/* Center — QR CTA */}
+                        <Link
+                            href="/dashboard/qr-display"
+                            className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                        >
+                            <QrCode size={18} aria-hidden="true" />
+                            <span className="hidden sm:inline">
+                                Afficher le QR Code
+                            </span>
+                            <span className="sm:hidden">QR Code</span>
+                        </Link>
+
+                        {/* Right — user menu */}
+                        <div className="flex justify-end">
+                            <UserMenu name={merchant.name} />
+                        </div>
                     </div>
                 </header>
                 <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>

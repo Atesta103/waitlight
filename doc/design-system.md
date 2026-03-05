@@ -93,15 +93,17 @@ Smallest, stateless, reusable UI primitives. **No business logic. No Supabase ca
 
 Combinations of atoms that form a meaningful UI unit. **May contain local state (`useState`). No async data fetching.**
 
-| Component          | Composed from                               | Purpose                                                               |
-| ------------------ | ------------------------------------------- | --------------------------------------------------------------------- |
-| `TicketCard`       | `Card`, `Badge`, `Avatar`, `Button`         | Displays one queue item for the merchant dashboard                    |
-| `PositionDisplay`  | `Skeleton`, Framer Motion `AnimatePresence` | Animated position counter for the customer wait page                  |
-| `QRCodeDisplay`    | `Card`, `Button`                            | Shows the merchant's QR code with a download button                   |
-| `WaitTimeEstimate` | `Skeleton`                                  | Shows formatted estimated wait time                                   |
-| `ConnectionStatus` | `Badge`                                     | Realtime connection state banner (connected / reconnecting / offline) |
-| `JoinForm`         | `Input`, `Button`, `Checkbox`               | Customer join form with RGPD consent checkbox                         |
-| `StatusBanner`     | `Card`                                      | Full-screen status message (queue full, closed, called, done)         |
+| Component               | Composed from                               | Purpose                                                               |
+| ----------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| `TicketCard`            | `Card`, `Badge`, `Avatar`, `Button`         | Displays one queue item for the merchant dashboard                    |
+| `PositionDisplay`       | `Skeleton`, Framer Motion `AnimatePresence` | Animated position counter for the customer wait page                  |
+| `QRCodeDisplay`         | `Card`, `Button`                            | Shows the merchant's QR code with a download button                   |
+| `WaitTimeEstimate`      | `Skeleton`                                  | Shows formatted estimated wait time                                   |
+| `ConnectionStatus`      | `Badge`                                     | Realtime connection state banner (connected / reconnecting / offline) |
+| `JoinForm`              | `Input`, `Button`, `Checkbox`               | Customer join form with RGPD consent checkbox                         |
+| `StatusBanner`          | `Card`                                      | Full-screen status message (queue full, closed, called, done)         |
+| `PasswordStrengthMeter` | `ProgressBar`                               | Real-time password strength bar with rule checklist + generate button |
+| `UserMenu`              | `Dropdown`, `Avatar`                        | Avatar dropdown in dashboard header (settings, sign out)              |
 
 **Rules for molecules:**
 
@@ -120,6 +122,9 @@ Full page sections that **may fetch data** (via TanStack Query hooks) and orches
 | `CustomerWaitView` | Customer view: position, wait time, status change with animations            |
 | `DashboardHeader`  | Merchant header: commerce name, open/close toggle, stats summary             |
 | `OnboardingForm`   | Multi-step merchant setup (name → slug → settings)                           |
+| `SettingsPanel`    | Merchant settings: identity, queue config, notifications, wait time          |
+| `LoginForm`        | Email/password login with social OAuth + error/success banners               |
+| `RegisterForm`     | Registration with password strength meter, generator, and confirmation       |
 | `StatsPanel`       | Fréquentation charts and metrics on `/dashboard/stats`                       |
 
 **Rules for organisms:**
