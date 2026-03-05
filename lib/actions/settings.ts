@@ -34,6 +34,10 @@ export type MerchantSettingsData = {
         logo_url: string | null
         default_prep_time_min: number
         is_open: boolean
+        /** Auto-computed average prep time (IQR + EMA). `null` = not enough data yet. */
+        calculated_avg_prep_time: number | null
+        /** UTC timestamp of the last `calculate_avg_prep()` run. */
+        avg_prep_computed_at: string | null
     }
     settings: {
         max_capacity: number
@@ -74,7 +78,9 @@ export async function getMerchantSettingsAction(): Promise<
 
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
-        .select("id, name, slug, logo_url, default_prep_time_min, is_open")
+        .select(
+            "id, name, slug, logo_url, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
+        )
         .eq("id", user.id)
         .single()
 
@@ -103,6 +109,9 @@ export async function getMerchantSettingsAction(): Promise<
                 logo_url: merchant.logo_url,
                 default_prep_time_min: merchant.default_prep_time_min,
                 is_open: merchant.is_open,
+                calculated_avg_prep_time:
+                    merchant.calculated_avg_prep_time ?? null,
+                avg_prep_computed_at: merchant.avg_prep_computed_at ?? null,
             },
             settings: {
                 max_capacity: settings.max_capacity,
@@ -387,4 +396,46 @@ export async function checkSlugAvailabilitySettingsAction(
 
     if (error) return false
     return data === true
+}
+
+/**
+ * Reset the auto-computed preparation time, returning the merchant to
+ * manual mode (`default_prep_time_min`).
+ *
+ * Sets `calculated_avg_prep_time = NULL` and `avg_prep_computed_at = NULL`.
+ * The cron job will re-activate once enough new ticket data accumulates.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la réinitialisation. Veuillez réessayer."` | Supabase update failed |
+ */
+export async function resetAvgPrepTimeAction(): Promise<
+    { data: null } | { error: string }
+> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { error } = await supabase
+        .from("merchants")
+        .update({
+            calculated_avg_prep_time: null,
+            avg_prep_computed_at: null,
+        })
+        .eq("id", user.id)
+
+    if (error) {
+        return {
+            error: "Erreur lors de la réinitialisation. Veuillez réessayer.",
+        }
+    }
+
+    return { data: null }
 }

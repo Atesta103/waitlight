@@ -30,12 +30,15 @@ import {
     Layers,
     Zap,
     Info,
+    Sparkles,
+    RotateCcw,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
     updateQueueSettingsAction,
     checkSlugAvailabilitySettingsAction,
     deleteLogoAction,
+    resetAvgPrepTimeAction,
 } from "@/lib/actions/settings"
 import { createClient } from "@/lib/supabase/client"
 
@@ -52,6 +55,10 @@ type SettingsData = {
     welcomeMessage: string
     notificationsEnabled: boolean
     autoCloseEnabled: boolean
+    /** Auto-computed value from calculate_avg_prep(). null = manual mode. */
+    calculatedAvgPrepTime: number | null
+    /** ISO timestamp of the last cron run. null = never run yet. */
+    avgPrepComputedAt: string | null
 }
 
 type SettingsPanelProps = {
@@ -519,6 +526,31 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [isDeleteLogoPending, startDeleteLogoTransition] = useTransition()
     const [deleteLogoError, setDeleteLogoError] = useState<string | null>(null)
 
+    // ── Auto prep time reset ───────────────────────────────────────────────────
+    const [showResetPrepDialog, setShowResetPrepDialog] = useState(false)
+    const [isResetPrepPending, startResetPrepTransition] = useTransition()
+    const [resetPrepError, setResetPrepError] = useState<string | null>(null)
+    const [calcPrepTime, setCalcPrepTime] = useState<number | null>(
+        initialData.calculatedAvgPrepTime,
+    )
+    const [prepComputedAt, setPrepComputedAt] = useState<string | null>(
+        initialData.avgPrepComputedAt,
+    )
+
+    const handleConfirmResetPrep = () => {
+        startResetPrepTransition(async () => {
+            const result = await resetAvgPrepTimeAction()
+            if ("error" in result) {
+                setResetPrepError(result.error)
+            } else {
+                setCalcPrepTime(null)
+                setPrepComputedAt(null)
+                setShowResetPrepDialog(false)
+                setResetPrepError(null)
+            }
+        })
+    }
+
     // ── Slug confirm dialog ───────────────────────────────────────────────────
     const [showSlugConfirmDialog, setShowSlugConfirmDialog] = useState(false)
 
@@ -930,7 +962,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         </SectionBlock>
                     </motion.div>
 
-                    {/* ── Wait time (read-only) ──────────────────────────── */}
+                    {/* ── Wait time (live) ───────────────────────────────── */}
                     <motion.div
                         custom={2}
                         initial="hidden"
@@ -941,24 +973,60 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             id="waittime"
                             icon={Clock}
                             title="Temps d'attente estimé"
-                            description="Calculé automatiquement — aucune configuration nécessaire."
+                            description="L'algorithme ajuste le temps affiché aux clients en fonction de vos données réelles."
+                            badge={
+                                calcPrepTime !== null ? (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-feedback-success/12 px-2.5 py-0.5 text-xs font-medium text-feedback-success">
+                                        <Sparkles
+                                            size={11}
+                                            aria-hidden="true"
+                                        />
+                                        Ajusté auto
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-border-default/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary">
+                                        Temps manuel
+                                    </span>
+                                )
+                            }
                         >
                             <Card>
                                 <CardContent>
                                     <div className="flex flex-col divide-y divide-border-default pt-1">
+                                        {/* Effective time */}
                                         <InfoRow
-                                            label="Source de données"
+                                            label="Temps effectif affiché"
                                             value={
-                                                <code className="rounded bg-surface-base px-1.5 py-0.5 font-mono text-xs">
-                                                    avg_wait_time
-                                                </code>
+                                                <span className="font-semibold text-text-primary">
+                                                    {calcPrepTime ??
+                                                        identity.defaultPrepTimeMin}{" "}
+                                                    min
+                                                </span>
                                             }
                                         />
                                         <InfoRow
-                                            label="Fallback"
-                                            value="Temps de préparation par défaut"
+                                            label="Valeur par défaut"
+                                            value={`${identity.defaultPrepTimeMin} min (configurée manuellement)`}
                                         />
+                                        {prepComputedAt ? (
+                                            <InfoRow
+                                                label="Dernière mise à jour"
+                                                value={
+                                                    new Date(
+                                                        prepComputedAt,
+                                                    ).toLocaleTimeString(
+                                                        "fr-FR",
+                                                        {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )
+                                                }
+                                            />
+                                        ) : null}
                                     </div>
+
+                                    {/* Explainability note */}
                                     <div className="mt-4 flex gap-2.5 rounded-lg border border-border-default bg-surface-base p-3">
                                         <Info
                                             size={15}
@@ -966,14 +1034,38 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             aria-hidden="true"
                                         />
                                         <p className="text-sm text-text-secondary">
-                                            L&apos;estimation se base sur la
-                                            moyenne glissante des derniers
-                                            services. Le temps de préparation
-                                            par défaut s&apos;applique tant
-                                            qu&apos;aucune donnée historique
-                                            n&apos;est disponible.
+                                            L&apos;algorithme analyse vos 50
+                                            derniers tickets complétés, retire
+                                            les valeurs aberrantes (filtre IQR)
+                                            et lisse les changements progressivement
+                                            (EMA α=0,3). Il se déclenche toutes
+                                            les 30 min quand la file est ouverte.
+                                            Au moins 5 tickets valides sont
+                                            requis avant activation.
                                         </p>
                                     </div>
+
+                                    {/* Reset button */}
+                                    {calcPrepTime !== null && (
+                                        <div className="mt-4 flex justify-end">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setShowResetPrepDialog(
+                                                        true,
+                                                    )
+                                                }
+                                                className="text-text-secondary"
+                                            >
+                                                <RotateCcw
+                                                    size={13}
+                                                    aria-hidden="true"
+                                                />
+                                                Réinitialiser
+                                            </Button>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </SectionBlock>
@@ -1017,6 +1109,63 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         isLoading={isDeleteLogoPending}
                     >
                         Supprimer
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
+            {/* ── Reset auto prep time confirmation ───────────────────── */}
+            <Dialog
+                open={showResetPrepDialog}
+                onClose={() => setShowResetPrepDialog(false)}
+            >
+                <DialogHeader
+                    onClose={() => setShowResetPrepDialog(false)}
+                >
+                    Réinitialiser le temps automatique
+                </DialogHeader>
+                <DialogContent>
+                    <div className="flex gap-3">
+                        <RotateCcw
+                            size={20}
+                            className="mt-0.5 shrink-0 text-text-secondary"
+                            aria-hidden="true"
+                        />
+                        <div>
+                            <p className="text-sm font-medium text-text-primary">
+                                Retour au mode manuel
+                            </p>
+                            <p className="mt-1 text-sm text-text-secondary">
+                                Le temps automatique ({calcPrepTime} min) sera
+                                effacé et remplacé par votre valeur par défaut
+                                ({identity.defaultPrepTimeMin} min). L
+                                &apos;algorithme se réactivera après
+                                l&apos;accumulation de nouveaux tickets.
+                            </p>
+                        </div>
+                    </div>
+                    {resetPrepError ? (
+                        <p
+                            role="alert"
+                            className="mt-2 text-sm text-feedback-error"
+                        >
+                            {resetPrepError}
+                        </p>
+                    ) : null}
+                </DialogContent>
+                <DialogFooter>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setShowResetPrepDialog(false)}
+                        disabled={isResetPrepPending}
+                    >
+                        Annuler
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleConfirmResetPrep}
+                        isLoading={isResetPrepPending}
+                    >
+                        Confirmer
                     </Button>
                 </DialogFooter>
             </Dialog>
