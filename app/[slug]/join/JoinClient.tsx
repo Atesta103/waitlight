@@ -94,7 +94,7 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
     // No token — instruct user to scan QR
     if (!token) {
         return (
-            <div className="flex flex-col items-center gap-6 pt-12 text-center">
+            <div className="flex flex-col items-center gap-6 text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-primary/10">
                     <QrCode
                         size={40}

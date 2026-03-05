@@ -10,7 +10,7 @@ type SlugLayoutProps = {
  */
 export default function SlugLayout({ children }: SlugLayoutProps) {
     return (
-        <main className="flex min-h-dvh flex-col items-center bg-surface-base px-4 py-8">
+        <main className="flex min-h-dvh flex-col items-center justify-center bg-surface-base px-4 py-8">
             <div className="w-full max-w-md">{children}</div>
         </main>
     )

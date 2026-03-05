@@ -138,7 +138,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         if (!ticket) return
 
         if (ticket.status === "called") {
-            document.title = "🎉 C'est votre tour ! — Wait-Light"
+            document.title = "C'est votre tour ! — Wait-Light"
         } else if (position !== null && position > 0) {
             document.title = `(${position}) En attente — Wait-Light`
         } else {
@@ -158,7 +158,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
     if (!ticket) {
         return (
-            <div className="flex flex-col items-center gap-4 pt-16">
+            <div className="flex flex-col items-center gap-4">
                 <Spinner size="lg" />
                 <p className="text-sm text-text-secondary">
                     Chargement de votre ticket…
