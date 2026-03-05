@@ -115,7 +115,7 @@ function CornerBracket({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
     slug,
-    baseUrl = "https://waitlight.app",
+    baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
     size = 220,
     className,
 }: QRCodeDisplayProps) {

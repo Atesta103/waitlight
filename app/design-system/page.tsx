@@ -1125,15 +1125,21 @@ export default function DesignSystemPage() {
 
                         <SubSection title="QueueList">
                             <QueueList
-                                items={mockQueue}
-                                onCall={() => {}}
-                                onComplete={() => {}}
-                                onCancel={() => {}}
+                                merchantId="00000000-0000-0000-0000-000000000001"
+                                initialItems={mockQueue.map((i) => ({
+                                    id: i.id,
+                                    merchant_id: "00000000-0000-0000-0000-000000000001",
+                                    customer_name: i.customerName,
+                                    status: i.status,
+                                    joined_at: i.joinedAt,
+                                    called_at: null,
+                                    done_at: null,
+                                }))}
                             />
                         </SubSection>
 
                         <SubSection title="QueueList — Empty">
-                            <QueueList items={[]} />
+                            <QueueList merchantId="00000000-0000-0000-0000-000000000001" />
                         </SubSection>
 
                         <SubSection title="CustomerWaitView — Waiting">
@@ -1210,6 +1216,8 @@ export default function DesignSystemPage() {
                                 initialData={{
                                     merchantName: "Boulangerie Martin",
                                     slug: "boulangerie-martin",
+                                    logoUrl: null,
+                                    defaultPrepTimeMin: 5,
                                     maxCapacity: 20,
                                     welcomeMessage:
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
