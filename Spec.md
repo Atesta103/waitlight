@@ -2,13 +2,14 @@
 
 ## Goal
 
-Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail customers to join a queue via a QR Code and track their progress in real-time on their smartphone, freeing them from physical waiting on site.
+Wait-Light is a virtual queue SaaS application designed for quick-service merchants such as bakeries, food trucks, and fast-food restaurants.
+The workflow is simple and frictionless: the merchant takes the customer's order as usual, then shows a QR code to the customer on their device. The customer scans it to join the virtual queue and tracks their wait status in real-time via a simple web URL on their smartphone, freeing them from the frustration of waiting physically at the counter.
 
 ## Users / Roles
 
-- **Merchant (Admin)**: Creates their business, manages the queue (calls the next customer, cancels, closes the queue), and accesses footfall statistics.
+- **Merchant (Admin)**: Uses a desktop, tablet, or smartphone device to show the QR Code to the customer. They manage the queue (add/call the next customer, finish, cancel order), configure their settings, and access footfall statistics. The merchant interface must be extremely responsive to adapt to portable point-of-sale devices.
 
-- **Customer**: Scans the QR Code, joins the queue with their first name/nickname, and receives a visual/audio notification when their turn approaches.
+- **Customer**: Uses their smartphone (strictly mobile-first experience) to scan the QR Code shown by the merchant. They join the queue (e.g., entering their first name) without downloading any app, and receive visual/audio notifications when their turn approaches.
 
 - **System**: Manages WebSockets for instantaneous updating of queue positions.
 
@@ -38,8 +39,10 @@ Wait-Light is a virtual queue SaaS application ("Scan & Go"). It allows retail c
 
 - **Security**: Rate Limiting on ticket creation to prevent a prankster from filling the queue remotely (Security Severity).
 
-## Mobile First Strategy (UX/UI)
+## UX/UI & Device Strategy
 
+- **Customer (Mobile-First)**: The customer interface is explicitly designed for smartphones. It requires zero installation and must look and feel premium and native.
+- **Merchant (Ultra-Responsive)**: While the merchant dashboard is fully functional on desktop, it is heavily optimized for tablets and smartphones. Merchants will physically manipulate these devices during the rush to show the QR code to customers and manage tickets.
 - **Offline Resilience**: Graceful handling of connection loss (dead zones in stores) with automatic reconnection attempts (`supabase.channel().subscribe()` with exponential backoff) and immediate visual feedback ("Connection lost - Reconnecting..." banner).
 
 - **Touch Targets**: All interactive elements will adhere to a minimum size of 44×44px to accommodate "thumb" touch usage.
