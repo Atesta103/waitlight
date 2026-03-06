@@ -50,6 +50,36 @@ function EstimatedClockTime({ minutes }: { minutes: number }) {
     )
 }
 
+/* ─── Helper: color-coded time pill based on urgency ──────────────────────── */
+function TimePill({ minutes }: { minutes: number }) {
+    // Urgency thresholds
+    const isImmediate = minutes < 1          // < 1 min  → pulsing red
+    const isUrgent   = minutes <= 5          // ≤ 5 min  → orange
+    // > 10 min stays with the default secondary style
+
+    const label = isImmediate
+        ? "Moins d'une minute"
+        : minutes === 1
+          ? "~1 minute"
+          : `~${minutes} min`
+
+    return (
+        <div
+            className={cn(
+                "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium",
+                isImmediate
+                    ? "animate-pulse bg-feedback-error/15 text-feedback-error"
+                    : isUrgent
+                      ? "bg-feedback-warning/15 text-feedback-warning"
+                      : "text-text-secondary",
+            )}
+        >
+            <Clock size={13} aria-hidden="true" />
+            <span>{label}</span>
+        </div>
+    )
+}
+
 function QueuePositionCard({
     position,
     totalWaiting,
@@ -222,23 +252,23 @@ function QueuePositionCard({
                 </p>
 
                 {/* Wait time + estimated clock time */}
-                {estimatedMinutes !== null && (
+                {/* position === 0 means the customer is next in line */}
+                {position === 0 ? (
+                    <div
+                        className="flex items-center gap-1.5 animate-pulse rounded-md bg-feedback-success/15 px-2 py-1 text-xs font-semibold text-feedback-success"
+                        aria-live="polite"
+                    >
+                        <Clock size={13} aria-hidden="true" />
+                        <span>D&apos;un instant à l&apos;autre…</span>
+                    </div>
+                ) : estimatedMinutes !== null ? (
                     <>
-                        <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-                            <Clock size={13} aria-hidden="true" />
-                            <span>
-                                {estimatedMinutes < 1
-                                    ? "Moins d'une minute"
-                                    : estimatedMinutes === 1
-                                        ? "~1 minute"
-                                        : `~${estimatedMinutes} min`}
-                            </span>
-                        </div>
+                        <TimePill minutes={estimatedMinutes} />
                         {estimatedMinutes >= 1 && (
                             <EstimatedClockTime minutes={estimatedMinutes} />
                         )}
                     </>
-                )}
+                ) : null}
 
                 {/* Queue depth label */}
                 {totalWaiting > 1 && (
