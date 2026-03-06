@@ -56,6 +56,8 @@ export default async function SettingsPage() {
                     welcomeMessage: settings.welcome_message ?? "",
                     notificationsEnabled: settings.notifications_enabled,
                     autoCloseEnabled: settings.auto_close_enabled,
+                    calculatedAvgPrepTime: merchant.calculated_avg_prep_time,
+                    avgPrepComputedAt: merchant.avg_prep_computed_at,
                 }}
             />
         </div>

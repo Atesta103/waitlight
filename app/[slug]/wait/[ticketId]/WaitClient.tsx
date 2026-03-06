@@ -12,6 +12,8 @@ type Merchant = {
     name: string
     slug: string
     default_prep_time_min: number
+    /** Auto-computed average prep time. null = not enough data, fall back to default. */
+    calculated_avg_prep_time: number | null
 }
 
 type TicketData = {
@@ -167,10 +169,14 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         )
     }
 
-    // Estimate wait time based on position and merchant's default prep time
+    // Effective prep time: prefer calculated value, fall back to default
+    const effectivePrepTime =
+        merchant.calculated_avg_prep_time ?? merchant.default_prep_time_min
+
+    // Estimate wait time based on position and effective prep time
     const estimatedWaitMinutes =
         position !== null && position > 0
-            ? position * merchant.default_prep_time_min
+            ? position * effectivePrepTime
             : null
 
     // Count total waiting (position is 1-based, so it gives us
