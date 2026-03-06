@@ -4,6 +4,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardProviders } from "./providers"
 import { UserMenu } from "@/components/composed/UserMenu"
+import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
 import { LayoutDashboard, QrCode } from "lucide-react"
 
 type DashboardLayoutProps = {
@@ -30,7 +31,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("id, name")
+        .select("id, name, slug, is_open")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -63,17 +64,11 @@ export default async function DashboardLayout({
                             </ul>
                         </nav>
 
-                        {/* Center — QR CTA */}
-                        <Link
-                            href="/dashboard/qr-display"
-                            className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
-                        >
-                            <QrCode size={18} aria-hidden="true" />
-                            <span className="hidden sm:inline">
-                                Afficher le QR Code
-                            </span>
-                            <span className="sm:hidden">QR Code</span>
-                        </Link>
+                        <HeaderQueueControl
+                            initialIsOpen={merchant.is_open}
+                            merchantSlug={merchant.slug}
+                            merchantId={merchant.id}
+                        />
 
                         {/* Right — user menu */}
                         <div className="flex justify-end">

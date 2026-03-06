@@ -52,8 +52,8 @@ function DashboardHeader({
                     {waitingCount === 0
                         ? "Aucun client"
                         : waitingCount === 1
-                          ? "1 client"
-                          : `${waitingCount} clients`}
+                            ? "1 client"
+                            : `${waitingCount} clients`}
                 </span>
             </div>
 

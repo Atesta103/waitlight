@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { JoinForm } from "@/components/composed/JoinForm"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { joinQueueAction } from "@/lib/actions/queue"
-import { QrCode, Store } from "lucide-react"
+import { QrCode, Store, Sparkles } from "lucide-react"
 
 type Merchant = {
     id: string
@@ -137,20 +137,40 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                         aria-hidden="true"
                     />
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                     <h1 className="text-xl font-bold text-text-primary">
                         {merchant.name}
                     </h1>
                     {settings?.welcome_message ? (
-                        <p className="text-sm text-text-secondary">
-                            {settings.welcome_message}
-                        </p>
+                        <div className="w-full px-4 mt-2">
+                            <div className="flex items-start gap-3 rounded-2xl border border-brand-primary/10 bg-surface-card p-4 shadow-sm sm:max-w-sm sm:mx-auto">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-primary/10">
+                                    <Sparkles
+                                        size={16}
+                                        className="text-brand-primary"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-0.5 text-left">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+                                        Message d&apos;accueil
+                                    </p>
+                                    <p className="text-sm leading-relaxed text-text-primary">
+                                        {settings.welcome_message}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <p className="text-sm text-text-secondary">
                             Rejoignez la file d&apos;attente
                         </p>
                     )}
+
+
+
                 </div>
+
             </div>
 
             {/* Join form */}

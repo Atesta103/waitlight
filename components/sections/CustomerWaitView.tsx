@@ -1,6 +1,7 @@
 "use client"
 
 import { QueuePositionCard } from "@/components/composed/QueuePositionCard"
+import { NextInLineCard } from "@/components/composed/NextInLineCard"
 import { ConnectionStatus } from "@/components/composed/ConnectionStatus"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { cn } from "@/lib/utils/cn"
@@ -52,6 +53,8 @@ function CustomerWaitView({
                     title="Ticket annulé"
                     description="Votre ticket a été annulé."
                 />
+            ) : position === 0 ? (
+                <NextInLineCard />
             ) : (
                 <>
                     <div className="flex flex-col items-center gap-4">

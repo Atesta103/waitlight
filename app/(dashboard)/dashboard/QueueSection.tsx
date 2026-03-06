@@ -33,7 +33,13 @@ export function QueueSection({
     initialItems,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
-    const [isOpen, setIsOpen] = useState(initialIsOpen)
+    // Sync state with shared query key
+    const { data: isOpen = initialIsOpen } = useQuery({
+        queryKey: ["queue-status", merchantId],
+        queryFn: () => Promise.resolve(initialIsOpen), // Just provide a default if not already in cache
+        initialData: initialIsOpen,
+        staleTime: Infinity,
+    })
 
     // Live count from the queue cache (updated by QueueList's Realtime sub)
     const { data: queueItems = initialItems } = useQuery({
@@ -54,11 +60,11 @@ export function QueueSection({
         mutationFn: (newIsOpen: boolean) =>
             toggleQueueOpenAction({ is_open: newIsOpen }),
         onMutate: (newIsOpen) => {
-            setIsOpen(newIsOpen)
+            queryClient.setQueryData(["queue-status", merchantId], newIsOpen)
         },
         onError: (_err, newIsOpen) => {
             // Roll back on error
-            setIsOpen(!newIsOpen)
+            queryClient.setQueryData(["queue-status", merchantId], !newIsOpen)
         },
     })
 
