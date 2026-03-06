@@ -8,10 +8,7 @@ function Skeleton({ className }: SkeletonProps) {
     return (
         <div
             aria-hidden="true"
-            className={cn(
-                "animate-pulse rounded-md bg-border-default",
-                className,
-            )}
+            className={cn("skeleton-shimmer rounded-md", className)}
         />
     )
 }

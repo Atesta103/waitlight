@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { DashboardProviders } from "./providers"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
-import { LayoutDashboard, QrCode } from "lucide-react"
+import { LayoutDashboard, BarChart2 } from "lucide-react"
 
 type DashboardLayoutProps = {
     children: ReactNode
@@ -58,6 +58,20 @@ export default async function DashboardLayout({
                                         />
                                         <span className="hidden sm:inline">
                                             File d&apos;attente
+                                        </span>
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        href="/analytics"
+                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors"
+                                    >
+                                        <BarChart2
+                                            size={16}
+                                            aria-hidden="true"
+                                        />
+                                        <span className="hidden sm:inline">
+                                            Analytiques
                                         </span>
                                     </Link>
                                 </li>

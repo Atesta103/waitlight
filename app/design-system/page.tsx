@@ -48,6 +48,7 @@ import { CapacityIndicator } from "@/components/composed/CapacityIndicator"
 import { ActivityFeed } from "@/components/composed/ActivityFeed"
 
 /* ─── Organisms ─── */
+import { AnalyticsDashboard } from "@/components/sections/AnalyticsDashboard"
 import { QueueList } from "@/components/sections/QueueList"
 import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"
@@ -1224,6 +1225,30 @@ export default function DesignSystemPage() {
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
                                 }}
+                            />
+                        </SubSection>
+
+                        <SubSection title="AnalyticsDashboard">
+                            <AnalyticsDashboard
+                                merchantId="00000000-0000-0000-0000-000000000001"
+                                initialData={[
+                                    { day_of_week: 1, hour: 11, ticket_count: 18, avg_wait_minutes: 12 },
+                                    { day_of_week: 1, hour: 12, ticket_count: 32, avg_wait_minutes: 15 },
+                                    { day_of_week: 1, hour: 13, ticket_count: 25, avg_wait_minutes: 11 },
+                                    { day_of_week: 1, hour: 18, ticket_count: 22, avg_wait_minutes: 10 },
+                                    { day_of_week: 1, hour: 19, ticket_count: 28, avg_wait_minutes: 13 },
+                                    { day_of_week: 2, hour: 12, ticket_count: 20, avg_wait_minutes: 9 },
+                                    { day_of_week: 2, hour: 13, ticket_count: 15, avg_wait_minutes: 8 },
+                                    { day_of_week: 3, hour: 12, ticket_count: 24, avg_wait_minutes: 14 },
+                                    { day_of_week: 4, hour: 12, ticket_count: 30, avg_wait_minutes: 16 },
+                                    { day_of_week: 4, hour: 19, ticket_count: 19, avg_wait_minutes: 10 },
+                                    { day_of_week: 5, hour: 11, ticket_count: 14, avg_wait_minutes: 7 },
+                                    { day_of_week: 5, hour: 12, ticket_count: 38, avg_wait_minutes: 18 },
+                                    { day_of_week: 5, hour: 13, ticket_count: 29, avg_wait_minutes: 14 },
+                                    { day_of_week: 6, hour: 11, ticket_count: 16, avg_wait_minutes: 9 },
+                                    { day_of_week: 6, hour: 12, ticket_count: 35, avg_wait_minutes: 17 },
+                                    { day_of_week: 0, hour: 12, ticket_count: 10, avg_wait_minutes: 6 },
+                                ]}
                             />
                         </SubSection>
                     </Section>
