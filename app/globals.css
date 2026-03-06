@@ -104,6 +104,25 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ─── Skeleton shimmer ─── */
+@keyframes shimmer {
+  0%   { background-position:  200% center; }
+  100% { background-position: -200% center; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-border-default)    0%,
+    color-mix(in srgb, var(--color-border-default) 40%, var(--color-surface-card)) 45%,
+    color-mix(in srgb, var(--color-border-default) 20%, var(--color-surface-card)) 50%,
+    color-mix(in srgb, var(--color-border-default) 40%, var(--color-surface-card)) 55%,
+    var(--color-border-default)   100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
 body {
   background: var(--color-surface-base);
   color: var(--color-text-primary);

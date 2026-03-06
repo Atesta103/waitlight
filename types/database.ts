@@ -191,7 +191,17 @@ export type Database = {
                 ]
             }
         }
-        Views: Record<string, never>
+        Views: {
+            merchant_analytics_view: {
+                Row: {
+                    merchant_id: string
+                    day_of_week: number
+                    hour: number
+                    ticket_count: number
+                    avg_wait_minutes: number | null
+                }
+            }
+        }
         Functions: {
             get_position: {
                 Args: { ticket_id: string }
@@ -204,6 +214,28 @@ export type Database = {
             validate_qr_token: {
                 Args: { p_nonce: string; p_slug: string }
                 Returns: boolean
+            }
+            get_analytics: {
+                Args: { p_merchant_id: string }
+                Returns: {
+                    day_of_week: number
+                    hour: number
+                    ticket_count: number
+                    avg_wait_minutes: number | null
+                }[]
+            }
+            get_analytics_range: {
+                Args: {
+                    p_merchant_id: string
+                    p_start?: string | null
+                    p_end?: string | null
+                }
+                Returns: {
+                    day_of_week: number
+                    hour: number
+                    ticket_count: number
+                    avg_wait_minutes: number | null
+                }[]
             }
         }
         Enums: Record<string, never>
