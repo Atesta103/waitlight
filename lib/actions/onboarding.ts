@@ -138,5 +138,6 @@ export async function createMerchantAction(formData: {
         }
     }
 
-    redirect("/dashboard")
+    // Redirect to subscription page — merchants must subscribe before accessing the dashboard.
+    redirect("/subscribe")
 }

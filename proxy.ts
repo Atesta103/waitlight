@@ -48,8 +48,17 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/forgot-password") ||
         pathname.startsWith("/reset-password")
 
+    // Stripe webhook must never be redirected — pass through immediately.
+    if (pathname.startsWith("/api/webhooks/stripe")) {
+        return supabaseResponse
+    }
+
     const isProtectedPage =
-        pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding")
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/onboarding") ||
+        pathname.startsWith("/subscribe") ||
+        pathname.startsWith("/billing-success") ||
+        pathname.startsWith("/admin")
 
     // Unauthenticated user trying to access a protected route → send to login.
     if (isProtectedPage && !user) {

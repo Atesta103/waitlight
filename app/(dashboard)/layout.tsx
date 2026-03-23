@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { isActiveStatus } from "@/lib/subscription-status"
 import { DashboardProviders } from "./providers"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
@@ -37,6 +38,19 @@ export default async function DashboardLayout({
 
     if (!merchant) {
         redirect("/onboarding")
+    }
+
+    // Subscription gate — must have an active or trialing subscription.
+    const { data: subscriptionRaw } = await supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("merchant_id", user.id)
+        .maybeSingle()
+
+    const subscription = subscriptionRaw as { status: string } | null
+
+    if (!subscription || !isActiveStatus(subscription.status)) {
+        redirect("/subscribe")
     }
 
     return (
