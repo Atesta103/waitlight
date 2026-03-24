@@ -12,6 +12,7 @@ import {
 } from "@/lib/actions/onboarding"
 import { signOutAction } from "@/lib/actions/auth"
 import { LogOut } from "lucide-react"
+import { Button } from "@/components/ui/Button"
 
 /**
  * Client wrapper for OnboardingForm.
@@ -47,13 +48,15 @@ export function OnboardingClient() {
             />
             <div className="flex justify-center pt-2">
                 <form action={signOutAction}>
-                    <button
+                    <Button
                         type="submit"
-                        className="inline-flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-xs text-text-tertiary hover:text-text-secondary"
                     >
                         <LogOut size={13} />
                         Se déconnecter
-                    </button>
+                    </Button>
                 </form>
             </div>
         </div>

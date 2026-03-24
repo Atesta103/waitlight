@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Maximize2 } from "lucide-react"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"

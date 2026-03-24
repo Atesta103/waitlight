@@ -89,14 +89,19 @@ function QueuePositionCard({
     const prefersReduced = useReducedMotion()
     const prevPositionRef = useRef<number | null>(null)
     const [showAdvance, setShowAdvance] = useState(false)
+    const [direction, setDirection] = useState<1 | -1>(1)
 
-    // Detect forward movement to briefly show the ↑ badge
+    // Detect forward movement to briefly show the ↑ badge and track direction
     useEffect(() => {
         const prev = prevPositionRef.current
         if (prev !== null && position !== null && position < prev) {
             setShowAdvance(true)
+            setDirection(-1)
             const t = setTimeout(() => setShowAdvance(false), 1800)
+            prevPositionRef.current = position
             return () => clearTimeout(t)
+        } else if (position !== null) {
+            setDirection(1)
         }
         prevPositionRef.current = position
     }, [position])
@@ -137,13 +142,7 @@ function QueuePositionCard({
     const dotsBehind = Math.min(behindCount, MAX_DOTS_BEHIND)
     const hasMoreBehind = behindCount > MAX_DOTS_BEHIND
 
-    const isYourTurn = false
 
-    const direction =
-        prevPositionRef.current !== null &&
-            position < (prevPositionRef.current ?? position)
-            ? -1
-            : 1
 
     return (
         <div className={cn("flex items-center gap-6", className)}>

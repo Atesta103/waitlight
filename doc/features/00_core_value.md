@@ -1,29 +1,154 @@
-# The Main Goal of the Application (Core Value)
+w# Feature 00: Core Value — Wait-Light
 
-The goal of **Wait-Light** is not to be just another online food ordering application (Click & Collect), but to **revolutionize on-site wait management**.
+## 1. Metadata
 
-**The problem**: In food trucks, bakeries, or fast-food restaurants without kiosks, the customer orders at the counter and then finds themselves stuck waiting standing up listening to a server shout "Number 42!". It is stressful for the merchant, noisy, and unpleasant for the customer.
+- Feature: Core Value & Product Vision
+- Owner: Founding Team
+- Status: `implemented`
+- Last updated: 2026-03-23
+- Related issue/epic: TBD
+- Value to user: 5
+- Strategic priority: 5
+- Time to code: 1
+- Readiness score: 100/100
+- Interest score: 100/100
+- Source of truth:
+  - Schema: `supabase/migrations/`
+  - Route(s): `app/[slug]/`, `app/(dashboard)/`
+  - UI entrypoint(s): `app/page.tsx`
 
-**The Wait-Light solution**: An instant virtual queue system.
-1. The merchant opens the **QR Display** on their tablet or phone, facing the customer line.
-2. The customer scans the **rotating QR code** displayed on the screen (no app download needed) and enters their name to join the queue.
-3. The customer sees their "virtual ticket" animated in real time on their phone. They can go sit down, take a walk, and receive an alert when it's their turn.
-4. The QR code **rotates every 15 seconds** with a cryptographic one-time token — only the person physically in front of the screen can scan and join, preventing fraud and remote queue stuffing.
+## 2. Problem and Outcome
 
-## Target Audience & Use Cases
-* **Food Trucks & Pop-up Restaurants**: High volume of orders in a constrained physical space where customers often block the pathway while waiting.
-* **Busy Bakeries & Cafes**: Morning rush hours where waiting inside creates congestion.
-* **Event Catering & Festivals**: Noisy environments where shouting numbers is completely ineffective.
+### Problem
 
-## Key Success Metrics
-* **For Merchants**: Elimination of the need to shout or physically track down customers. Faster table turnover and reduced counter congestion.
-* **For Customers**: Lower perceived wait time, ability to wait comfortably away from the counter, and a general feeling of VIP service without needing to register or download an app.
+In food trucks, bakeries, and fast-food restaurants without kiosks, customers order at the counter and wait standing in a noisy, disorganized line. The merchant must physically shout order numbers — stressful, inefficient, and embarrassing.
 
-## What Wait-Light is NOT (Out of Scope)
-* **Online ordering (The customer pays/builds their menu on their phone)**: This implies a catalog, a cart, live inventory management, Stripe (fees), etc. This breaks the "1 click" simplicity of the product and competes with Uber Eats or McDonald's kiosks. Wait-Light manages the **wait**, not the **sale**.
-* **Complex table reservation**: We handle active, on-site, fast-turnaround queues, not long-term bookings.
+### Target outcome
 
-## Core Architecture & Foundation
-* **Frictionless Onboarding**: Customers must be able to join the queue by simply pointing their phone camera at a code. Absolute zero install constraint.
-* **Real-time Sync**: The connection between the merchant's tablet and the customer's phone must feel instantaneous (powered by Supabase Realtime).
-* **Privacy by Design**: No personal data (PII) is durably stored about the customer. The queue session is highly ephemeral.
+A frictionless virtual queue: customers scan a QR code, sit anywhere, and are notified when it's their turn. The merchant never shouts again. Queue order is maintained digitally, in real time.
+
+### Success metrics
+
+- Merchant handles 100% of queue management from a single screen
+- Customer joins queue in < 15 seconds (no app download, no registration)
+- Fraud attempts blocked by rotating QR token with 30s TTL
+
+## 3. Scope
+
+### In scope
+
+- QR-based queue join (no account needed for customers)
+- Real-time position tracking on customer phone
+- Merchant dashboard to call / complete / cancel tickets
+- Rotating cryptographic QR to prevent remote fraud
+
+### Out of scope
+
+- Online food ordering / payment
+- Long-term table reservations
+- Customer accounts or loyalty programs
+
+## 4. User Stories
+
+- As a merchant, I want to manage my queue from a tablet so that I can serve customers quickly without shouting.
+- As a customer, I want to join the queue by scanning a QR code so that I can wait anywhere without standing in line.
+- As a customer, I want to see my real-time position so that I know when to come back.
+
+## 5. Functional Requirements
+
+- [x] FR-1: Customer can join queue by scanning a QR code (no app required)
+- [x] FR-2: Merchant can view, call, and complete tickets in real time
+- [x] FR-3: Queue position updates in real time via Supabase Realtime
+- [x] FR-4: QR code rotates every 15 seconds with a cryptographic token
+- [x] FR-5: No customer PII is durably stored after the session ends
+
+## 6. Data Contracts
+
+### Existing tables/types
+
+- `merchants`: one row per merchant; stores identity, slug, queue config
+- `queue_items`: one row per ticket; stores customer name, status, join/call/done timestamps
+- `qr_tokens`: short-lived tokens for QR validation
+
+### Schema changes (if any)
+
+- [x] None (all tables exist in initial migration)
+
+### Validation (Zod)
+
+- Input schema(s): `JoinQueueSchema` (customer name)
+- Expected failure responses: `400`, `403`, `409`
+
+## 7. API and Integration Contracts
+
+### Route handlers
+
+- `POST /api/webhooks/stripe`: Stripe billing events
+- `GET /[slug]/join`: Customer join page (token validation)
+- `GET /[slug]/wait/[ticketId]`: Customer wait page
+
+### External dependencies
+
+- Supabase Realtime for live updates
+- Stripe for billing
+
+## 8. UI and UX
+
+- Entry points: Customer scans QR → `/[slug]/join?t=<token>`, Merchant opens `/dashboard`
+- Loading state: Spinner on ticket fetch, skeleton on dashboard load
+- Empty state: "Aucun client en attente" with QR code visible
+- Error state: Toast for action failures, full-page error boundary
+- Accessibility notes: All interactive elements keyboard-navigable; ARIA labels on live regions
+
+## 9. Security and Privacy
+
+- Secret/env requirements: `QR_TOKEN_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`
+- Data retention and PII handling: Customer name stored only for the session duration; no email, phone, or account
+- Abuse/failure cases and mitigations: QR token single-use + 30s TTL; rate limit on `generateQrTokenAction` (10/min)
+
+## 10. Observability
+
+- Structured logs to emit: Ticket join, ticket call, token invalidation
+- Key counters/timers to track: Tickets created per merchant per hour, avg time from join to call
+- Alert thresholds (if relevant): Realtime channel error rate > 5% → alert
+
+## 11. Test Plan
+
+### Unit
+
+- `JoinQueueSchema`: valid name, empty name, name > 50 chars
+
+### Integration
+
+- `joinQueueAction`: valid token → ticket created; expired token → 403
+
+### Storybook (if UI)
+
+- Story variant 1: `QRCodeDisplay` default (active countdown)
+- Story variant 2: `TicketCard` — waiting state, called state, cancelled state
+
+### Manual QA
+
+- Step 1: Open `/qr?slug=...` on tablet
+- Step 2: Scan QR on phone → fill name → submit
+- Step 3: Verify ticket appears instantly in dashboard via Realtime
+
+## 12. Implementation Plan
+
+1. Milestone 1: Database schema, RLS, Supabase Auth
+2. Milestone 2: QR token system, join flow, dashboard
+3. Milestone 3: Customer wait page, Realtime sync, billing gate
+
+## 13. Rollout and Backfill
+
+- Feature flag needed: no
+- Backfill required: no
+- Rollback plan: Revert migration; disable Realtime channel; redirect `/[slug]` to maintenance page
+
+## 14. Definition of Done
+
+- [x] Implementation merged to main
+- [x] Relevant unit and integration tests added and passing
+- [x] End-user or internal documentation updated
+- [x] `.env.example` updated (if needed)
+- [ ] Dashboard/Storybook layout and behavior visually validated

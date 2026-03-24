@@ -3,12 +3,13 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, useReducedMotion } from "framer-motion"
-import { Check, Loader2, AlertCircle, Info, CreditCard } from "lucide-react"
+import { Check, AlertCircle, Info, CreditCard } from "lucide-react"
 import {
     createCheckoutSessionAction,
     createPortalSessionAction,
     type SubscriptionRow,
 } from "@/lib/actions/billing"
+import { Button } from "@/components/ui/Button"
 
 type Props = {
     error: "payment_failed" | "cancelled" | null
@@ -181,39 +182,24 @@ export function SubscribeClient({ error, subscription }: Props) {
 
                     {/* CTA */}
                     {isPastDue ? (
-                        <button
+                        <Button
                             onClick={handlePortal}
-                            disabled={loading}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-60"
+                            isLoading={loading}
                             aria-busy={loading}
+                            className="w-full"
                         >
-                            {loading ? (
-                                <Loader2
-                                    size={16}
-                                    className="animate-spin"
-                                    aria-hidden="true"
-                                />
-                            ) : (
-                                <CreditCard size={16} aria-hidden="true" />
-                            )}
+                            <CreditCard size={16} aria-hidden="true" />
                             Mettre à jour le paiement
-                        </button>
+                        </Button>
                     ) : (
-                        <button
+                        <Button
                             onClick={handleCheckout}
-                            disabled={loading}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-60"
+                            isLoading={loading}
                             aria-busy={loading}
+                            className="w-full"
                         >
-                            {loading ? (
-                                <Loader2
-                                    size={16}
-                                    className="animate-spin"
-                                    aria-hidden="true"
-                                />
-                            ) : null}
                             Commencer l&apos;essai gratuit de 14 jours
-                        </button>
+                        </Button>
                     )}
 
                     <p className="mt-3 text-center text-xs text-text-secondary">

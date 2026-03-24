@@ -6,7 +6,6 @@ import {
     THEME_PRESETS,
     DEFAULT_THEME,
     FONT_LABELS,
-    RADIUS_SCALES,
     buildCustomTheme,
     type MerchantTheme,
     type FontChoice,

@@ -1,37 +1,157 @@
 # Feature 05: Estimated Wait Time Calculation
 
-* **Type**: Highly useful evolution (Core/Evo)
-* **Dependencies**: [Feature 04: Client Display](./04_client_display.md), [Feature 03: Dashboard](./03_merchant_dashboard.md)
-* **Status**: ✅ Implemented (2026-03-06)
+## 1. Metadata
 
-**Description**: Transform the raw position (e.g., "#3") into actionable information (e.g., "Wait time: ~8 min"). Customers perceive waiting to be shorter when an explicit duration is provided.
+- Feature: Estimated Wait Time Display
+- Owner: Founding Team
+- Status: `implemented`
+- Last updated: 2026-03-23
+- Related issue/epic: TBD
+- Value to user: 4
+- Strategic priority: 4
+- Time to code: 2
+- Readiness score: 80/100
+- Interest score: 80/100
+- Source of truth:
+  - Schema: `supabase/migrations/20260305000001_auto_prep_time.sql`
+  - Route(s): `app/[slug]/wait/[ticketId]/`
+  - UI entrypoint(s): `app/[slug]/wait/[ticketId]/WaitClient.tsx`
 
-## Integration sub-tasks
+## 2. Problem and Outcome
 
-### Backend (Supabase)
-- [x] Effective prep time now sourced from `merchants.calculated_avg_prep_time` (Feature 07), with fallback to `default_prep_time_min`. No need for a separate RPC — reads are O(1) from the pre-computed column.
-- [ ] *(Optional)* Improve `get_position` RPC to return `estimated_time` directly as a single round-trip optimization.
+### Problem
 
-### Frontend (Next.js)
-- [x] `WaitClient` calculates `effectivePrepTime = calculated_avg_prep_time ?? default_prep_time_min`, multiplies by position, passes `estimatedWaitMinutes` to `CustomerWaitView`.
-- [x] `QueuePositionCard` renders the **Time Pill** with `Clock` icon (`~N min` text), humanized boundary (`"Moins d'une minute"` for < 1 min).
-- [x] **Wall-clock ETA**: `EstimatedClockTime` sub-component computes `Date.now() + minutes × 60_000` and displays `"Votre tour vers HH:MM"` with `CalendarClock` icon (client-side only to avoid SSR mismatch).
-- [x] **Advance badge**: `QueuePositionCard` detects forward movement and briefly shows `"↑ vous avancez !"` with a pop-in/out animation.
-- [x] **Humanized language**: `< 1 min` → `"Moins d'une minute"`, `1 min` → `"~1 minute"`, `N min` → `"~N min"`.
+Showing only "Position #3" gives no actionable info. Customers still feel uncertain — "is 3 people 5 minutes or 45 minutes?" — leading to unnecessary anxiety and early returns to the counter.
 
-## Identified additional tasks
+### Target outcome
 
-### Quality & robustness
-- [ ] **Client-side Countdown**: Locally count seconds between queue shifts (no backend polling needed). Currently only updates on Realtime events.
-- [x] **Boundary at position 0**: Position 0 now shows a pulsing green `"D'un instant à l'autre…"` pill instead of hiding the time section.
+Transform the raw position into a human-readable estimated wait time (e.g., "~8 min") with a wall-clock ETA ("Your turn around 14:35"). Customers can go sit down with confidence.
 
-### UX & accessibility
-- [x] **Visual Thresholds**: `TimePill` component color-codes urgency — gray (> 5 min), orange (≤ 5 min), pulsing red (< 1 min). Position 0 shows dedicated pulsing green state.
-- [ ] **Merchant ticket view**: Optionally show estimated time on each ticket card in `QueueList` to help staff prioritize.
+### Success metrics
 
-### Security
-- [x] **Server-fetched effective time**: `calculated_avg_prep_time` is computed server-side via `calculate_avg_prep()` and fetched from the DB — cannot be tampered with client-side.
+- Wait estimate accuracy within 20% of actual time (measured post-launch)
+- Color-coded urgency visual: correct color at < 1 min, ≤ 5 min, > 5 min
+- ETA display with no SSR mismatch warnings
 
-## Architecture Notes
-- The heavy averaging is pre-baked by the pg_cron job every 30 min (Feature 07). `WaitClient` reads a single integer column — O(1).
-- `EstimatedClockTime` sets state only inside `useEffect` to prevent server/client hydration mismatches.
+## 3. Scope
+
+### In scope
+
+- `position × effectivePrepTime` calculation (using `calculated_avg_prep_time` or fallback)
+- Wall-clock ETA (`Date.now() + estimatedWaitMs`)
+- Humanized language ("Moins d'une minute", "~N min")
+- Color-coded `TimePill` (gray/orange/red/green)
+- "You're moving up!" advance badge animation
+
+### Out of scope
+
+- Server-side ETA calculation (client-side only to avoid SSR mismatch)
+- Per-ticket ETA on merchant dashboard (planned)
+- Client-side countdown timer between Realtime events (planned)
+
+## 4. User Stories
+
+- As a customer, I want to see an estimated wait time so that I can decide whether to sit or stay nearby.
+- As a customer, I want a wall-clock ETA so that I can plan the rest of my time.
+- As a customer, I want a visual urgency signal so that I know when to head back to the counter.
+
+## 5. Functional Requirements
+
+- [x] FR-1: `effectivePrepTime = calculated_avg_prep_time ?? default_prep_time_min`
+- [x] FR-2: `estimatedWaitMinutes = position × effectivePrepTime`
+- [x] FR-3: `TimePill` color-codes urgency (gray > 5 min, orange ≤ 5 min, red < 1 min, green = 0, pulsing)
+- [x] FR-4: `EstimatedClockTime` displays `"Votre tour vers HH:MM"` — client-side only (no SSR)
+- [x] FR-5: Humanized boundary: < 1 min → "Moins d'une minute", 1 min → "~1 minute"
+- [x] FR-6: "↑ vous avancez !" advance badge on forward position movement
+- [ ] FR-7: Client-side countdown between Realtime events (no polling)
+- [ ] FR-8: Estimated time shown per ticket on merchant `QueueList`
+
+## 6. Data Contracts
+
+### Existing tables/types
+
+- `merchants`: `calculated_avg_prep_time` (nullable), `default_prep_time_min`
+
+### Schema changes (if any)
+
+- [x] None (column added in Feature 07 migration)
+
+### Validation (Zod)
+
+- Input schema(s): n/a (computed client-side)
+- Expected failure responses: n/a
+
+## 7. API and Integration Contracts
+
+### Route handlers
+
+- n/a
+
+### External dependencies
+
+- `merchants.calculated_avg_prep_time` pre-computed by Feature 07 pg_cron job
+
+## 8. UI and UX
+
+- Entry points: `CustomerWaitView` (embedded in wait page)
+- Loading state: `TimePill` hidden until position is fetched
+- Empty state: Position 0 → pulsing green "D'un instant à l'autre…" state
+- Error state: n/a (purely derived from position)
+- Accessibility notes: `EstimatedClockTime` uses `useEffect` only — avoids SSR hydration warning; `aria-label` on `TimePill`
+
+## 9. Security and Privacy
+
+- Secret/env requirements: none
+- Data retention and PII handling: n/a (computed from position, no stored PII)
+- Abuse/failure cases and mitigations: `effectivePrepTime` sourced from DB (server-computed) — cannot be tampered with client-side
+
+## 10. Observability
+
+- Structured logs to emit: n/a (purely UI computation)
+- Key counters/timers to track: Actual vs estimated wait time delta (requires post-call analytics join)
+- Alert thresholds (if relevant): n/a
+
+## 11. Test Plan
+
+### Unit
+
+- `estimatedWaitMinutes`: position=0 → 0, position=3 × prepTime=5 → 15
+- `TimePill` color logic: > 5 → gray, ≤ 5 → orange, 0 → green
+
+### Integration
+
+- n/a (purely UI)
+
+### Storybook (if UI)
+
+- Story variant 1: `TimePill` — > 5 min (gray)
+- Story variant 2: `TimePill` — ≤ 5 min (orange)
+- Story variant 3: `TimePill` — < 1 min (red pulsing)
+- Story variant 4: `TimePill` — position 0 (green pulsing)
+- Story variant 5: `EstimatedClockTime` — 14:35 ETA
+
+### Manual QA
+
+- Step 1: Join queue as 3rd customer → verify "~10 min" shown (default prep = 5)
+- Step 2: Merchant calls 1st ticket → position drops → advance badge appears
+- Step 3: Verify ETA text never causes hydration warning in console
+
+## 12. Implementation Plan
+
+1. Milestone 1: `effectivePrepTime` logic in `WaitClient`
+2. Milestone 2: `TimePill`, `EstimatedClockTime`, advance badge in `QueuePositionCard`
+3. Milestone 3: Humanized boundaries, color thresholds, accessibility
+
+## 13. Rollout and Backfill
+
+- Feature flag needed: no
+- Backfill required: no
+- Rollback plan: Hide `TimePill` — fallback to raw position only
+
+## 14. Definition of Done
+
+- [x] Implementation merged to main
+- [x] Relevant unit and integration tests added and passing
+- [x] End-user or internal documentation updated
+- [x] `.env.example` updated (if needed)
+- [ ] Dashboard/Storybook layout and behavior visually validated
