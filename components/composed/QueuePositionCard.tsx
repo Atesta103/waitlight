@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { QueueDot } from "@/components/ui/QueueDot"
 import { Skeleton } from "@/components/ui/Skeleton"
+import { StatusBanner } from "./StatusBanner"
 import { Clock, ChevronUp, CalendarClock } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
@@ -80,6 +81,7 @@ function TimePill({ minutes }: { minutes: number }) {
     )
 }
 
+
 function QueuePositionCard({
     position,
     totalWaiting,
@@ -142,11 +144,21 @@ function QueuePositionCard({
     const dotsBehind = Math.min(behindCount, MAX_DOTS_BEHIND)
     const hasMoreBehind = behindCount > MAX_DOTS_BEHIND
 
-
-
     return (
-        <div className={cn("flex items-center gap-6", className)}>
-            {/* ─── Rail ─── */}
+        <div className="flex w-full flex-col gap-6">
+            {position <= 1 && (
+                <StatusBanner
+                    variant="next"
+                    title={position === 0 ? "Vous êtes le prochain !" : "Préparez-vous !"}
+                    description={
+                        position === 0
+                            ? "On va bientôt vous appeler."
+                            : "Il ne reste qu'une personne avant vous."
+                    }
+                />
+            )}
+            <div className={cn("flex items-center gap-6", className)}>
+                {/* ─── Rail ─── */}
             <div className="flex flex-col items-center gap-1.5">
                 {hasMoreAhead && (
                     <span className="text-[10px] leading-none text-text-disabled">
@@ -275,6 +287,7 @@ function QueuePositionCard({
                         {totalWaiting} personnes au total
                     </p>
                 )}
+            </div>
             </div>
         </div>
     )

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { QRCodeCanvas } from "qrcode.react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
-import { Copy, Check, Camera } from "lucide-react"
-import { duration } from "@/lib/utils/motion"
+import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { QR_REFRESH_INTERVAL_MS } from "@/lib/utils/qr-token"
 import { generateQrTokenAction } from "@/lib/actions/qr"
@@ -30,8 +29,8 @@ function QRCodeDisplay({
     size = 220,
     className,
 }: QRCodeDisplayProps) {
-    const [copied, setCopied] = useState(false)
     const [token, setToken] = useState<string | null>(null)
+    const [expiresAt, setExpiresAt] = useState<number | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
     const [progress, setProgress] = useState(1) // 0 to 1 for smooth animation
     const [qrVisible, setQrVisible] = useState(false) // Wait for first token
@@ -47,6 +46,7 @@ function QRCodeDisplay({
         setTimeout(() => {
             if ("data" in result) {
                 setToken(result.data.nonce)
+                setExpiresAt(new Date(result.data.expiresAt).getTime())
             }
             // Ideally handle error if it fails
             setCountdown(TOTAL_S)
@@ -67,14 +67,11 @@ function QRCodeDisplay({
 
     /* Precision timer for smooth animation and exact 0s end */
     useEffect(() => {
-        if (!token) return
-
-        const startTime = Date.now()
-        const endTime = startTime + REFRESH_INTERVAL_MS
+        if (!token || !expiresAt) return
 
         const timer = setInterval(() => {
             const now = Date.now()
-            const remaining = Math.max(0, endTime - now)
+            const remaining = Math.max(0, expiresAt - now)
             const p = remaining / REFRESH_INTERVAL_MS
             
             setProgress(p)
@@ -82,13 +79,7 @@ function QRCodeDisplay({
         }, 50) // 20fps for progress updates
 
         return () => clearInterval(timer)
-    }, [token])
-
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-    }
+    }, [token, expiresAt])
 
     const color =
         countdown >= 7
@@ -225,45 +216,7 @@ function QRCodeDisplay({
                     </div>
                 </div>
 
-                {/* ── URL bar ─────────────────────────────────────────────── */}
-                <div className="flex w-full items-center gap-2 rounded-lg border border-border-default bg-surface-base px-3 py-2">
-                    <span className="flex-1 truncate font-mono text-xs text-text-secondary">
-                        {url}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={handleCopy}
-                        className="min-h-7 min-w-7 shrink-0 rounded-md p-1 text-text-secondary transition-colors hover:bg-brand-primary/10 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                        aria-label="Copier le lien"
-                    >
-                        <AnimatePresence mode="wait" initial={false}>
-                            {copied ? (
-                                <motion.span
-                                    key="check"
-                                    initial={{ scale: 0.5, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.5, opacity: 0 }}
-                                    transition={{ duration: duration.fast }}
-                                >
-                                    <Check
-                                        size={15}
-                                        className="text-feedback-success"
-                                    />
-                                </motion.span>
-                            ) : (
-                                <motion.span
-                                    key="copy"
-                                    initial={{ scale: 0.5, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.5, opacity: 0 }}
-                                    transition={{ duration: duration.fast }}
-                                >
-                                    <Copy size={15} />
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </button>
-                </div>
+
 
                 {/* ── Footer hint ─────────────────────────────────────────── */}
                 <div className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-text-secondary">

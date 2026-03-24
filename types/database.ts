@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           avg_prep_computed_at: string | null
           avg_wait_time: number | null
+          bypass_paywall: boolean
           calculated_avg_prep_time: number | null
           created_at: string
           default_prep_time_min: number
@@ -31,6 +32,7 @@ export type Database = {
         Insert: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number
@@ -44,6 +46,7 @@ export type Database = {
         Update: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number

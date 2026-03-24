@@ -4,7 +4,7 @@
 
 - Feature: Social Login (Google & Apple SSO)
 - Owner: Founding Team
-- Status: `proposed`
+- Status: `proposed` <!-- Code scaffolding exists (FR-1–FR-5); blocked on external OAuth provider config -->
 - Last updated: 2026-03-23
 - Related issue/epic: TBD
 - Value to user: 3
@@ -57,6 +57,9 @@ Merchants can sign up and sign in with one tap via Google or Apple — no passwo
 
 ## 5. Functional Requirements
 
+<!-- NOTE: FR-1–FR-5 are code-complete (components + actions exist in codebase).
+     Feature remains `proposed` because Google/Apple providers are not yet configured
+     in Supabase Auth dashboard, and redirect URIs are not whitelisted. -->
 - [x] FR-1: `SocialAuthButtons` molecule — Google + Apple buttons on `/login` and `/register`
 - [x] FR-2: `oauthSignInAction` — calls `supabase.auth.signInWithOAuth()`, returns redirect URL (PKCE-safe)
 - [x] FR-3: `/auth/callback` handler — PKCE code exchange; maps `?error=access_denied` → `oauth_cancelled`

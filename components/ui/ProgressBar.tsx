@@ -35,7 +35,7 @@ function ProgressBar({
     const percentage = Math.min(100, Math.max(0, (value / max) * 100))
 
     return (
-        <div className={cn("flex flex-col gap-1.5", className)}>
+        <div className={cn("flex flex-col gap-2.5", className)}>
             {label || showValue ? (
                 <div className="flex items-center justify-between text-sm">
                     {label ? (

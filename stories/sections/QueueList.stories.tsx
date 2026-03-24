@@ -12,8 +12,8 @@ const mockItems: QueueItem[] = [
         status: "called",
         joined_at: ago(15),
         called_at: ago(2),
+        done_at: null,
         merchant_id: "mock-merchant",
-        position: null,
     },
     {
         id: "ticket-02",
@@ -21,8 +21,8 @@ const mockItems: QueueItem[] = [
         status: "waiting",
         joined_at: ago(10),
         called_at: null,
+        done_at: null,
         merchant_id: "mock-merchant",
-        position: 1,
     },
     {
         id: "ticket-03",
@@ -30,8 +30,8 @@ const mockItems: QueueItem[] = [
         status: "waiting",
         joined_at: ago(7),
         called_at: null,
+        done_at: null,
         merchant_id: "mock-merchant",
-        position: 2,
     },
     {
         id: "ticket-04",
@@ -39,8 +39,8 @@ const mockItems: QueueItem[] = [
         status: "waiting",
         joined_at: ago(3),
         called_at: null,
+        done_at: null,
         merchant_id: "mock-merchant",
-        position: 3,
     },
 ]
 

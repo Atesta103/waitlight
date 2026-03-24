@@ -32,7 +32,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open")
+        .select("id, name, slug, is_open, bypass_paywall")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -40,17 +40,19 @@ export default async function DashboardLayout({
         redirect("/onboarding")
     }
 
-    // Subscription gate — must have an active or trialing subscription.
-    const { data: subscriptionRaw } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("merchant_id", user.id)
-        .maybeSingle()
+    // Subscription gate — must have an active or trialing subscription, OR bypass flag.
+    if (!merchant.bypass_paywall) {
+        const { data: subscriptionRaw } = await supabase
+            .from("subscriptions")
+            .select("status")
+            .eq("merchant_id", user.id)
+            .maybeSingle()
 
-    const subscription = subscriptionRaw as { status: string } | null
+        const subscription = subscriptionRaw as { status: string } | null
 
-    if (!subscription || !isActiveStatus(subscription.status)) {
-        redirect("/subscribe")
+        if (!subscription || !isActiveStatus(subscription.status)) {
+            redirect("/subscribe")
+        }
     }
 
     return (

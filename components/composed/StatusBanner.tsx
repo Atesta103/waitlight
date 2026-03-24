@@ -2,14 +2,6 @@
 
 import { Card } from "@/components/ui/Card"
 import { cn } from "@/lib/utils/cn"
-import {
-    AlertCircle,
-    CheckCircle2,
-    Clock,
-    XCircle,
-    PartyPopper,
-    BellRing,
-} from "lucide-react"
 import type { ReactNode } from "react"
 
 type StatusBannerVariant = "called" | "done" | "closed" | "full" | "error" | "next"
@@ -24,34 +16,28 @@ type StatusBannerProps = {
 
 const variantConfig: Record<
     StatusBannerVariant,
-    { icon: React.ElementType; className: string }
+    { className: string }
 > = {
     called: {
-        icon: PartyPopper,
         className:
             "border-status-called bg-status-called-bg text-status-called",
     },
     next: {
-        icon: BellRing,
         className:
             "border-brand-primary bg-brand-primary/10 text-brand-primary",
     },
     done: {
-        icon: CheckCircle2,
         className: "border-status-done bg-status-done-bg text-status-done",
     },
     closed: {
-        icon: Clock,
         className:
             "border-status-waiting bg-status-waiting-bg text-status-waiting",
     },
     full: {
-        icon: AlertCircle,
         className:
             "border-feedback-warning bg-feedback-warning-bg text-feedback-warning",
     },
     error: {
-        icon: XCircle,
         className:
             "border-feedback-error bg-feedback-error-bg text-feedback-error",
     },
@@ -65,7 +51,6 @@ function StatusBanner({
     className,
 }: StatusBannerProps) {
     const config = variantConfig[variant]
-    const Icon = config.icon
 
     return (
         <Card
@@ -75,7 +60,6 @@ function StatusBanner({
                 className,
             )}
         >
-            <Icon size={40} aria-hidden="true" />
             <h2 className="text-xl font-bold">{title}</h2>
             {description ? (
                 <p className="max-w-sm text-sm opacity-80">{description}</p>

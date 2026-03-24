@@ -16,7 +16,7 @@ export default async function AdminPage() {
     // Fetch all merchants with their subscriptions in one join
     const { data: merchants } = await adminSupabase
         .from("merchants")
-        .select("id, name, slug, created_at")
+        .select("id, name, slug, created_at, bypass_paywall")
         .order("created_at", { ascending: false })
 
     const { data: subscriptions } = await adminSupabase
@@ -45,6 +45,7 @@ export default async function AdminPage() {
         name: string
         slug: string
         created_at: string
+        bypass_paywall: boolean
     }
     const customerToMerchant: Record<string, string> = {}
     for (const sub of (subscriptions ?? []) as SubRow[]) {

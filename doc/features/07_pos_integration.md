@@ -4,14 +4,14 @@
 
 - Feature: POS Webhook Integration
 - Owner: Founding Team
-- Status: `proposed`
-- Last updated: 2026-03-23
+- Status: `postponed`
+- Last updated: 2026-03-24
 - Related issue/epic: TBD
 - Value to user: 5
-- Strategic priority: 4
+- Strategic priority: 1
 - Time to code: 4
 - Readiness score: 20/100
-- Interest score: 85/100
+- Interest score: 35/100
 - Source of truth:
   - Schema: `supabase/migrations/` (not yet created)
   - Route(s): `app/api/webhooks/pos/` (not yet created)

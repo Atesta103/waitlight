@@ -9,6 +9,9 @@ const meta = {
     title: "UI/Dropdown",
     component: Dropdown,
     tags: ["autodocs"],
+    parameters: {
+        layout: "padded",
+    },
 } satisfies Meta<typeof Dropdown>
 
 export default meta

@@ -1,7 +1,7 @@
 "use client"
 
+import { motion, AnimatePresence, useReducedMotion, type Variants, type Transition } from "framer-motion"
 import { QueuePositionCard } from "@/components/composed/QueuePositionCard"
-import { NextInLineCard } from "@/components/composed/NextInLineCard"
 import { ConnectionStatus } from "@/components/composed/ConnectionStatus"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { cn } from "@/lib/utils/cn"
@@ -29,50 +29,96 @@ function CustomerWaitView({
     customerName,
     className,
 }: CustomerWaitViewProps) {
+    const prefersReduced = useReducedMotion()
+    
+    const variants: Variants | undefined = prefersReduced ? undefined : {
+        initial: { opacity: 0, y: 15, scale: 0.98 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: -15, scale: 0.98 },
+    }
+    const transition: Transition | undefined = prefersReduced
+        ? { duration: 0 }
+        : { type: "spring", stiffness: 350, damping: 25 }
+
     return (
         <div className={cn("flex flex-col gap-6", className)}>
             {connectionState !== "connected" ? (
                 <ConnectionStatus state={connectionState} />
             ) : null}
 
-            {status === "called" ? (
-                <StatusBanner
-                    variant="called"
-                    title="C'est votre tour !"
-                    description={`${customerName}, présentez-vous au comptoir.`}
-                />
-            ) : status === "done" ? (
-                <StatusBanner
-                    variant="done"
-                    title="Merci !"
-                    description="Votre visite est terminée. Bonne journée !"
-                />
-            ) : status === "cancelled" ? (
-                <StatusBanner
-                    variant="error"
-                    title="Ticket annulé"
-                    description="Votre ticket a été annulé."
-                />
-            ) : position === 0 ? (
-                <NextInLineCard />
-            ) : (
-                <>
-                    <div className="flex flex-col items-center gap-4">
-                        <h1 className="text-xl font-bold text-text-primary">
-                            Bonjour {customerName} !
-                        </h1>
-                        <QueuePositionCard
-                            position={position}
-                            totalWaiting={totalWaiting}
-                            estimatedMinutes={estimatedWaitMinutes}
+            <AnimatePresence mode="wait">
+                {status === "called" ? (
+                    <motion.div
+                        key="called"
+                        variants={variants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={transition}
+                    >
+                        <StatusBanner
+                            variant="called"
+                            title="C'est votre tour !"
+                            description={`${customerName}, présentez-vous au comptoir.`}
                         />
-                    </div>
-                    <p className="text-center text-sm text-text-secondary">
-                        Gardez cette page ouverte pour être notifié quand ce
-                        sera votre tour.
-                    </p>
-                </>
-            )}
+                    </motion.div>
+                ) : status === "done" ? (
+                    <motion.div
+                        key="done"
+                        variants={variants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={transition}
+                    >
+                        <StatusBanner
+                            variant="done"
+                            title="Merci !"
+                            description="Votre visite est terminée. Bonne journée !"
+                        />
+                    </motion.div>
+                ) : status === "cancelled" ? (
+                    <motion.div
+                        key="cancelled"
+                        variants={variants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={transition}
+                    >
+                        <StatusBanner
+                            variant="error"
+                            title="Ticket annulé"
+                            description="Votre ticket a été annulé."
+                        />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="waiting"
+                        variants={variants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={transition}
+                        className="flex flex-col gap-6"
+                    >
+                        <div className="flex flex-col items-center gap-4">
+                            <h1 className="text-xl font-bold text-text-primary text-center">
+                                Bonjour {customerName} !
+                            </h1>
+                            <QueuePositionCard
+                                position={position}
+                                totalWaiting={totalWaiting}
+                                estimatedMinutes={estimatedWaitMinutes}
+                            />
+                        </div>
+                        <p className="text-center text-sm text-text-secondary">
+                            Gardez cette page ouverte pour être notifié quand ce
+                            sera votre tour.
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

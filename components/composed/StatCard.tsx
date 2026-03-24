@@ -34,7 +34,7 @@ function StatCard({
     return (
         <Card className={cn("", className)}>
             <CardContent>
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                     <div className="flex flex-col gap-1">
                         <p className="text-sm text-text-secondary">{label}</p>
                         <p className="text-2xl font-bold text-text-primary">

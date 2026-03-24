@@ -22,13 +22,19 @@ export default meta
 
 export const Default = {
     args: {
-        merchantId: "00000000-0000-0000-0000-000000000001",
-        merchantName: "Boulangerie Martin",
+        merchants: [],
+        subscriptions: [],
+        charges: [],
+        invoices: [],
+        customerToMerchant: {},
     },
     render: () => (
         <AdminDashboard
-            merchantId="00000000-0000-0000-0000-000000000001"
-            merchantName="Boulangerie Martin"
+            merchants={[]}
+            subscriptions={[]}
+            charges={[]}
+            invoices={[]}
+            customerToMerchant={{}}
         />
     ),
 }

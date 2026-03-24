@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useTransition } from "react"
 import type Stripe from "stripe"
 import { Users, CreditCard, FileText, ExternalLink } from "lucide-react"
 import { STATUS_LABELS } from "@/lib/subscription-status"
+import { togglePaywallBypass } from "@/lib/actions/admin"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -14,6 +15,7 @@ type Merchant = {
     name: string
     slug: string
     created_at: string
+    bypass_paywall: boolean
 }
 
 type SubscriptionRow = {
@@ -74,6 +76,35 @@ function StatusBadge({ status }: { status: string }) {
         >
             {STATUS_LABELS[status] ?? status}
         </span>
+    )
+}
+
+function BypassToggle({ merchantId, isBypassed }: { merchantId: string, isBypassed: boolean }) {
+    const [isPending, startTransition] = useTransition()
+    const [checked, setChecked] = useState(isBypassed)
+
+    return (
+        <label className="flex items-center gap-2 cursor-pointer">
+            <input
+                type="checkbox"
+                checked={checked}
+                disabled={isPending}
+                className="h-4 w-4 rounded border-border-default bg-surface-card accent-brand-primary"
+                onChange={(e) => {
+                    const newChecked = e.target.checked
+                    setChecked(newChecked) // optimistic update
+                    startTransition(async () => {
+                        try {
+                            await togglePaywallBypass(merchantId, newChecked)
+                        } catch (err) {
+                            console.error(err)
+                            setChecked(isBypassed) // revert on error
+                        }
+                    })
+                }}
+            />
+            {isPending && <span className="text-xs text-text-secondary whitespace-nowrap">Load...</span>}
+        </label>
     )
 }
 
@@ -194,6 +225,9 @@ export function AdminDashboard({
                                             Marchand
                                         </th>
                                         <th className="px-4 py-3 text-left font-medium text-text-secondary">
+                                            Bypass VIP
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-text-secondary">
                                             Slug
                                         </th>
                                         <th className="px-4 py-3 text-left font-medium text-text-secondary">
@@ -220,6 +254,9 @@ export function AdminDashboard({
                                             >
                                                 <td className="px-4 py-3 font-medium text-text-primary">
                                                     {m.name}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <BypassToggle merchantId={m.id} isBypassed={m.bypass_paywall} />
                                                 </td>
                                                 <td className="px-4 py-3 text-text-secondary">
                                                     {m.slug}

@@ -202,7 +202,7 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
                                             ? `${DAY_LABELS_FULL[d]} ${h}h — ${count} ticket${count !== 1 ? "s" : ""}${cell.avg_wait_minutes != null ? `, attente moy. ${cell.avg_wait_minutes} min` : ""}`
                                             : `${DAY_LABELS_FULL[d]} ${h}h — 0 ticket`
                                     }
-                                    className="rounded-sm h-5"
+                                    className="rounded-sm h-5 transition-transform hover:scale-110 hover:shadow-sm"
                                     style={{
                                         backgroundColor:
                                             count === 0
@@ -316,14 +316,16 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
 // ─── CSV export ───────────────────────────────────────────────────────────────
 
 function exportCsv(rows: AnalyticsRow[]) {
-    const header = "jour_semaine,heure,tickets,attente_moy_min\n"
+    // \uFEFF is the UTF-8 BOM, required for Excel to recognize UTF-8 accents automatically.
+    // Using semicolon separator is standard for French locales in Excel.
+    const header = "jour_semaine;heure;tickets;attente_moy_min\n"
     const body = rows
         .map(
             (r) =>
-                `${DAY_LABELS_FULL[r.day_of_week]},${r.hour},${r.ticket_count},${r.avg_wait_minutes ?? ""}`,
+                `${DAY_LABELS_FULL[r.day_of_week]};${r.hour};${r.ticket_count};${r.avg_wait_minutes ?? ""}`,
         )
         .join("\n")
-    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" })
+    const blob = new Blob(["\uFEFF" + header + body], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
@@ -403,16 +405,26 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                         ))}
                     </div>
                 </div>
-                <button
-                    type="button"
-                    onClick={handleExport}
-                    disabled={isLoading || rows.length === 0}
-                    className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-card px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors disabled:opacity-40 disabled:pointer-events-none"
-                    aria-label="Exporter les données en CSV"
-                >
-                    <Download size={14} aria-hidden="true" />
-                    Exporter CSV
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-card px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors"
+                        aria-label="Imprimer le tableau de bord"
+                    >
+                        Imprimer (PDF)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleExport}
+                        disabled={isLoading || rows.length === 0}
+                        className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-card px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        aria-label="Exporter les données pour Excel"
+                    >
+                        <Download size={14} aria-hidden="true" />
+                        Export Excel
+                    </button>
+                </div>
             </div>
 
             {/* Summary stat cards — always 4 shells, content swaps */}

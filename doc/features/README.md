@@ -5,21 +5,13 @@
 
 | Status | Feature | Value | Priority | Effort | Readiness | Interest Score |
 |--------|---------|-------|----------|--------|-----------|----------------|
-| ✅ | [00_core_value.md](./00_core_value.md) | 5/5 | 5/5 | 1/5 | 100% | 100 |
-| ✅ | [Feature 01: Authentication & Account Management](./01_merchant_auth.md) | 5/5 | 5/5 | 2/5 | 90% | 96 |
-| ✅ | [Feature 04: Customer Wait Screen (Client Display)](./04_client_display.md) | 5/5 | 5/5 | 3/5 | 85% | 92 |
-| ✅ | [Feature 06: Secure Rotating QR Code](./06_dynamic_qr_code.md) | 5/5 | 5/5 | 4/5 | 90% | 88 |
-| ✅ | [Feature 03: Merchant Dashboard & Queue Management](./03_merchant_dashboard.md) | 5/5 | 5/5 | 4/5 | 85% | 88 |
-| ✅ | [Feature 13: Billing & Stripe (Subscription Paywall)](./13_billing_stripe.md) | 5/5 | 5/5 | 5/5 | 80% | 83 |
-| ✅ | [Feature 05: Estimated Wait Time Calculation](./05_estimated_wait_time.md) | 4/5 | 4/5 | 2/5 | 80% | 79 |
-| ⬜ | [Feature 09: POS Integration (Point of Sale)](./09_pos_integration.md) | 5/5 | 4/5 | 4/5 | 20% | 79 |
-| ✅ | [Feature 02: Merchant Settings](./02_merchant_settings.md) | 4/5 | 4/5 | 3/5 | 85% | 75 |
-| 🔶 | [Feature 14: Design System — Storybook](./14_storybook_design_system.md) | 3/5 | 4/5 | 3/5 | 85% | 67 |
-| ✅ | [Feature 08: Flow Prediction & Analytics Dashboard](./08_flow_prediction.md) | 4/5 | 3/5 | 4/5 | 95% | 63 |
-| ✅ | [Feature 07: Automatic Preparation Time Adjustment](./07_auto_prep_time.md) | 4/5 | 3/5 | 4/5 | 88% | 63 |
-| ⬜ | [Feature 10: Multichannel Authentication (Google / Apple SSO)](./10_sso_auth.md) | 3/5 | 3/5 | 3/5 | 65% | 58 |
-| ⬜ | [Feature 12: Error & Not-Found Pages](./12_error_page.md) | 2/5 | 3/5 | 1/5 | 30% | 58 |
-| ⬜ | [Feature 11: Internationalization (i18n) — next-intl](./11_i18n_next_intl.md) | 3/5 | 4/5 | 5/5 | 25% | 58 |
+| ⬜ | [16. Name Moderation (Profanity Filter)](./01_name_moderation.md) | 4/5 | 5/5 | 2/5 | 0% | 88 |
+| ✅ | [17. Paywall Bypass (Trial & Early Access Logic)](./02_paywall_bypass.md) | 4/5 | 5/5 | 2/5 | 0% | 88 |
+| ⬜ | [15. Merchant Color Theme (Branding)](./03_merchant_color_theme.md) | 4/5 | 4/5 | 2/5 | 0% | 79 |
+| ⬜ | [Feature 10: Multichannel Authentication (Google / Apple SSO)](./04_sso_auth.md) | 3/5 | 3/5 | 3/5 | 65% | 58 |
+| ⬜ | [Feature 12: Error & Not-Found Pages](./05_error_page.md) | 2/5 | 3/5 | 1/5 | 30% | 58 |
+| ⬜ | [Feature 11: Internationalization (i18n) — next-intl](./06_i18n_next_intl.md) | 3/5 | 4/5 | 5/5 | 25% | 58 |
+| ❓ | [Feature 09: POS Integration (Point of Sale)](./07_pos_integration.md) | 5/5 | 1/5 | 4/5 | 20% | 54 |
 
 ## Legend
 
