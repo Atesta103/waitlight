@@ -31,8 +31,8 @@ function analyzeSpec(content) {
   const statusLine = lines.find((l) => l.startsWith("- Status:"));
   const isImplemented = statusLine?.includes("`implemented`") ?? false;
 
-  // Locate the DoD section (## 14. Definition of Done)
-  const dodStart = lines.findIndex((l) => /^##\s+14\./.test(l));
+  // Locate the DoD section
+  const dodStart = lines.findIndex((l) => /^##\s+(?:\d+\.\s+)?Definition of Done/i.test(l));
   if (dodStart === -1) return { isImplemented, dodComplete: false };
 
   // Collect lines until the next ##-level section or EOF
