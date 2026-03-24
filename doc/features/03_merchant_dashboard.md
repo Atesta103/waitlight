@@ -1,65 +1,164 @@
-# Feature 03: Merchant Dashboard (Dashboard & Actions)
+# Feature 03: Merchant Dashboard & Queue Management
 
-* **Type**: Core application (Core)
-* **Dependencies**: [Feature 02: Configuration](./02_merchant_settings.md)
-* **Status**: ✅ Implemented (2026-03-05)
+## 1. Metadata
 
-**Description**: The ultra-fast interface for the merchant (on tablet or phone) to manage their queue in real time. Customers join the queue by **scanning a secure rotating QR code** displayed on the merchant's screen — the merchant no longer manually adds customers. The dashboard focuses on viewing the waiting list, calling customers, and managing the queue state.
+- Feature: Merchant Dashboard & Real-time Queue Actions
+- Owner: Founding Team
+- Status: `implemented`
+- Last updated: 2026-03-23
+- Related issue/epic: TBD
+- Value to user: 5
+- Strategic priority: 5
+- Time to code: 4
+- Readiness score: 85/100
+- Interest score: 90/100
+- Source of truth:
+  - Schema: `supabase/migrations/20260302000000_initial_schema.sql`
+  - Route(s): `app/(dashboard)/dashboard/`
+  - UI entrypoint(s): `app/(dashboard)/dashboard/page.tsx`
 
-## How customers join (QR-based flow)
+## 2. Problem and Outcome
 
-The merchant does **not** manually add customers to the queue. Instead:
+### Problem
 
-1. The merchant opens the **QR Display** screen (`/(dashboard)/qr-display`) on a tablet or phone facing the customer line.
-2. The QR code rotates every **15 seconds** with a cryptographic one-time token, ensuring only the person physically present can scan it.
-3. The customer scans → enters their name → joins the queue automatically.
-4. The new ticket appears instantly in the merchant's dashboard via Realtime.
+Without a command center, merchants have no visibility into their live queue. They either shout to customers or walk around — both inefficient and unprofessional.
 
-See [Feature 06: Secure Rotating QR Code](./06_dynamic_qr_code.md) for full QR implementation details.
+### Target outcome
 
-## Integration sub-tasks
+A real-time dashboard where the merchant sees all active tickets, calls customers, marks them done, and opens/closes the queue — all from a single screen updated live via Supabase Realtime.
 
-### Backend (Supabase)
-- [x] Create the `queue_items` table (`id`, `merchant_id`, `customer_name`, `status`, `joined_at`, `called_at`, `done_at`) — migration `20260302000000_initial_schema.sql`.
-- [x] Set up secure Row Level Security (RLS) policies: merchant X only sees/modifies `queue_items` for `merchant_id = X`.
-- [x] Write state change mutations (Server Actions): `callTicketAction` (`status → called`), `completeTicketAction` (`status → done`), `cancelTicketAction` (`status → cancelled`) in `lib/actions/queue.ts`.
-- [x] Implement database indexes on `merchant_id` and `status` to optimize real-time queries.
-- [x] Setup Supabase Realtime to push updates to the frontend.
-- [x] `joinQueueAction` in `lib/actions/queue.ts` — validates QR token, checks capacity, inserts anonymous ticket (no auth required for customers).
-- [x] `toggleQueueOpenAction` — updates `merchants.is_open` to open/close the queue.
-- [x] `getQueueAction` — fetches active tickets (`waiting` + `called`) filtered by `merchant_id`, ordered by `joined_at ASC`.
+### Success metrics
 
-### Frontend (Next.js)
-- [x] Implement the `/(dashboard)/dashboard` view serving as the main control center — SSR Server Component (`page.tsx`) + `QueueSection` client orchestrator.
-- [x] Integrate the `TicketCard` component displaying wait time, customer identifier, and primary action buttons ("Call" / "Finish" / "Cancel").
-- [x] Bind the list (`QueueList`) with **TanStack Query** for initial data fetching and caching (`staleTime: 10_000`).
-- [x] Set up optimistic UI updates when a merchant clicks "Call", "Complete", or "Cancel" — full rollback on error.
-- [x] Add a prominent **"Fullscreen QR"** button in the dashboard that opens `/qr?slug=…` in a new tab.
-- [x] Display a **live queue counter** ("X people waiting") in `DashboardHeader` that updates via Realtime.
-- [x] Queue open/closed state controlled via `DashboardHeader` toggle with optimistic update.
-- [x] When the queue is open: two-column layout (queue list left | QR code panel right).
+- UI updates within 500ms of a Realtime event
+- Optimistic updates on call/complete/cancel actions
+- Merchant can process the full customer lifecycle in 3 taps
 
-## Identified additional tasks
+## 3. Scope
 
-### Quality & robustness
-- [x] **Offline Resilience**: `ConnectionStatus` component shown when Realtime channel enters `CHANNEL_ERROR` / `TIMED_OUT` / `CLOSED` state.
-- [x] **Data Pagination / cleanup**: Only active tickets (`status IN ('waiting', 'called')`) are fetched.
-- [ ] **Error Boundaries**: Implement robust error boundaries around the queue list.
-- [x] **New ticket notification**: Audio chime (Web Audio API, oscillator 880 Hz → 440 Hz) plays when a new customer joins via Realtime INSERT event.
+### In scope
 
-### UX & accessibility
-- [x] **Keyboard Shortcuts**: `Enter` (outside input/textarea) calls the first waiting ticket (`QueueList` keydown listener).
-- [ ] **High Contrast Modes**: Ensure dashboard remains highly readable under direct sunlight.
-- [x] **Visual Hierarchy**: "Waiting" tickets vs "Called" tickets use distinct card styles; called tickets appear first in the list.
-- [ ] **Split-screen layout**: On larger tablets, consider a split view with QR on one side and queue list on the other.
+- Live queue list (waiting + called tickets)
+- Call, complete, cancel ticket actions (with optimistic UI)
+- Queue open/close toggle
+- Inline QR code panel (when queue is open)
+- Audio chime on new ticket join
+- Keyboard shortcut: Enter → call first waiting ticket
 
-### Security
-- [x] **Action Validation**: All server actions verify `merchant_id = auth.uid()` before mutating + RLS double-guard in DB.
-- [x] **No manual add**: The merchant cannot manually add tickets — all tickets are created by customers scanning the rotating QR code.
-- [x] **QR token dependency**: Queue joining is gated by a valid, non-expired QR token. See [Feature 06](./06_dynamic_qr_code.md).
+### Out of scope
 
-## Architecture Notes
-- The dashboard is the most critical interactive piece for the merchant. By relying on **TanStack Query + Optimistic Updates** (`@tanstack/react-query`), the interface feels like a native local app regardless of network conditions.
-- Real-time subscriptions (`QueueList` subscribes on mount, unsubscribes on unmount) keep multiple merchant devices perfectly synchronized without manual refreshing.
-- The **QR Display** is available inline on the dashboard (right column) and as a dedicated fullscreen tab (`/qr?slug=…`).
-- Since the merchant no longer manually adds customers, there is no `addTicketAction` — ticket creation is handled entirely by the customer-facing `joinQueueAction`, validated by the QR token system.
+- Manual ticket creation by the merchant (customers join via QR only)
+- Bulk operations on multiple tickets
+- Split-screen layout on large tablets (planned)
+
+## 4. User Stories
+
+- As a merchant, I want to see all waiting customers in real time so that I can serve them in order.
+- As a merchant, I want to call the next customer with one tap so that the workflow is fast.
+- As a merchant, I want audio notification when a new customer joins so that I don't miss anyone.
+
+## 5. Functional Requirements
+
+- [x] FR-1: SSR dashboard page pre-fetches active tickets (`waiting` + `called`)
+- [x] FR-2: TanStack Query with `staleTime: 10_000` for client-side caching
+- [x] FR-3: Realtime subscription updates the queue list on INSERT/UPDATE/DELETE
+- [x] FR-4: `callTicketAction` → status = `called`; `completeTicketAction` → `done`; `cancelTicketAction` → `cancelled`
+- [x] FR-5: Optimistic UI updates with rollback on error
+- [x] FR-6: `toggleQueueOpenAction` — update `merchants.is_open`
+- [x] FR-7: Live queue counter in `DashboardHeader` from Realtime INSERT events
+- [x] FR-8: Audio chime (Web Audio API) on new ticket arrival
+- [x] FR-9: `ConnectionStatus` component on Realtime CHANNEL_ERROR / TIMED_OUT
+- [x] FR-10: Keyboard shortcut: `Enter` calls first waiting ticket
+- [ ] FR-11: Error boundaries around queue list
+- [ ] FR-12: High contrast mode for outdoor/sunlight readability
+- [ ] FR-13: Split-screen layout (QR left, queue right) on large tablets
+
+## 6. Data Contracts
+
+### Existing tables/types
+
+- `queue_items`: `id`, `merchant_id`, `customer_name`, `status`, `joined_at`, `called_at`, `done_at`
+- `merchants`: `is_open`, `slug`, `name`
+
+### Schema changes (if any)
+
+- [x] None
+
+### Validation (Zod)
+
+- Input schema(s): `TicketActionSchema` (ticket_id UUID)
+- Expected failure responses: `401`, `403` (wrong merchant), `404` (ticket not found)
+
+## 7. API and Integration Contracts
+
+### Route handlers
+
+- No route handlers — all mutations via Server Actions in `lib/actions/queue.ts`
+
+### External dependencies
+
+- Supabase Realtime (channel: `queue:merchant_id=eq.{id}`)
+- TanStack Query (`@tanstack/react-query`) for client cache
+
+## 8. UI and UX
+
+- Entry points: `/dashboard` (authenticated merchant)
+- Loading state: `QueueList` skeleton (3 placeholder `TicketCard`s)
+- Empty state: "Aucun client en attente" with QR display panel visible
+- Error state: `ConnectionStatus` banner on Realtime degradation; toast on action failure
+- Accessibility notes: `Enter` keyboard shortcut on queue list; ARIA live region on counter; no screen flash on optimistic update
+
+## 9. Security and Privacy
+
+- Secret/env requirements: none new
+- Data retention and PII handling: `customer_name` cleared when ticket status reaches `done`/`cancelled` (future hygiene task)
+- Abuse/failure cases and mitigations: All Server Actions verify `merchant_id = auth.uid()` + RLS double-guard; no manual ticket creation path
+
+## 10. Observability
+
+- Structured logs to emit: Ticket state transitions (called, done, cancelled), queue toggle
+- Key counters/timers to track: Time from `joined_at` to `called_at` per merchant, Realtime event delivery latency
+- Alert thresholds (if relevant): Realtime error rate > 2% → alert
+
+## 11. Test Plan
+
+### Unit
+
+- `TicketActionSchema`: valid UUID, non-UUID input
+
+### Integration
+
+- `callTicketAction`: valid ticket → status = called; foreign merchant ticket → rejected
+- `completeTicketAction`: valid called ticket → status = done
+
+### Storybook (if UI)
+
+- Story variant 1: `TicketCard` — waiting state
+- Story variant 2: `TicketCard` — called state
+- Story variant 3: `QueueList` — empty state
+- Story variant 4: `DashboardHeader` — queue open, queue closed, with counter
+
+### Manual QA
+
+- Step 1: Join queue as customer → verify ticket appears instantly in dashboard
+- Step 2: Click "Call" → verify customer wait screen shows "C'est votre tour 🎉"
+- Step 3: Click "Complete" → ticket disappears from list
+
+## 12. Implementation Plan
+
+1. Milestone 1: `queue_items` table, RLS, Server Actions (call, complete, cancel, toggle)
+2. Milestone 2: Dashboard SSR page, QueueList with TanStack Query + Realtime
+3. Milestone 3: Optimistic UI, keyboard shortcut, audio chime, ConnectionStatus
+
+## 13. Rollout and Backfill
+
+- Feature flag needed: no
+- Backfill required: no
+- Rollback plan: Disable Realtime channel; fall back to polling (`refetchInterval: 5000`)
+
+## 14. Definition of Done
+
+- [x] Implementation merged to main
+- [x] Relevant unit and integration tests added and passing
+- [x] End-user or internal documentation updated
+- [x] `.env.example` updated (if needed)
+- [ ] Dashboard/Storybook layout and behavior visually validated

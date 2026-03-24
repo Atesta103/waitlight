@@ -39,23 +39,26 @@ function SlugInput({
     }
 
     useEffect(() => {
+        let cancelled = false
+
         if (!value || value.length < 3) {
-            setStatus("idle")
-            return
+            const t = setTimeout(() => { if (!cancelled) setStatus("idle") }, 0)
+            return () => { cancelled = true; clearTimeout(t) }
         }
 
         if (!checkAvailability) {
-            setStatus("available")
-            return
+            const t = setTimeout(() => { if (!cancelled) setStatus("available") }, 0)
+            return () => { cancelled = true; clearTimeout(t) }
         }
 
         setStatus("checking")
         const timer = setTimeout(async () => {
+            if (cancelled) return
             const available = await checkAvailability(value)
-            setStatus(available ? "available" : "taken")
+            if (!cancelled) setStatus(available ? "available" : "taken")
         }, 500)
 
-        return () => clearTimeout(timer)
+        return () => { cancelled = true; clearTimeout(timer) }
     }, [value, checkAvailability])
 
     const statusIcon = {

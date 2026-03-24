@@ -1,0 +1,34 @@
+name: Link Spec Files to GitHub Issues
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "doc/features/**/*.md"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  link-specs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run docs:rank
+      - run: npm run docs:link
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: link spec files to GitHub issues [skip ci]"
+          file_pattern: "doc/features/**/*.md doc/features/README.md"

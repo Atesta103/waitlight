@@ -33,7 +33,7 @@ export default async function QrDisplayPage() {
 
             <p className="max-w-xs text-center text-xs text-text-secondary print:hidden">
                 Le QR code se renouvelle automatiquement toutes les 10 secondes.
-                Chaque code n'est valable qu'une seule fois.
+                Chaque code n&apos;est valable qu&apos;une seule fois.
             </p>
         </div>
     )

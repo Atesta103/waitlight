@@ -14,7 +14,7 @@ type HeaderQueueControlProps = {
 
 export function HeaderQueueControl({
     initialIsOpen,
-    merchantSlug,
+    merchantSlug: _merchantSlug,
     merchantId,
 }: HeaderQueueControlProps) {
     const router = useRouter()

@@ -1,0 +1,1 @@
+var e={parameters:{controls:{matchers:{color:/(background|color)$/i,date:/Date$/i}},backgrounds:{default:`light`,values:[{name:`light`,value:`#f9fafb`},{name:`white`,value:`#ffffff`},{name:`dark`,value:`#111827`}]},layout:`centered`,nextjs:{appDirectory:!0}}};export{e as default};

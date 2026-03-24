@@ -1,44 +1,166 @@
-# Feature 10: Multichannel Authentication (Google/Apple SSO)
+# Feature 10: Multichannel Authentication (Google / Apple SSO)
 
-- **Type**: Conversion evolution (Evolution)
-- **Dependencies**: [Feature 01: Authentication & Account Management](./01_merchant_auth.md)
+## 1. Metadata
 
-**Description**: Simplify merchant registration with fast third-party authentication (Social Login). This reduces friction during sign-up and password fatigue.
+- Feature: Social Login (Google & Apple SSO)
+- Owner: Founding Team
+- Status: `proposed`
+- Last updated: 2026-03-23
+- Related issue/epic: TBD
+- Value to user: 3
+- Strategic priority: 3
+- Time to code: 3
+- Readiness score: 65/100
+- Interest score: 60/100
+- Source of truth:
+  - Schema: `supabase/migrations/20260302000000_initial_schema.sql`
+  - Route(s): `app/(auth)/`, `app/auth/callback/`
+  - UI entrypoint(s): `components/composed/SocialAuthButtons.tsx`
 
-## Integration sub-tasks
+## 2. Problem and Outcome
 
-### Backend (Supabase)
+### Problem
 
-- [ ] Enable Google and Apple providers in the **Supabase Auth** administration panel.
-- [ ] Retrieve OAuth credentials from Google (Google Cloud Console) and Apple (Developer Portal) and link them to the Supabase project configuration securely.
-- [x] The `merchants` table uses RLS INSERT policy `auth.uid() = id` and the dashboard layout redirects to `/onboarding` when no merchant row exists — OAuth users land on onboarding automatically, no separate trigger needed.
+Email/password registration has significant friction — merchants must choose a password, confirm their email, and remember credentials. This raises signup abandonment rate and leads to support requests for password resets.
 
-### Frontend (Next.js)
+### Target outcome
 
-- [x] "Continue with Google" and "Continue with Apple" branded buttons in `SocialAuthButtons` molecule, rendered on both `/login` and `/register` pages.
-- [x] `oauthSignInAction` calls `supabase.auth.signInWithOAuth()` and returns the redirect URL to the client (PKCE-safe; never exposes tokens).
-- [x] OAuth errors surfaced in the form: cancelled → "Connexion annulée.", provider error → friendly message. No blank screen.
-- [x] `/auth/callback` route handler: PKCE code exchange, `?error=access_denied` mapped to `oauth_cancelled`, other provider errors to `oauth_error`.
-- [x] Root `middleware.ts` created — calls `updateSession` on every request to keep Supabase session cookies fresh; guards `/dashboard` and `/onboarding`; redirects authenticated users away from auth pages (excluding `/reset-password`).
+Merchants can sign up and sign in with one tap via Google or Apple — no password, no email confirmation needed. The existing onboarding flow handles new OAuth users automatically.
 
-## Identified additional tasks
+### Success metrics
 
-### Quality & robustness
+- OAuth sign-in completes in < 3 seconds (redirect + PKCE exchange)
+- Zero raw OAuth tokens visible in the browser at any point
+- Account linking handled for existing email/password users
 
-- [ ] **Account Linking**: Handle the edge case where a user first creates an account with `john@example.com` + Password, and later clicks "Continue with Google" using the same email address. Supabase Auth must be configured to merge or link these cleanly.
-- [ ] **Apple Private Relay**: If a user selects "Hide My Email" with Apple, ensure the temporary proxy email `...@privaterelay.appleid.com` is safely captured and they can still receive necessary Waitlight notifications.
+## 3. Scope
 
-### UX & accessibility
+### In scope
 
-- [x] **Design Guidelines**: Google button uses official brand colours (4-path G), Apple button uses monochrome logo — both comply with provider guidelines.
-- [x] **Error Messages**: OAuth cancellation and failure each show a distinct, user-friendly error message on the login page.
+- Google OAuth via Supabase Auth provider
+- Apple OAuth via Supabase Auth provider
+- PKCE flow via `/auth/callback` route
+- Error mapping (cancelled, provider error) to user-friendly messages
+- Onboarding redirect for new OAuth users
 
-### Security
+### Out of scope
 
-- [ ] **Strict Redirect URIs**: Ensure the `Redirect URI` configuration in both Google/Apple and Supabase strictly whitelists the production domain (`https://wait-light.app/auth/callback`) to prevent open redirect vulnerabilities.
-- [x] **PKCE Flow**: `@supabase/ssr` uses PKCE by default. The callback route uses `exchangeCodeForSession(code)` — the app never sees raw OAuth tokens.
-- [x] **Session Refresh**: Root `middleware.ts` calls `updateSession` on every request — required by `@supabase/ssr` to keep the session alive in SSR contexts.
+- Apple Private Relay email masking (planned)
+- Account linking between email/password and OAuth (planned)
+- Customer SSO (customers are anonymous)
 
-## Architecture Notes
+## 4. User Stories
 
-- By relying entirely on Supabase's managed OAuth flow, the Next.js app never directly visualizes or processes Google/Apple access tokens. The frontend merely initiates a redirect and exchanges a short-lived `#code` for a secure Supabase JWT session cookie inside `middleware.ts` or the `/auth/callback` route.
+- As a merchant, I want to sign in with Google so that I don't need to remember a password.
+- As a merchant, I want to sign in with Apple so that I can use Face ID / Touch ID.
+- As a merchant, I want my OAuth account linked to my existing email/password account so that I can switch between methods.
+
+## 5. Functional Requirements
+
+- [x] FR-1: `SocialAuthButtons` molecule — Google + Apple buttons on `/login` and `/register`
+- [x] FR-2: `oauthSignInAction` — calls `supabase.auth.signInWithOAuth()`, returns redirect URL (PKCE-safe)
+- [x] FR-3: `/auth/callback` handler — PKCE code exchange; maps `?error=access_denied` → `oauth_cancelled`
+- [x] FR-4: Session refresh via root `proxy.ts` middleware (`updateSession` on every request)
+- [x] FR-5: OAuth users land on `/onboarding` if no `merchants` row exists
+- [ ] FR-6: Enable Google provider in Supabase Auth panel + configure OAuth credentials
+- [ ] FR-7: Enable Apple provider in Supabase Auth panel + configure OAuth credentials
+- [ ] FR-8: Whitelist production redirect URI in both Google Cloud Console and Apple Developer Portal
+- [ ] FR-9: Account linking for existing email/password users trying OAuth with same email
+- [ ] FR-10: Handle Apple Private Relay email (`...@privaterelay.appleid.com`)
+
+## 6. Data Contracts
+
+### Existing tables/types
+
+- `auth.users` (Supabase managed): OAuth users created automatically on first sign-in
+- `merchants`: same RLS INSERT policy (`auth.uid() = id`) — OAuth new users trigger onboarding
+
+### Schema changes (if any)
+
+- [x] None
+
+### Validation (Zod)
+
+- Input schema(s): `OAuthProviderSchema` (`provider: 'google' | 'apple'`)
+- Expected failure responses: `400` (invalid provider), `500` (OAuth provider error)
+
+## 7. API and Integration Contracts
+
+### Route handlers
+
+- `GET /auth/callback`: PKCE code exchange; redirects to `/dashboard` or `/onboarding`
+
+For each route:
+
+- Auth requirements: Public (unauthenticated) — processes Supabase PKCE callback
+- Input shape: `?code=...` query param from Supabase Auth
+- Output shape: Redirect to `/dashboard` (existing user) or `/onboarding` (new user)
+- Error states: `?error=access_denied` → `oauth_cancelled` redirect; other errors → `oauth_error`
+- Idempotency expectations: Code is one-time use (PKCE)
+
+### External dependencies
+
+- Google Cloud Console (OAuth App credentials)
+- Apple Developer Portal (OAuth App credentials)
+- Supabase Auth Google + Apple providers
+
+## 8. UI and UX
+
+- Entry points: `/login`, `/register` — below the email/password form
+- Loading state: Button in loading state during OAuth redirect
+- Empty state: n/a
+- Error state: `AuthErrorBanner` — distinct message for cancelled vs provider error
+- Accessibility notes: Google button uses official brand colors (4-path G logo); Apple button uses monochrome logo — both comply with provider guidelines; buttons have `aria-label`
+
+## 9. Security and Privacy
+
+- Secret/env requirements: No new env vars in Next.js — credentials stored in Supabase Auth dashboard
+- Data retention and PII handling: OAuth email and profile stored in `auth.users` (Supabase managed); no additional storage
+- Abuse/failure cases and mitigations: PKCE flow — app never sees raw OAuth tokens; strict redirect URI whitelisting prevents open redirect; Supabase Auth handles token refresh
+
+## 10. Observability
+
+- Structured logs to emit: OAuth sign-in initiated, OAuth callback success/failure, provider error type
+- Key counters/timers to track: OAuth vs email/password registration ratio, callback error rate
+- Alert thresholds (if relevant): OAuth callback error rate > 5% → alert
+
+## 11. Test Plan
+
+### Unit
+
+- `OAuthProviderSchema`: valid `google`, valid `apple`, invalid string
+
+### Integration
+
+- `oauthSignInAction`: valid provider → returns redirect URL; invalid provider → error
+
+### Storybook (if UI)
+
+- Story variant 1: `SocialAuthButtons` — default (Google + Apple)
+- Story variant 2: `SocialAuthButtons` — loading state (one button loading)
+
+### Manual QA
+
+- Step 1: Click "Continue with Google" → authorize → land on `/onboarding`
+- Step 2: Cancel Google OAuth → verify "Connexion annulée." error shown
+- Step 3: Sign in again with same Google account → land on `/dashboard` (no re-onboarding)
+
+## 12. Implementation Plan
+
+1. Milestone 1: Enable Google/Apple in Supabase Auth dashboard + configure OAuth credentials
+2. Milestone 2: Configure redirect URIs in Google Cloud Console + Apple Developer Portal
+3. Milestone 3: Account linking + Apple Private Relay handling
+
+## 13. Rollout and Backfill
+
+- Feature flag needed: yes — OAuth providers disabled until credentials configured in Supabase
+- Backfill required: no
+- Rollback plan: Disable Google/Apple providers in Supabase Auth dashboard — existing email/password accounts unaffected
+
+## 14. Definition of Done
+
+- [ ] Implementation merged to main
+- [ ] Relevant unit and integration tests added and passing
+- [ ] End-user or internal documentation updated
+- [ ] `.env.example` updated (if needed)
+- [ ] Dashboard/Storybook layout and behavior visually validated

@@ -17,7 +17,7 @@ import {
     type ToggleQueueInput,
     type JoinQueueInput,
 } from "@/lib/validators/queue"
-import type { Database } from "@/types/database"
+
 
 /**
  * A live ticket in the queue (only `waiting` and `called` statuses are returned
@@ -76,7 +76,7 @@ export async function getQueueAction(): Promise<
         return { error: "Impossible de charger la file d'attente." }
     }
 
-    return { data: data ?? [] }
+    return { data: (data ?? []) as QueueItem[] }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -56,7 +56,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             return
         }
 
-        setTicket(data)
+        setTicket(data as TicketData)
 
         // Clean up localStorage when ticket is done or cancelled
         if (data.status === "done" || data.status === "cancelled") {

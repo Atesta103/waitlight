@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { ThemePicker } from "@/components/ui/ThemePicker"
 import {
-    THEME_PRESETS,
     DEFAULT_THEME,
     themeToStyle,
     type MerchantTheme,
@@ -1113,6 +1112,7 @@ export default function DesignSystemPage() {
                     >
                         <SubSection title="DashboardHeader">
                             <DashboardHeader
+                                merchantName="Boulangerie Martin"
                                 isOpen={dashboardOpen}
                                 waitingCount={
                                     mockQueue.filter(
@@ -1224,6 +1224,8 @@ export default function DesignSystemPage() {
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
+                                    calculatedAvgPrepTime: null,
+                                    avgPrepComputedAt: null,
                                 }}
                             />
                         </SubSection>
