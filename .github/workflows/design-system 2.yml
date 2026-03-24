@@ -1,0 +1,37 @@
+name: Design System Quality
+
+on:
+  pull_request:
+    paths:
+      - "components/**"
+      - "app/globals.css"
+      - ".storybook/**"
+      - "package.json"
+      - "vitest.config.ts"
+      - ".github/workflows/design-system.yml"
+  push:
+    branches: [main]
+    paths:
+      - "components/**"
+      - "app/globals.css"
+      - ".storybook/**"
+      - "package.json"
+      - "vitest.config.ts"
+      - ".github/workflows/design-system.yml"
+
+jobs:
+  design-system:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run check:app-ui-contract
+      - run: npm run lint
+      # Uncomment when Storybook is set up:
+      # - run: npx playwright install --with-deps chromium
+      # - run: npm run test:storybook
+      # - run: npm run build-storybook
