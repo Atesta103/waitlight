@@ -42,6 +42,7 @@ const config: StorybookConfig = {
                 "process.env.STRIPE_PRICE_ID": JSON.stringify(
                     process.env.STRIPE_PRICE_ID || "dummy_price_id"
                 ),
+                "__dirname": JSON.stringify("/"),
             },
         })
     },
