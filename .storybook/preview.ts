@@ -6,6 +6,9 @@ if (typeof window !== "undefined") {
     window.process = window.process || {}
     window.process.env = window.process.env || {}
     window.process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000"
+    window.process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy_key_for_storybook"
+    window.process.env.NEXT_PUBLIC_SUPABASE_URL = "https://dummy.supabase.co"
+    window.process.env.STRIPE_SECRET_KEY = "dummy_stripe_key"
 }
 
 
