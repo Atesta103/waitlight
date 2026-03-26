@@ -30,11 +30,18 @@ export default async function DashboardLayout({
     }
 
     // Check merchant profile exists — redirect to onboarding if not.
-    const { data: merchant } = await supabase
+    const { data: merchant, error } = await supabase
         .from("merchants")
         .select("id, name, slug, is_open, bypass_paywall")
         .eq("id", user!.id)
         .maybeSingle()
+
+    if (error) {
+        console.error("Layout merchant fetch error:", error)
+        // Throwing here breaks an otherwise silent infinite redirect loop
+        // with /onboarding if columns are missing (e.g. bypass_paywall)
+        throw new Error("Failed to load merchant profile: " + error.message)
+    }
 
     if (!merchant) {
         redirect("/onboarding")

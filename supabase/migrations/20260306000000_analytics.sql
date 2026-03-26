@@ -94,8 +94,23 @@ $$;
 -- ─── pg_cron ─────────────────────────────────────────────────────────────────
 -- 3. Refresh materialized view concurrently every night at 02:00 UTC.
 --    Requires the pg_cron extension to be enabled in the Supabase project.
-SELECT cron.schedule(
-    'refresh-merchant-analytics',
-    '0 2 * * *',
-    $$REFRESH MATERIALIZED VIEW CONCURRENTLY merchant_analytics_view;$$
-);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_extension WHERE extname = 'pg_cron'
+    ) THEN
+        IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'refresh-merchant-analytics') THEN
+            PERFORM cron.unschedule('refresh-merchant-analytics');
+        END IF;
+
+        PERFORM cron.schedule(
+            'refresh-merchant-analytics',
+            '0 2 * * *',
+            'REFRESH MATERIALIZED VIEW CONCURRENTLY merchant_analytics_view;'
+        );
+        RAISE NOTICE 'pg_cron job "refresh-merchant-analytics" registered.';
+    ELSE
+        RAISE NOTICE 'pg_cron is not enabled. Run: SELECT cron.schedule(''refresh-merchant-analytics'', ''0 2 * * *'', ''REFRESH MATERIALIZED VIEW CONCURRENTLY merchant_analytics_view;'');';
+    END IF;
+END;
+$$;
