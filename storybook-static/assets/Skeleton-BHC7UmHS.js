@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-DqwUiDpP.js";import{t}from"./cn-BbnZYjoy.js";var n=e();function r({className:e}){return(0,n.jsx)(`div`,{"aria-hidden":`true`,className:t(`skeleton-shimmer rounded-md`,e)})}r.__docgenInfo={description:``,methods:[],displayName:`Skeleton`,props:{className:{required:!1,tsType:{name:`string`},description:``}}};export{r as t};
