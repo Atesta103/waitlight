@@ -29,3 +29,4 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           STRIPE_SECRET_KEY: dummy_stripe_key_for_build
+          SUPABASE_SERVICE_ROLE_KEY: dummy_supabase_role_key_for_build
