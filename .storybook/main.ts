@@ -21,6 +21,9 @@ const config: StorybookConfig = {
             resolve: {
                 alias: {
                     "@": path.resolve(__dirname, ".."),
+                    "@/lib/actions/admin": path.resolve(__dirname, "mocks/admin-actions-mock.ts"),
+                    "@/lib/actions/billing": path.resolve(__dirname, "mocks/billing-actions-mock.ts"),
+                    "stripe": path.resolve(__dirname, "mocks/stripe-mock.ts"),
                 },
             },
             define: {
