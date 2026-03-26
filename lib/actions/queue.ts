@@ -300,6 +300,12 @@ export async function joinQueueAction(
     const { customerName, token, slug } = parsed.data
     const supabase = await createClient()
 
+    // ── 0. Check for banned words ────────────────────────────────────────────
+    const nameCheck = await checkNameAction(customerName)
+    if (nameCheck.isBanned) {
+        return { error: "Ce prénom n'est pas autorisé." }
+    }
+
     // ── 1. Look up merchant by slug ──────────────────────────────────────────
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
@@ -347,12 +353,14 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
+    // @ts-ignore - name_flagged is not yet in generated types
     const { data: ticket, error: insertError } = await supabase
         .from("queue_items")
         .insert({
             merchant_id: merchant.id,
             customer_name: customerName,
             status: "waiting",
+            name_flagged: false,
         })
         .select("id")
         .single()
@@ -362,4 +370,54 @@ export async function joinQueueAction(
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }
+}
+
+export async function reportTicketNameAction(
+    ticketId: string,
+    merchantId: string,
+    offendingName: string
+): Promise<{ data: any } | { error: string }> {
+    try {
+        const supabase = await createClient()
+
+        // 1. Add to banned words if it doesn't exist
+        // @ts-ignore - banned_words is not yet in generated types
+        const { error: insertError } = await supabase.from("banned_words").insert({
+                word: offendingName.toLowerCase(),
+                merchant_id: merchantId,
+            })
+            // Ignore if it already exists (UNIQUE index)
+        
+        // 2. Overwrite the name with a generic identifier
+        const genericName = `Guest-${Math.floor(1000 + Math.random() * 9000)}`
+        // @ts-ignore - name_flagged is not yet in generated types
+        const { data: updatedTicket, error: updateError } = await supabase
+            .from("queue_items")
+            .update({
+                customer_name: genericName,
+                name_flagged: true,
+            })
+            .eq("id", ticketId)
+            .eq("merchant_id", merchantId)
+            .select()
+            .single()
+
+        if (updateError) throw updateError
+        return { data: updatedTicket }
+    } catch (err: any) {
+        console.error("Failed to report name:", err)
+        return { error: "Failed to report name. Please try again." }
+    }
+}
+
+export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
+    try {
+        if (!name) return { isBanned: false }
+        const supabase = await createClient()
+        // @ts-ignore - banned_words is not yet in generated types
+        const { data } = await supabase.from("banned_words").select("id").eq("word", name.toLowerCase()).single()
+        return { isBanned: !!data }
+    } catch (err) {
+        return { isBanned: false }
+    }
 }
