@@ -87,6 +87,7 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
         (payload: Record<string, unknown>) => {
             const msg = payload as unknown as GameMsg
             if (msg.type === "move") {
+                if (msg.player === playerNum) return // own move already applied locally
                 setBoard((prev) => {
                     const result = dropPiece(prev, msg.col, msg.player)
                     if (!result) return prev
@@ -107,7 +108,7 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
                 setLastDrop(null)
             }
         },
-        [],
+        [playerNum],
     )
 
     const { broadcast } = useGameChannel({ channelName, onMessage })

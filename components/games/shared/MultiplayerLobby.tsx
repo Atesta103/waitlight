@@ -86,29 +86,15 @@ export function MultiplayerLobby({
         // Announce on discovery channel
         await discoveryRef.current?.track({ roomCode: code })
 
-        // Open the game channel and wait for a second player
-        const gameChannel = supabase.channel(`${gameType}:${merchantId}:${code}`, {
-            config: { presence: { key: ticketId } },
-        })
-
-        const checkPlayers = () => {
-            const state = gameChannel.presenceState()
-            const count = Object.keys(state).length
-            if (count >= 2) {
-                // Stop advertising on discovery
-                discoveryRef.current?.untrack()
-                onGameStart(code, 1)
-            }
-        }
+        // Open the game channel and wait for a second player via broadcast
+        const gameChannel = supabase.channel(`${gameType}:${merchantId}:${code}`)
 
         gameChannel
-            .on("presence", { event: "join" }, checkPlayers)
-            .on("presence", { event: "sync" }, checkPlayers)
-            .subscribe(async (status) => {
-                if (status === "SUBSCRIBED") {
-                    await gameChannel.track({ ticketId, player: 1 })
-                }
+            .on("broadcast", { event: "player_joined" }, () => {
+                discoveryRef.current?.untrack()
+                onGameStart(code, 1)
             })
+            .subscribe()
 
         gameRef.current = gameChannel
     }, [gameType, merchantId, ticketId, onGameStart])
@@ -119,13 +105,16 @@ export function MultiplayerLobby({
             setJoiningCode(code)
 
             const supabase = supabaseRef.current
-            const gameChannel = supabase.channel(`${gameType}:${merchantId}:${code}`, {
-                config: { presence: { key: ticketId } },
-            })
+            const gameChannel = supabase.channel(`${gameType}:${merchantId}:${code}`)
 
             gameChannel.subscribe(async (status) => {
                 if (status === "SUBSCRIBED") {
-                    await gameChannel.track({ ticketId, player: 2 })
+                    // Notify host via broadcast — more reliable than presence events
+                    await gameChannel.send({
+                        type: "broadcast",
+                        event: "player_joined",
+                        payload: { ticketId },
+                    })
                     setJoiningCode(null)
                     onGameStart(code, 2)
                 }

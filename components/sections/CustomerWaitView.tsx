@@ -122,21 +122,25 @@ function CustomerWaitView({
                             Gardez cette page ouverte pour être notifié quand ce
                             sera votre tour.
                         </p>
-
-                        <Link
-                            href={`/${slug}/wait/${ticketId}/games`}
-                            className={cn(
-                                "flex items-center justify-center gap-2.5 rounded-2xl px-5 py-3.5",
-                                "bg-brand-primary text-text-inverse font-semibold text-sm",
-                                "shadow-sm hover:opacity-90 active:scale-95 transition-all",
-                            )}
-                        >
-                            <Gamepad2 size={18} aria-hidden="true" />
-                            Jouer en attendant
-                        </Link>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {status === "waiting" && (
+                <div className="sticky bottom-0 pt-2">
+                    <Link
+                        href={`/${slug}/wait/${ticketId}/games`}
+                        className={cn(
+                            "flex items-center justify-center gap-2.5 rounded-2xl px-5 py-3.5 w-full",
+                            "bg-brand-primary text-text-inverse font-semibold text-sm",
+                            "shadow-lg hover:opacity-90 active:scale-95 transition-all",
+                        )}
+                    >
+                        <Gamepad2 size={18} aria-hidden="true" />
+                        Jouer en attendant
+                    </Link>
+                </div>
+            )}
         </div>
     )
 }

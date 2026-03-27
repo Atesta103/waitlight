@@ -79,7 +79,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
                 activePlayerRef.current = 1
                 setStarted(true)
                 setTimeLeft(TURN_DURATION)
-                clearTimer()
+                // timer effect re-runs when started flips to true
             } else if (msg.type === "next_turn") {
                 setSyllable(msg.syllable)
                 setActivePlayer(msg.activePlayer)
@@ -88,7 +88,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
                 setInput("")
                 setFeedback("")
                 setLastWord(null)
-                clearTimer()
+                // don't clearTimer — let running interval pick up the reset timeLeft
             } else if (msg.type === "answer") {
                 setLastWord({ word: msg.word, valid: msg.valid })
             } else if (msg.type === "life_lost") {
@@ -125,48 +125,50 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
         return () => clearTimeout(timer)
     }, [isHost, broadcast])
 
-    // Countdown timer — only host manages it to avoid drift
+    // Countdown timer — both players tick visually; only host drives state changes
     useEffect(() => {
         if (!started || gameOver !== 0) return
         clearTimer()
         timerRef.current = setInterval(() => {
             setTimeLeft((t) => {
                 if (t <= 1) {
-                    // Time out — current player loses a life
-                    const ap = activePlayerRef.current
-                    const newLives = {
-                        p1: ap === 1 ? livesRef.current.p1 - 1 : livesRef.current.p1,
-                        p2: ap === 2 ? livesRef.current.p2 - 1 : livesRef.current.p2,
-                    }
-                    livesRef.current = newLives
-                    setLives(newLives)
-                    broadcast({ type: "life_lost", player: ap } satisfies LifeLostMsg)
+                    if (isHost) {
+                        // Host decides timeout consequences
+                        const ap = activePlayerRef.current
+                        const newLives = {
+                            p1: ap === 1 ? livesRef.current.p1 - 1 : livesRef.current.p1,
+                            p2: ap === 2 ? livesRef.current.p2 - 1 : livesRef.current.p2,
+                        }
+                        livesRef.current = newLives
+                        setLives(newLives)
+                        broadcast({ type: "life_lost", player: ap } satisfies LifeLostMsg)
 
-                    const loser = newLives.p1 <= 0 ? 1 : newLives.p2 <= 0 ? 2 : 0
-                    if (loser !== 0) {
-                        const w: 1 | 2 = loser === 1 ? 2 : 1
-                        broadcast({ type: "game_over", winner: w } satisfies GameOverMsg)
-                        setGameOver(w)
-                        clearTimer()
-                        return 0
-                    }
+                        const loser = newLives.p1 <= 0 ? 1 : newLives.p2 <= 0 ? 2 : 0
+                        if (loser !== 0) {
+                            const w: 1 | 2 = loser === 1 ? 2 : 1
+                            broadcast({ type: "game_over", winner: w } satisfies GameOverMsg)
+                            setGameOver(w)
+                            clearTimer()
+                            return 0
+                        }
 
-                    const next: 1 | 2 = ap === 1 ? 2 : 1
-                    const newSyl = getRandomSyllable()
-                    activePlayerRef.current = next
-                    setActivePlayer(next)
-                    setInput("")
-                    setFeedback("")
-                    setLastWord(null)
-                    broadcast({ type: "next_turn", syllable: newSyl, activePlayer: next } satisfies NextTurnMsg)
-                    setSyllable(newSyl)
+                        const next: 1 | 2 = ap === 1 ? 2 : 1
+                        const newSyl = getRandomSyllable()
+                        activePlayerRef.current = next
+                        setActivePlayer(next)
+                        setInput("")
+                        setFeedback("")
+                        setLastWord(null)
+                        broadcast({ type: "next_turn", syllable: newSyl, activePlayer: next } satisfies NextTurnMsg)
+                        setSyllable(newSyl)
+                    }
                     return TURN_DURATION
                 }
                 return t - 1
             })
         }, 1000)
         return () => clearTimer()
-    }, [started, gameOver, broadcast])
+    }, [started, gameOver, broadcast, isHost])
 
     const submitWord = useCallback(() => {
         if (activePlayer !== playerNum || gameOver !== 0) return
@@ -290,9 +292,11 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
 
             {/* Input */}
             {gameOver === 0 && started && (
-                <div className="flex gap-2 w-full">
+                <div className="flex gap-2 w-full sticky bottom-0 pb-1">
                     <input
                         type="text"
+                        inputMode="text"
+                        enterKeyHint="send"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && submitWord()}

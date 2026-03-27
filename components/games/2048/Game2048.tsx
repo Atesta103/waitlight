@@ -272,7 +272,8 @@ export function Game2048() {
                 <div className="absolute inset-2">
                     <AnimatePresence>
                         {tiles.map((tile) => {
-                            const cellSize = (320 - 16) / 4 // 76px
+                            const inner = 320 - 16 // 304px after p-2 padding
+                            const cellSize = (inner - 3 * 8) / 4 // 70px — matches CSS grid cells
                             const gap = 8
                             const left = tile.col * (cellSize + gap)
                             const top = tile.row * (cellSize + gap)

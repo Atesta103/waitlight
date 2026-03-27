@@ -83,7 +83,7 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
         // Snake body
         state.snake.forEach((seg, i) => {
             const isHead = i === 0
-            const alpha = isHead ? 1 : 0.75 - (i / state.snake.length) * 0.3
+            const alpha = isHead ? 1 : Math.max(0.65, 0.95 - (i / Math.max(state.snake.length, 8)) * 0.35)
             ctx.fillStyle = isHead
                 ? "var(--color-brand-primary, #6366f1)"
                 : `rgba(99, 102, 241, ${alpha})`
@@ -261,7 +261,7 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
                     ref={canvasRef}
                     width={CANVAS_SIZE}
                     height={CANVAS_SIZE}
-                    className="rounded-xl border border-slate-700 touch-none"
+                    className="rounded-xl border border-border-default touch-none"
                     style={{ imageRendering: "pixelated" }}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}

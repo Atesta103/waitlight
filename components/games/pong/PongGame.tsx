@@ -11,7 +11,7 @@ const PADDLE_H = 12
 const BALL_R = 8
 const PADDLE_Y_OFFSET = 20
 const WIN_SCORE = 7
-const BALL_SPEED = 4
+const BALL_SPEED = 3.5
 
 interface BallMsg {
     type: "ball"
@@ -19,6 +19,11 @@ interface BallMsg {
     y: number
     vx: number
     vy: number
+}
+
+interface CountdownMsg {
+    type: "countdown"
+    n: number
 }
 
 interface PaddleMsg {
@@ -33,7 +38,7 @@ interface ScoreMsg {
     p2: number
 }
 
-type GameMsg = BallMsg | PaddleMsg | ScoreMsg
+type GameMsg = BallMsg | PaddleMsg | ScoreMsg | CountdownMsg
 
 interface PongState {
     ballX: number
@@ -46,6 +51,8 @@ interface PongState {
     score2: number
     running: boolean
     winner: 0 | 1 | 2
+    countdown: number       // 3,2,1,0 — pauses physics
+    countdownElapsed: number // ms elapsed in current countdown second
 }
 
 function clampPaddleX(x: number) {
@@ -56,14 +63,16 @@ function makeInitialState(): PongState {
     return {
         ballX: W / 2,
         ballY: H / 2,
-        ballVX: BALL_SPEED * (Math.random() > 0.5 ? 1 : -1),
-        ballVY: BALL_SPEED,
+        ballVX: 0,
+        ballVY: 0,
         p1X: W / 2,
         p2X: W / 2,
         score1: 0,
         score2: 0,
         running: true,
         winner: 0,
+        countdown: 3,
+        countdownElapsed: 0,
     }
 }
 
@@ -87,7 +96,14 @@ export function PongGame({ merchantId, roomCode, playerNum, onExit }: PongGamePr
         const msg = payload as unknown as GameMsg
         const s = stateRef.current
 
-        if (msg.type === "ball" && !isHost) {
+        if (msg.type === "countdown") {
+            s.countdown = msg.n
+            s.countdownElapsed = 0
+            if (msg.n === 0) {
+                s.ballVX = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
+                s.ballVY = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
+            }
+        } else if (msg.type === "ball" && !isHost) {
             s.ballX = msg.x
             s.ballY = msg.y
             s.ballVX = msg.vx
@@ -163,16 +179,44 @@ export function PongGame({ merchantId, roomCode, playerNum, onExit }: PongGamePr
         ctx.beginPath()
         ctx.arc(s.ballX, s.ballY, BALL_R, 0, Math.PI * 2)
         ctx.fill()
+
+        // Countdown overlay
+        if (s.countdown > 0) {
+            ctx.fillStyle = "rgba(0,0,0,0.45)"
+            ctx.fillRect(0, 0, W, H)
+            ctx.fillStyle = "white"
+            ctx.font = "bold 72px system-ui"
+            ctx.textAlign = "center"
+            ctx.textBaseline = "middle"
+            ctx.fillText(String(s.countdown), W / 2, H / 2)
+            ctx.textBaseline = "alphabetic"
+        }
     }, [playerNum])
 
     // Host runs physics
-    const gameLoop = useCallback((_delta: number) => {
+    const gameLoop = useCallback((delta: number) => {
+        const s = stateRef.current
         if (!isHost) {
             draw()
             return
         }
-        const s = stateRef.current
         if (!s.running) return
+
+        // Countdown phase
+        if (s.countdown > 0) {
+            s.countdownElapsed += delta
+            if (s.countdownElapsed >= 1000) {
+                s.countdown--
+                s.countdownElapsed = 0
+                broadcast({ type: "countdown", n: s.countdown } satisfies CountdownMsg)
+                if (s.countdown === 0) {
+                    s.ballVX = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
+                    s.ballVY = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
+                }
+            }
+            draw()
+            return
+        }
 
         s.ballX += s.ballVX
         s.ballY += s.ballVY
@@ -233,8 +277,11 @@ export function PongGame({ merchantId, roomCode, playerNum, onExit }: PongGamePr
     function resetBall(s: PongState) {
         s.ballX = W / 2
         s.ballY = H / 2
-        s.ballVX = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
-        s.ballVY = BALL_SPEED * (Math.random() > 0.5 ? 1 : -1)
+        s.ballVX = 0
+        s.ballVY = 0
+        s.countdown = 3
+        s.countdownElapsed = 0
+        broadcast({ type: "countdown", n: 3 } satisfies CountdownMsg)
     }
 
     useAnimationFrame(gameLoop, winner === 0)
@@ -244,7 +291,7 @@ export function PongGame({ merchantId, roomCode, playerNum, onExit }: PongGamePr
         if (!isHost) return
         broadcastIntervalRef.current = setInterval(() => {
             const s = stateRef.current
-            if (!s.running) return
+            if (!s.running || s.countdown > 0) return
             broadcast({
                 type: "ball",
                 x: s.ballX,
@@ -252,7 +299,7 @@ export function PongGame({ merchantId, roomCode, playerNum, onExit }: PongGamePr
                 vx: s.ballVX,
                 vy: s.ballVY,
             } satisfies BallMsg)
-        }, 50)
+        }, 33)
         return () => {
             if (broadcastIntervalRef.current) clearInterval(broadcastIntervalRef.current)
         }
