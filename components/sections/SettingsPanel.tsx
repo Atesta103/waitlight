@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef, useCallback } from "react"
+import { useState, useTransition, useRef, useCallback, useEffect } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/Card"
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/Dialog"
 import { Input } from "@/components/ui/Input"
 import { ColorPicker } from "@/components/ui/ColorPicker"
+import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
@@ -42,6 +43,7 @@ import {
     resetAvgPrepTimeAction,
 } from "@/lib/actions/settings"
 import { createClient } from "@/lib/supabase/client"
+import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -74,6 +76,7 @@ type SettingsPanelProps = {
 
 const NAV_SECTIONS = [
     { id: "identity", label: "Identité", icon: User },
+    { id: "display", label: "Affichage", icon: Sparkles },
     { id: "queue", label: "File d'attente", icon: Layers },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "waittime", label: "Temps d'attente", icon: Clock },
@@ -676,6 +679,16 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             } else {
                 setIdentityChanged(false)
                 setIdentitySuccess(true)
+                
+                // Update theme variables directly after successful save
+                const root = document.getElementById("dashboard-root")
+                if (root && identity.brand_color && isValidHexCode(identity.brand_color)) {
+                    const contrast = getContrastYIQ(identity.brand_color) === "white" ? "#FFFFFF" : "#000000"
+                    root.style.setProperty("--color-brand-primary", identity.brand_color)
+                    root.style.setProperty("--color-brand-primary-hover", identity.brand_color)
+                    root.style.setProperty("--color-border-focus", identity.brand_color)
+                    root.style.setProperty("--color-text-on-primary", contrast)
+                }
             }
         })
     }
@@ -880,9 +893,44 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         </SectionBlock>
                     </motion.div>
 
-                    {/* ── Queue config ───────────────────────────────────── */}
+                    {/* ── Display mode ──────────────────────────────────── */}
                     <motion.div
                         custom={1}
+                        initial="hidden"
+                        animate="visible"
+                        variants={sectionVariants}
+                    >
+                        <SectionBlock
+                            id="display"
+                            icon={Sparkles}
+                            title="Affichage"
+                            description="Mode clair ou sombre pour votre tableau de bord."
+                        >
+                            <Card>
+                                <CardContent>
+                                    <div className="flex flex-col gap-3 pt-1">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <h4 className="text-sm font-medium text-text-primary">
+                                                    Thème de l'application
+                                                </h4>
+                                                <p className="text-sm text-text-secondary">
+                                                    Choisissez votre préférence visuelle pour le tableau de bord.
+                                                </p>
+                                            </div>
+                                            <div className="w-[300px] shrink-0">
+                                                <ThemeSwitcher />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </SectionBlock>
+                    </motion.div>
+
+                    {/* ── Queue config ───────────────────────────────────── */}
+                    <motion.div
+                        custom={2}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -977,7 +1025,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
 
                     {/* ── Wait time (live) ───────────────────────────────── */}
                     <motion.div
-                        custom={2}
+                        custom={3}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}

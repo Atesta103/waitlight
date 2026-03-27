@@ -4,6 +4,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { isActiveStatus } from "@/lib/subscription-status"
 import { DashboardProviders } from "./providers"
+import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
 import { LayoutDashboard, BarChart2 } from "lucide-react"
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant, error } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, bypass_paywall")
+        .select("id, name, slug, is_open, bypass_paywall, brand_color")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -62,9 +63,27 @@ export default async function DashboardLayout({
         }
     }
 
+    const defaultColor = "#4F46E5"
+    let brandColor = defaultColor
+    let contrastColor = "#FFFFFF"
+
+    if (merchant.brand_color && isValidHexCode(merchant.brand_color)) {
+        brandColor = merchant.brand_color
+        contrastColor = getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
+    }
+
     return (
         <DashboardProviders>
-            <div className="min-h-screen bg-surface-base">
+            <div 
+                id="dashboard-root"
+                className="min-h-screen bg-surface-base"
+                style={{
+                    "--color-brand-primary": brandColor,
+                    "--color-brand-primary-hover": brandColor,
+                    "--color-border-focus": brandColor,
+                    "--color-text-on-primary": contrastColor,
+                } as React.CSSProperties}
+            >
                 <header className="sticky top-0 z-40 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">
                     <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-2.5">
                         {/* Left — nav */}

@@ -52,6 +52,34 @@
   --radius-full: 9999px;
 }
 
+.dark {
+  /* Surfaces */
+  --color-surface-base: #09090b; /* zinc-950 */
+  --color-surface-card: #18181b; /* zinc-900 */
+  --color-surface-overlay: rgba(0, 0, 0, 0.75);
+
+  /* Text */
+  --color-text-primary: #f9fafb; /* gray-50 */
+  --color-text-secondary: #9ca3af; /* gray-400 */
+  --color-text-disabled: #4b5563; /* gray-600 */
+  --color-text-inverse: #111827; /* gray-900 */
+
+  /* Borders */
+  --color-border-default: #27272a; /* zinc-800 */
+
+  /* Status Colors Adjustments for Dark Mode */
+  --color-status-waiting-bg: #452102; /* darker amber bg */
+  --color-status-called-bg: #06402b; /* darker emerald bg */
+  --color-status-done-bg: #1f2937; /* gray-800 */
+  --color-status-cancelled-bg: #450a0a; /* darker red bg */
+
+  /* Feedback Backgrounds */
+  --color-feedback-error-bg: #450a0a;
+  --color-feedback-success-bg: #06402b;
+  --color-feedback-warning-bg: #452102;
+  --color-feedback-info-bg: #1e3a8a;
+}
+
 @theme inline {
   /* Brand */
   --color-brand-primary: var(--color-brand-primary);
@@ -79,6 +107,7 @@
   --color-text-secondary: var(--color-text-secondary);
   --color-text-disabled: var(--color-text-disabled);
   --color-text-inverse: var(--color-text-inverse);
+  --color-text-on-primary: var(--color-text-on-primary);
 
   /* Borders */
   --color-border-default: var(--color-border-default);
