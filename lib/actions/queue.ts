@@ -376,7 +376,8 @@ export async function joinQueueAction(
         .single()
 
     if (insertError || !ticket) {
-        return { error: "Impossible de rejoindre la file. Veuillez réessayer." }
+        console.error("joinQueueAction failed:", insertError);
+        return { error: `Impossible de rejoindre la file. Erreur: ${insertError?.message || "Inconnue"}` }
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }
@@ -399,7 +400,7 @@ export async function reportTicketNameAction(
             // Ignore if it already exists (UNIQUE index)
         
         // 2. Overwrite the name with a generic identifier
-        const genericName = `Guest-${Math.floor(1000 + Math.random() * 9000)}`
+        const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
         // @ts-ignore - name_flagged is not yet in generated types
         const { data: updatedTicket, error: updateError } = await supabase
             .from("queue_items")
