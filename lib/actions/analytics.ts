@@ -52,16 +52,11 @@ export async function getAnalyticsAction(
 
     // Always use get_analytics_range so data is live (no materialized view refresh needed).
     // The materialized view + get_analytics RPC remain available for direct DB use / future optimisation.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any).call(
-        supabase,
-        "get_analytics_range",
-        {
-            p_merchant_id: user.id,
-            p_start: range?.start ?? null,
-            p_end: range?.end ?? null,
-        },
-    )
+    const { data, error } = await supabase.rpc("get_analytics_range", {
+        p_merchant_id: user.id,
+        p_start: range?.start ?? undefined,
+        p_end: range?.end ?? undefined,
+    })
 
     if (error) {
         return { error: "Impossible de charger les statistiques." }

@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client"
 import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
 import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
+import { Button } from "@/components/ui/Button"
 import type { ConnectionState } from "@/components/composed/ConnectionStatus"
 
 type Merchant = {
@@ -20,6 +22,7 @@ type TicketData = {
     id: string
     merchant_id: string
     customer_name: string
+    name_flagged: boolean
     status: "waiting" | "called" | "done" | "cancelled"
     joined_at: string
     called_at: string | null
@@ -39,15 +42,14 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const [notFound, setNotFound] = useState(false)
+    const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
     const supabaseRef = useRef(createClient())
 
     const fetchTicket = useCallback(async () => {
         const supabase = supabaseRef.current
         const { data, error } = await supabase
             .from("queue_items")
-            .select(
-                "id, merchant_id, customer_name, status, joined_at, called_at, done_at",
-            )
+            .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at")
             .eq("id", ticketId)
             .single()
 
@@ -182,6 +184,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     // Count total waiting (position is 1-based, so it gives us
     // the count of people ahead + 1 for the customer themselves)
     const totalWaiting = position
+    
+    // Check if we need to show the moderation warning dialog
+    const showModerationWarning = ticket.name_flagged && !acknowledgedFlag
 
     return (
         <div className="flex flex-col gap-4">
@@ -193,6 +198,24 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 connectionState={connectionState}
                 customerName={ticket.customer_name}
             />
+
+            <Dialog 
+                open={showModerationWarning} 
+                onClose={() => setAcknowledgedFlag(true)}
+            >
+                <DialogHeader>Nom modifié par modération</DialogHeader>
+                <DialogContent>
+                    <p className="text-sm text-text-secondary">
+                        Votre prénom ou surnom a été signalé pour contenu inapproprié et a été supprimé.
+                        Vous apparaissez désormais sous le nom : <strong className="text-text-primary">{ticket.customer_name}</strong>.
+                    </p>
+                </DialogContent>
+                <DialogFooter>
+                    <Button onClick={() => setAcknowledgedFlag(true)}>
+                        J&apos;ai compris
+                    </Button>
+                </DialogFooter>
+            </Dialog>
         </div>
     )
 }

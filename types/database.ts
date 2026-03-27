@@ -12,12 +12,67 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      banned_words: {
+        Row: {
+          created_at: string
+          id: string
+          merchant_id: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchant_id?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchant_id?: string | null
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banned_words_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchants: {
         Row: {
           avg_prep_computed_at: string | null
           avg_wait_time: number | null
+          bypass_paywall: boolean
           calculated_avg_prep_time: number | null
           created_at: string
           default_prep_time_min: number
@@ -31,6 +86,7 @@ export type Database = {
         Insert: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number
@@ -44,6 +100,7 @@ export type Database = {
         Update: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number
@@ -134,6 +191,7 @@ export type Database = {
           id: string
           joined_at: string
           merchant_id: string
+          name_flagged: boolean
           status: string
         }
         Insert: {
@@ -143,6 +201,7 @@ export type Database = {
           id?: string
           joined_at?: string
           merchant_id: string
+          name_flagged?: boolean
           status?: string
         }
         Update: {
@@ -152,6 +211,7 @@ export type Database = {
           id?: string
           joined_at?: string
           merchant_id?: string
+          name_flagged?: boolean
           status?: string
         }
         Relationships: [
@@ -243,7 +303,7 @@ export type Database = {
           {
             foreignKeyName: "subscriptions_merchant_id_fkey"
             columns: ["merchant_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
@@ -431,6 +491,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

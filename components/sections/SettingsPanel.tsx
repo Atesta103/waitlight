@@ -100,7 +100,7 @@ function SectionBlock({
         <section
             id={id}
             aria-labelledby={`${id}-heading`}
-            className="scroll-mt-6"
+            className="scroll-mt-24"
         >
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -751,9 +751,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             {/* ── Sticky sidebar nav (desktop only) ────────────────────── */}
             <nav
                 aria-label="Navigation des paramètres"
-                className="hidden w-44 shrink-0 lg:block"
+                className="sticky top-24 hidden h-fit w-44 shrink-0 lg:block"
             >
-                <ul className="sticky top-6 flex flex-col gap-1">
+                <ul className="flex flex-col gap-1">
                     {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                         <li key={id}>
                             <a

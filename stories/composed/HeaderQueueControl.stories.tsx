@@ -11,25 +11,23 @@ const meta = {
 export default meta
 
 export const Open = {
-    args: { isOpen: true, waitingCount: 5, merchantSlug: "boulangerie-martin" },
+    args: { initialIsOpen: true, merchantSlug: "boulangerie-martin", merchantId: "123" },
     render: () => (
         <HeaderQueueControl
-            isOpen={true}
-            waitingCount={5}
+            initialIsOpen={true}
             merchantSlug="boulangerie-martin"
-            onToggle={() => {}}
+            merchantId="123"
         />
     ),
 }
 
 export const Closed = {
-    args: { isOpen: false, waitingCount: 0, merchantSlug: "boulangerie-martin" },
+    args: { initialIsOpen: false, merchantSlug: "boulangerie-martin", merchantId: "123" },
     render: () => (
         <HeaderQueueControl
-            isOpen={false}
-            waitingCount={0}
+            initialIsOpen={false}
             merchantSlug="boulangerie-martin"
-            onToggle={() => {}}
+            merchantId="123"
         />
     ),
 }

@@ -17,7 +17,7 @@
  * readiness < 80/100.
  */
 
-import { readdir, readFile, writeFile } from "node:fs/promises"
+import { readdir, readFile, writeFile, rename } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -182,6 +182,23 @@ const ranked = [...specs].sort((a, b) => {
     if (b.interestScore !== a.interestScore) return b.interestScore - a.interestScore
     return b.readiness - a.readiness
 })
+
+// ─── Rename files sequentially ────────────────────────────────────────────────
+
+for (let i = 0; i < ranked.length; i++) {
+    const spec = ranked[i];
+    const numStr = String(i + 1).padStart(2, "0");
+    // Remove existing numeric prefixes like "05_", "feature_12_", "Feature 09_" etc.
+    const baseName = spec.filename.replace(/^(feature_?\d*_?|\d+_)/i, "");
+    const newFilename = `${numStr}_${baseName}`;
+
+    if (newFilename !== spec.filename) {
+        const oldPath = path.join(FEATURES_DIR, spec.filename);
+        const newPath = path.join(FEATURES_DIR, newFilename);
+        await rename(oldPath, newPath);
+        spec.filename = newFilename; // update for README generation
+    }
+}
 
 // ─── Generate README.md ───────────────────────────────────────────────────────
 

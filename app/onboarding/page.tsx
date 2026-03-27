@@ -24,11 +24,16 @@ export default async function OnboardingPage() {
     if (!user) redirect("/login")
 
     // Already onboarded → skip straight to dashboard
-    const { data: merchant } = await supabase
+    const { data: merchant, error } = await supabase
         .from("merchants")
         .select("id")
         .eq("id", user.id)
         .maybeSingle()
+
+    if (error) {
+        console.error("Onboarding merchant fetch error:", error)
+        throw new Error("Failed to check merchant status: " + error.message)
+    }
 
     if (merchant) redirect("/dashboard")
 

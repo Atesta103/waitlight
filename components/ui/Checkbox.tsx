@@ -60,13 +60,13 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                             {label}
                         </span>
                         {error ? (
-                            <p
+                            <span
                                 id={errorId}
                                 className="text-xs font-semibold text-feedback-error"
                                 role="alert"
                             >
                                 {error}
-                            </p>
+                            </span>
                         ) : null}
                     </div>
                 </label>

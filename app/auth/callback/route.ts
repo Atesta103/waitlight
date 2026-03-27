@@ -23,6 +23,7 @@
  */
 import { NextResponse, type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { checkRateLimit } from "@/lib/utils/rate-limit"
 
 /**
  * Auth callback Route Handler.
@@ -44,6 +45,14 @@ export async function GET(request: NextRequest) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get("code")
     const next = searchParams.get("next") ?? "/dashboard"
+
+    // ── Rate Limiting ────────────────────────────────────────────────────────
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown"
+    const isAllowed = checkRateLimit(`auth_callback_${ip}`, 10, 60_000) // 10 hits per minute per IP
+
+    if (!isAllowed) {
+        return NextResponse.redirect(`${origin}/login?error=oauth_error&message=Too+many+requests`)
+    }
 
     // ── OAuth provider returned an error (e.g. user cancelled) ────────────
     const oauthError = searchParams.get("error")

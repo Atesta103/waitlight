@@ -15,6 +15,7 @@ import {
     callTicketAction,
     completeTicketAction,
     cancelTicketAction,
+    reportTicketNameAction,
 } from "@/lib/actions/queue"
 import { Users } from "lucide-react"
 import type { QueueItem } from "@/lib/actions/queue"
@@ -122,7 +123,29 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
             queryClient.invalidateQueries({ queryKey: ["queue", merchantId] })
         },
     })
-
+    const reportNameMutation = useMutation({
+        mutationFn: ({ id, name }: { id: string, name: string }) => reportTicketNameAction(id, merchantId, name),
+        onMutate: async ({ id }) => {
+            await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
+            const prev = queryClient.getQueryData<QueueItem[]>(["queue", merchantId])
+            queryClient.setQueryData<QueueItem[]>(
+                ["queue", merchantId],
+                (old) =>
+                    old?.map((t) =>
+                        t.id === id ? { ...t, customer_name: "Guest-..." } : t,
+                    ) ?? [],
+            )
+            return { prev }
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.prev) {
+                queryClient.setQueryData(["queue", merchantId], context.prev)
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["queue", merchantId] })
+        },
+    })
     // ── Audio chime for new tickets ───────────────────────────────────────────
     const playChime = useCallback(() => {
         try {
@@ -295,6 +318,7 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
                                     onCall={(id) => callMutation.mutate(id)}
                                     onComplete={(id) => completeMutation.mutate(id)}
                                     onCancel={(id) => cancelMutation.mutate(id)}
+                                    onReportName={(id, name) => reportNameMutation.mutate({ id, name })}
                                 />
                             </motion.div>
                         ))}

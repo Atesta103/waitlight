@@ -1,2 +1,3 @@
 node scripts/check-schema-migration.mjs
+node scripts/check-spec-completion.mjs
 npx lint-staged

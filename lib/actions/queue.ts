@@ -300,6 +300,12 @@ export async function joinQueueAction(
     const { customerName, token, slug } = parsed.data
     const supabase = await createClient()
 
+    // ── 0. Check for banned words ────────────────────────────────────────────
+    const nameCheck = await checkNameAction(customerName)
+    if (nameCheck.isBanned) {
+        return { error: "Ce prénom n'est pas autorisé." }
+    }
+
     // ── 1. Look up merchant by slug ──────────────────────────────────────────
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
@@ -316,12 +322,22 @@ export async function joinQueueAction(
     }
 
     // ── 2. Validate QR token ─────────────────────────────────────────────────
-    const { data: tokenValid, error: tokenError } = await supabase.rpc(
-        "validate_qr_token",
-        { p_nonce: token, p_slug: slug },
-    )
+    let tokenValid = false;
+    
+    // In development mode, allow a bypass token for local testing
+    if (process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true" && token === "dev_test_mode") {
+        tokenValid = true;
+    } else {
+        const { data, error: tokenError } = await supabase.rpc(
+            "validate_qr_token",
+            { p_nonce: token, p_slug: slug },
+        )
+        if (!tokenError && data) {
+            tokenValid = true;
+        }
+    }
 
-    if (tokenError || !tokenValid) {
+    if (!tokenValid) {
         return {
             error: "Ce QR code a expiré ou a déjà été utilisé. Veuillez scanner le QR code actuel.",
         }
@@ -347,19 +363,68 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
-    const { data: ticket, error: insertError } = await supabase
+    const { data: ticket, error: _insertError } = await supabase
         .from("queue_items")
         .insert({
             merchant_id: merchant.id,
             customer_name: customerName,
             status: "waiting",
+            name_flagged: false,
         })
         .select("id")
         .single()
 
-    if (insertError || !ticket) {
-        return { error: "Impossible de rejoindre la file. Veuillez réessayer." }
+    if (_insertError || !ticket) {
+        console.error("joinQueueAction failed:", _insertError);
+        return { error: `Impossible de rejoindre la file. Erreur: ${_insertError?.message || "Inconnue"}` }
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }
+}
+
+export async function reportTicketNameAction(
+    ticketId: string,
+    merchantId: string,
+    offendingName: string
+): Promise<{ data: { id: string; customer_name: string; name_flagged: boolean } } | { error: string }> {
+    try {
+        const supabase = await createClient()
+
+        // 1. Add to banned words if it doesn't exist
+        await supabase.from("banned_words").insert({
+            word: offendingName.toLowerCase(),
+            merchant_id: merchantId,
+        })
+        // Ignore duplicate error — UNIQUE index on word
+
+        // 2. Overwrite the name with a generic identifier
+        const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
+        const { data: updatedTicket, error: updateError } = await supabase
+            .from("queue_items")
+            .update({
+                customer_name: genericName,
+                name_flagged: true,
+            })
+            .eq("id", ticketId)
+            .eq("merchant_id", merchantId)
+            .select("id, customer_name, name_flagged")
+            .single()
+
+        if (updateError) throw updateError
+        return { data: updatedTicket }
+    } catch (err: unknown) {
+        console.error("Failed to report name:", err)
+        return { error: "Failed to report name. Please try again." }
+    }
+}
+
+export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
+    if (!name) return { isBanned: false }
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from("banned_words")
+        .select("id")
+        .eq("word", name.toLowerCase())
+        .single()
+    return { isBanned: !!data }
 }

@@ -4,7 +4,8 @@ import { useRef, useEffect, useState } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { QueueDot } from "@/components/ui/QueueDot"
 import { Skeleton } from "@/components/ui/Skeleton"
-import { Clock, ChevronUp, CalendarClock } from "lucide-react"
+import { StatusBanner } from "./StatusBanner"
+import { Clock, ChevronUp, CalendarClock, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 type QueuePositionCardProps = {
@@ -80,6 +81,7 @@ function TimePill({ minutes }: { minutes: number }) {
     )
 }
 
+
 function QueuePositionCard({
     position,
     totalWaiting,
@@ -129,6 +131,47 @@ function QueuePositionCard({
         )
     }
 
+    // ── Special layout when customer is first in line ────────────────────────
+    if (position === 0) {
+        return (
+            <motion.div
+                key="next-up"
+                initial={prefersReduced ? false : { opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 25 }}
+                className={cn(
+                    "flex w-full flex-col items-center gap-4 rounded-2xl border border-feedback-success-bg bg-feedback-success-bg px-6 py-8 text-center",
+                    className,
+                )}
+                aria-live="polite"
+            >
+                <motion.div
+                    animate={prefersReduced ? {} : { scale: [1, 1.15, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-card"
+                >
+                    <BellRing size={28} className="text-feedback-success" aria-hidden="true" />
+                </motion.div>
+
+                <div className="flex flex-col gap-1">
+                    <p className="text-lg font-bold text-text-primary">
+                        Vous êtes le prochain !
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                        Restez prêt·e, on va vous appeler d&apos;un instant à l&apos;autre.
+                    </p>
+                </div>
+
+                <div
+                    className="flex items-center gap-1.5 animate-pulse rounded-full bg-surface-card px-3 py-1.5 text-xs font-semibold text-feedback-success"
+                >
+                    <Clock size={12} aria-hidden="true" />
+                    <span>D&apos;un instant à l&apos;autre…</span>
+                </div>
+            </motion.div>
+        )
+    }
+
     // People strictly ahead
     const aheadCount = position
     // People behind you
@@ -142,11 +185,21 @@ function QueuePositionCard({
     const dotsBehind = Math.min(behindCount, MAX_DOTS_BEHIND)
     const hasMoreBehind = behindCount > MAX_DOTS_BEHIND
 
-
-
     return (
-        <div className={cn("flex items-center gap-6", className)}>
-            {/* ─── Rail ─── */}
+        <div className="flex w-full flex-col gap-6">
+            {position <= 1 && (
+                <StatusBanner
+                    variant="next"
+                    title={position === 0 ? "Vous êtes le prochain !" : "Préparez-vous !"}
+                    description={
+                        position === 0
+                            ? "On va bientôt vous appeler."
+                            : "Il ne reste qu'une personne avant vous."
+                    }
+                />
+            )}
+            <div className={cn("flex items-center gap-6", className)}>
+                {/* ─── Rail ─── */}
             <div className="flex flex-col items-center gap-1.5">
                 {hasMoreAhead && (
                     <span className="text-[10px] leading-none text-text-disabled">
@@ -275,6 +328,7 @@ function QueuePositionCard({
                         {totalWaiting} personnes au total
                     </p>
                 )}
+            </div>
             </div>
         </div>
     )

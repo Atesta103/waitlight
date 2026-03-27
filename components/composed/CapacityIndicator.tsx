@@ -32,7 +32,7 @@ function CapacityIndicator({
         <Card className={cn("", className)}>
             <CardContent>
                 <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2">
                             <Users
                                 size={18}

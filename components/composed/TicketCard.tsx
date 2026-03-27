@@ -5,7 +5,7 @@ import { Avatar } from "@/components/ui/Avatar"
 import { Button } from "@/components/ui/Button"
 import { Dropdown } from "@/components/ui/Dropdown"
 import { cn } from "@/lib/utils/cn"
-import { PhoneCall, X, CheckCircle2, MoreVertical } from "lucide-react"
+import { PhoneCall, X, CheckCircle2, MoreVertical, ShieldAlert } from "lucide-react"
 
 type TicketStatus = "waiting" | "called" | "done" | "cancelled"
 
@@ -18,6 +18,7 @@ type TicketCardProps = {
     onCall?: (id: string) => void
     onComplete?: (id: string) => void
     onCancel?: (id: string) => void
+    onReportName?: (id: string, name: string) => void
     className?: string
 }
 
@@ -30,6 +31,7 @@ function TicketCard({
     onCall,
     onComplete,
     onCancel,
+    onReportName,
     className,
 }: TicketCardProps) {
     const formattedTime = new Intl.DateTimeFormat("fr-FR", {
@@ -108,8 +110,8 @@ function TicketCard({
                     </Button>
                 )}
 
-                {/* Option "Annuler" masquée dans le Menu Dropdown */}
-                {onCancel && (status === "waiting" || status === "called") && (
+                {/* Option "Annuler" et "Signaler" masquées dans le Menu Dropdown */}
+                {(onCancel || onReportName) && (status === "waiting" || status === "called") && (
                     <Dropdown
                         align="right"
                         trigger={
@@ -123,12 +125,17 @@ function TicketCard({
                             </Button>
                         }
                         items={[
-                            {
+                            ...(onCancel ? [{
                                 label: "Annuler le ticket",
                                 icon: <X size={16} />,
-                                variant: "destructive",
+                                variant: "destructive" as const,
                                 onClick: () => onCancel(id),
-                            },
+                            }] : []),
+                            ...(onReportName && !customerName.startsWith("Guest-") ? [{
+                                label: "Signaler le prénom",
+                                icon: <ShieldAlert size={16} />,
+                                onClick: () => onReportName(id, customerName),
+                            }] : [])
                         ]}
                     />
                 )}

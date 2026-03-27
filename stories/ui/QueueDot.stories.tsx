@@ -31,7 +31,7 @@ export const Behind: Story = {
 
 export const QueueVisualization: StoryRender = {
     render: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
             <QueueDot variant="ahead" />
             <QueueDot variant="ahead" />
             <QueueDot variant="you" />
