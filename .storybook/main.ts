@@ -3,8 +3,8 @@ import path from "path"
 
 const config: StorybookConfig = {
     stories: [
-        "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-        "../components/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+        path.join(__dirname, "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)").replace(/\\/g, "/"),
+        path.join(__dirname, "../components/**/*.stories.@(js|jsx|mjs|ts|tsx)").replace(/\\/g, "/"),
     ],
     addons: [
         "@storybook/addon-essentials",
@@ -23,6 +23,11 @@ const config: StorybookConfig = {
                     "@": path.resolve(__dirname, ".."),
                     "@/lib/actions/admin": path.resolve(__dirname, "mocks/admin-actions-mock.ts"),
                     "@/lib/actions/billing": path.resolve(__dirname, "mocks/billing-actions-mock.ts"),
+                    "@/lib/actions/queue": path.resolve(__dirname, "mocks/queue-actions-mock.ts"),
+                    "@/lib/actions/analytics": path.resolve(__dirname, "mocks/analytics-actions-mock.ts"),
+                    "@/lib/actions/qr": path.resolve(__dirname, "mocks/qr-actions-mock.ts"),
+                    "@/lib/actions/auth": path.resolve(__dirname, "mocks/auth-actions-mock.ts"),
+                    "@/lib/actions/settings": path.resolve(__dirname, "mocks/settings-actions-mock.ts"),
                     "stripe": path.resolve(__dirname, "mocks/stripe-mock.ts"),
                 },
             },

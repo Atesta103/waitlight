@@ -16,7 +16,7 @@ const meta = {
 export default meta
 
 // Render-only stories don't need args since Toggle requires both checked + onChange
-type StoryRender = StoryObj
+type StoryRender = StoryObj<typeof Toggle>
 
 function ToggleWrapper(props: { label: string; defaultChecked?: boolean; disabled?: boolean }) {
     const [checked, setChecked] = useState(props.defaultChecked ?? false)

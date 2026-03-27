@@ -363,7 +363,7 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
-    const { data: ticket, error: insertError } = await supabase
+    const { data: ticket, error: _insertError } = await supabase
         .from("queue_items")
         .insert({
             merchant_id: merchant.id,
@@ -374,9 +374,9 @@ export async function joinQueueAction(
         .select("id")
         .single()
 
-    if (insertError || !ticket) {
-        console.error("joinQueueAction failed:", insertError);
-        return { error: `Impossible de rejoindre la file. Erreur: ${insertError?.message || "Inconnue"}` }
+    if (_insertError || !ticket) {
+        console.error("joinQueueAction failed:", _insertError);
+        return { error: `Impossible de rejoindre la file. Erreur: ${_insertError?.message || "Inconnue"}` }
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }

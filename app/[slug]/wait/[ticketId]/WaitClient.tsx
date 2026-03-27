@@ -212,7 +212,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 </DialogContent>
                 <DialogFooter>
                     <Button onClick={() => setAcknowledgedFlag(true)}>
-                        J'ai compris
+                        J&apos;ai compris
                     </Button>
                 </DialogFooter>
             </Dialog>

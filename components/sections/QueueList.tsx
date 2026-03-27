@@ -137,7 +137,7 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
             )
             return { prev }
         },
-        onError: (err, vars, context) => {
+        onError: (_err, _vars, context) => {
             if (context?.prev) {
                 queryClient.setQueryData(["queue", merchantId], context.prev)
             }
