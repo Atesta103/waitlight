@@ -197,6 +197,8 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 estimatedWaitMinutes={estimatedWaitMinutes}
                 connectionState={connectionState}
                 customerName={ticket.customer_name}
+                slug={merchant.slug}
+                ticketId={ticketId}
             />
 
             <Dialog 
