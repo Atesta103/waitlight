@@ -280,6 +280,7 @@ export function FlappyGame() {
 
                 {dead && (
                     <GameOverlay
+                        outcome="lose"
                         title="Game Over"
                         score={score}
                         scoreLabel="Tuyaux passés"

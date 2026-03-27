@@ -1,4 +1,4 @@
-export type GameId = "snake" | "flappy" | "2048" | "connect4" | "bombparty"
+export type GameId = "snake" | "flappy" | "2048" | "connect4" | "bombparty" | "tictactoe"
 
 export type GameMode = "solo" | "multiplayer"
 
@@ -51,5 +51,13 @@ export const GAMES: GameMeta[] = [
         emoji: "💣",
         mode: "multiplayer",
         avgDuration: "5-10 min",
+    },
+    {
+        id: "tictactoe",
+        title: "Tic-Tac-Toe Évaporation",
+        description: "Aligne 3 — mais tes pièces les plus vieilles disparaissent !",
+        emoji: "⭕",
+        mode: "multiplayer",
+        avgDuration: "2-5 min",
     },
 ]

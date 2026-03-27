@@ -208,8 +208,9 @@ export function Game2048() {
 
             isAnimating.current = true
 
-            // Phase 1 — slide tiles to new positions; absorbed tiles slide to merge target
-            const phase1 = [...survivingTiles, ...absorbedTiles]
+            // FIX: Sort by ID to prevent DOM reordering. 
+            // This stops Framer Motion from resetting the animation and "teleporting" tiles.
+            const phase1 = [...survivingTiles, ...absorbedTiles].sort((a, b) => a.id - b.id)
             tilesRef.current = phase1
             setTiles(phase1)
 
@@ -218,8 +219,11 @@ export function Game2048() {
                 const base = tilesRef.current
                     .filter((t) => !t.isAbsorbed)
                     .map((t) => ({ ...t, isMerged: false, isNew: false }))
+                
                 const newTile = addRandomTile(base)
-                const final = newTile ? [...base, newTile] : base
+                
+                // Maintain the sort just to be perfectly safe
+                const final = (newTile ? [...base, newTile] : base).sort((a, b) => a.id - b.id)
 
                 tilesRef.current = final
                 setTiles(final)
@@ -233,7 +237,7 @@ export function Game2048() {
                 else if (!canMove(final)) setStatus("lost")
 
                 isAnimating.current = false
-            }, prefersReduced ? 0 : 150)
+            }, prefersReduced ? 0 : 170)
         },
         [status, prefersReduced],
     )
@@ -333,13 +337,15 @@ export function Game2048() {
                                         zIndex: tile.isAbsorbed ? 1 : 2,
                                         fontSize: tile.value >= 1024 ? "18px" : tile.value >= 128 ? "22px" : "26px",
                                     }}
-                                    // New tiles pop in from scale 0 at the correct position
-                                    initial={prefersReduced ? false : {
-                                        x: tx,
-                                        y: ty,
-                                        scale: tile.isNew ? 0 : 1,
-                                    }}
-                                    // Slide via transform (GPU); merged tiles do a quick pop
+                                    // New tiles: pop in from scale 0 at spawn position.
+                                    // Existing tiles: initial={false} so framer-motion animates
+                                    // purely from its tracked current position → no false-start.
+                                    initial={
+                                        prefersReduced || !tile.isNew
+                                            ? false
+                                            : { x: tx, y: ty, scale: 0 }
+                                    }
+                                    // Slide via GPU transform; merged tiles do a quick pop
                                     animate={prefersReduced ? { x: tx, y: ty } : {
                                         x: tx,
                                         y: ty,
@@ -369,7 +375,8 @@ export function Game2048() {
                 {/* Game-over overlays */}
                 {status === "won" && (
                     <GameOverlay
-                        title="Tu as gagné ! 🎉"
+                        outcome="win"
+                        title="Tu as gagné !"
                         subtitle="Tu as atteint 2048 !"
                         score={score}
                         scoreLabel="Score"
@@ -378,6 +385,7 @@ export function Game2048() {
                 )}
                 {status === "lost" && (
                     <GameOverlay
+                        outcome="lose"
                         title="Game Over"
                         subtitle="Plus de mouvements possibles"
                         score={score}

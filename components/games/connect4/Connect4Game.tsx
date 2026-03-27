@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { useGameChannel } from "@/components/games/shared/useGameChannel"
+import { GameResultModal } from "@/components/games/shared/GameResultModal"
 import { cn } from "@/lib/utils/cn"
 
 const COLS = 7
@@ -179,27 +180,17 @@ export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }
     return (
         <div className="flex flex-col items-center gap-4 w-full">
             {/* Status */}
-            <div className="flex items-center gap-3 bg-surface-card border border-border-default rounded-xl px-4 py-2">
-                {winner === 0 ? (
-                    <>
-                        <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ background: currentTurn === 1 ? "#ef4444" : "#eab308" }}
-                        />
-                        <span className="text-sm font-medium text-text-primary">
-                            {isMyTurn ? "C'est ton tour !" : `Tour de ${currentTurn === 1 ? p1Name : p2Name}`}
-                        </span>
-                    </>
-                ) : winner === "draw" ? (
-                    <span className="text-sm font-medium text-text-secondary">Match nul !</span>
-                ) : (
-                    <span className="text-sm font-bold text-text-primary">
-                        {winner === playerNum
-                            ? "Tu as gagné ! 🎉"
-                            : `${winner === 1 ? p1Name : p2Name} gagne !`}
+            {winner === 0 && (
+                <div className="flex items-center gap-3 bg-surface-card border border-border-default rounded-xl px-4 py-2">
+                    <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ background: currentTurn === 1 ? "#ef4444" : "#eab308" }}
+                    />
+                    <span className="text-sm font-medium text-text-primary">
+                        {isMyTurn ? "C'est ton tour !" : `Tour de ${currentTurn === 1 ? p1Name : p2Name}`}
                     </span>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Board */}
             <div
@@ -286,22 +277,19 @@ export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }
                 </div>
             </div>
 
-            {/* Actions */}
             {winner !== 0 && (
-                <div className="flex flex-col gap-2 w-full max-w-xs">
-                    <button
-                        onClick={handleReset}
-                        className="w-full py-3 bg-brand-primary text-text-inverse rounded-xl font-semibold"
-                    >
-                        Rejouer
-                    </button>
-                    <button
-                        onClick={onExit}
-                        className="w-full py-3 bg-surface-card border border-border-default text-text-secondary rounded-xl font-semibold"
-                    >
-                        Retour au lobby
-                    </button>
-                </div>
+                <GameResultModal
+                    outcome={winner === "draw" ? "draw" : winner === playerNum ? "win" : "lose"}
+                    title={winner === "draw" ? "Match nul !" : winner === playerNum ? "Tu as gagné !" : "Tu as perdu…"}
+                    subtitle={
+                        winner !== "draw" && winner !== playerNum
+                            ? `${winner === 1 ? p1Name : p2Name} remporte la partie`
+                            : undefined
+                    }
+                    onRestart={handleReset}
+                    onExit={onExit}
+                    exitLabel="Retour au lobby"
+                />
             )}
         </div>
     )

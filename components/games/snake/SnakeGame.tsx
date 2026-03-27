@@ -295,6 +295,7 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
 
                 {gameOver && (
                     <GameOverlay
+                        outcome="lose"
                         title="Game Over"
                         score={score}
                         scoreLabel="Points"

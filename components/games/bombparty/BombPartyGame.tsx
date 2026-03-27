@@ -1,48 +1,21 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { useGameChannel } from "@/components/games/shared/useGameChannel"
+import { GameResultModal } from "@/components/games/shared/GameResultModal"
 import { getRandomSyllable, isValidWord, preloadWords } from "./words"
 import { cn } from "@/lib/utils/cn"
 
 const MAX_LIVES = 3
 const TURN_DURATION = 10 // seconds
 
-interface AnswerMsg {
-    type: "answer"
-    word: string
-    valid: boolean
-    player: 1 | 2
-}
-
-interface NextTurnMsg {
-    type: "next_turn"
-    syllable: string
-    activePlayer: 1 | 2
-}
-
-interface LifeLostMsg {
-    type: "life_lost"
-    player: 1 | 2
-}
-
-interface GameOverMsg {
-    type: "game_over"
-    winner: 1 | 2
-}
-
-interface StartMsg {
-    type: "start"
-    syllable: string
-}
-
-interface HelloMsg {
-    type: "hello"
-    name: string
-    player: 1 | 2
-}
-
+interface AnswerMsg  { type: "answer";    word: string; valid: boolean; player: 1 | 2 }
+interface NextTurnMsg{ type: "next_turn"; syllable: string; activePlayer: 1 | 2 }
+interface LifeLostMsg{ type: "life_lost"; player: 1 | 2 }
+interface GameOverMsg{ type: "game_over"; winner: 1 | 2 }
+interface StartMsg   { type: "start";     syllable: string }
+interface HelloMsg   { type: "hello";     name: string; player: 1 | 2 }
 type GameMsg = HelloMsg | AnswerMsg | NextTurnMsg | LifeLostMsg | GameOverMsg | StartMsg
 
 interface BombPartyGameProps {
@@ -67,15 +40,22 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
     const [gameOver, setGameOver] = useState<0 | 1 | 2>(0)
     const [started, setStarted] = useState(false)
     const [lastWord, setLastWord] = useState<{ word: string; valid: boolean } | null>(null)
+    // flashPlayer: which player's hearts row shakes after a life loss
+    const [flashPlayer, setFlashPlayer] = useState<0 | 1 | 2>(0)
     const prefersReduced = useReducedMotion()
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const activePlayerRef = useRef<1 | 2>(1)
     const livesRef = useRef({ p1: MAX_LIVES, p2: MAX_LIVES })
-    const timeLeftRef = useRef(TURN_DURATION) // mirrors timeLeft state, safe to read in setInterval
+    const timeLeftRef = useRef(TURN_DURATION)
 
     const clearTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current)
+    }
+
+    const triggerFlash = (player: 1 | 2) => {
+        setFlashPlayer(player)
+        setTimeout(() => setFlashPlayer(0), 600)
     }
 
     const p1Name = playerNum === 1 ? myName : opponentName
@@ -93,7 +73,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                 activePlayerRef.current = 1
                 setStarted(true)
                 setTimeLeft(TURN_DURATION)
-                // timer effect re-runs when started flips to true
             } else if (msg.type === "next_turn") {
                 setSyllable(msg.syllable)
                 setActivePlayer(msg.activePlayer)
@@ -102,7 +81,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                 setInput("")
                 setFeedback("")
                 setLastWord(null)
-                // don't clearTimer — let running interval pick up the reset timeLeft
             } else if (msg.type === "answer") {
                 setLastWord({ word: msg.word, valid: msg.valid })
             } else if (msg.type === "life_lost") {
@@ -114,20 +92,20 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                     livesRef.current = next
                     return next
                 })
+                triggerFlash(msg.player)
             } else if (msg.type === "game_over") {
                 setGameOver(msg.winner)
                 clearTimer()
             }
         },
-        [playerNum, setOpponentName],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [playerNum],
     )
 
     const { broadcast } = useGameChannel({ channelName, onMessage })
 
-    // Preload French word list in background (fail-open if unavailable)
     useEffect(() => { preloadWords() }, [])
 
-    // Send hello when channel is ready
     useEffect(() => {
         const timer = setTimeout(() => {
             broadcast({ type: "hello", name: myName, player: playerNum } satisfies HelloMsg)
@@ -135,7 +113,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
         return () => clearTimeout(timer)
     }, [broadcast, myName, playerNum])
 
-    // Host starts the game when both join
     useEffect(() => {
         if (!isHost) return
         const timer = setTimeout(() => {
@@ -150,9 +127,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
         return () => clearTimeout(timer)
     }, [isHost, broadcast])
 
-    // Countdown timer — restarts on every turn change; only host drives state changes.
-    // All side effects are OUTSIDE the setTimeLeft updater to avoid React 18 Strict Mode
-    // double-invocation (which caused both players to lose a life per timeout).
+    // Countdown timer — all side effects outside the setTimeLeft updater (React 18 Strict Mode safety)
     useEffect(() => {
         if (!started || gameOver !== 0) return
         timeLeftRef.current = TURN_DURATION
@@ -172,6 +147,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                 livesRef.current = newLives
                 setLives(newLives)
                 broadcast({ type: "life_lost", player: ap } satisfies LifeLostMsg)
+                triggerFlash(ap)
 
                 const loser = newLives.p1 <= 0 ? 1 : newLives.p2 <= 0 ? 2 : 0
                 if (loser !== 0) {
@@ -194,7 +170,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
             }
         }, 1000)
         return () => clearTimer()
-    // activePlayer in deps: timer resets to TURN_DURATION on every turn change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [started, gameOver, broadcast, isHost, activePlayer])
 
@@ -231,12 +206,33 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
 
     const isMyTurn = activePlayer === playerNum && gameOver === 0 && started
 
-    const renderHearts = (count: number) =>
-        Array.from({ length: MAX_LIVES }).map((_, i) => (
-            <span key={i} className={i < count ? "text-red-500" : "text-text-disabled"}>
-                ♥
-            </span>
-        ))
+    // Urgency level 0–1 based on time remaining (0 = start of turn, 1 = expired)
+    const urgency = Math.max(0, Math.min(1, (TURN_DURATION - timeLeft) / TURN_DURATION))
+
+    const renderHearts = (count: number, player: 1 | 2) => (
+        <motion.div
+            className="flex gap-0.5 text-xl"
+            animate={!prefersReduced && flashPlayer === player
+                ? { x: [0, -6, 6, -5, 5, -3, 0], scale: [1, 1.15, 1] }
+                : {}
+            }
+            transition={{ duration: 0.35, ease: "easeOut" }}
+        >
+            {Array.from({ length: MAX_LIVES }).map((_, i) => (
+                <motion.span
+                    key={i}
+                    className={i < count ? "text-red-500" : "text-text-disabled"}
+                    animate={!prefersReduced && flashPlayer === player && i === count
+                        ? { scale: [1.6, 0], opacity: [1, 0] }
+                        : {}
+                    }
+                    transition={{ duration: 0.3, ease: "easeIn" }}
+                >
+                    ♥
+                </motion.span>
+            ))}
+        </motion.div>
+    )
 
     return (
         <div className="flex flex-col items-center gap-5 w-full max-w-sm">
@@ -246,7 +242,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                     <span className="text-xs text-text-secondary font-medium truncate max-w-20">
                         {p1Name}{playerNum === 1 ? " ✦" : ""}
                     </span>
-                    <div className="flex gap-0.5 text-lg">{renderHearts(lives.p1)}</div>
+                    {renderHearts(lives.p1, 1)}
                 </div>
                 <div className="flex flex-col items-center justify-center">
                     <span className="text-xs text-text-secondary">
@@ -257,47 +253,52 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                     <span className="text-xs text-text-secondary font-medium truncate max-w-20">
                         {p2Name}{playerNum === 2 ? " ✦" : ""}
                     </span>
-                    <div className="flex gap-0.5 text-lg">{renderHearts(lives.p2)}</div>
+                    {renderHearts(lives.p2, 2)}
                 </div>
             </div>
 
-            {/* Bomb + syllable */}
-            <div className="relative flex flex-col items-center gap-3">
-                <motion.div
-                    className="text-6xl"
-                    animate={
-                        prefersReduced
-                            ? {}
-                            : { scale: timeLeft <= 3 ? [1, 1.1, 1] : 1 }
-                    }
-                    transition={{ duration: 0.3, repeat: timeLeft <= 3 ? Infinity : 0 }}
+            {/* Bomb + syllable — no timer number, urgency shown through bomb animation */}
+            <div className="relative flex flex-col items-center gap-4">
+                <div
+                    className="rounded-full transition-all duration-300"
+                    style={{
+                        filter: prefersReduced ? "none"
+                            : timeLeft <= 3
+                              ? "drop-shadow(0 0 16px rgba(239,68,68,0.85))"
+                              : timeLeft <= 6
+                                ? "drop-shadow(0 0 8px rgba(251,146,60,0.55))"
+                                : "none",
+                    }}
                 >
-                    💣
-                </motion.div>
-
-                {/* Timer ring */}
-                <div className="flex items-center justify-center">
-                    <div
-                        className={cn(
-                            "w-12 h-12 rounded-full border-4 flex items-center justify-center font-bold text-lg",
-                            timeLeft <= 3
-                                ? "border-red-500 text-red-500"
-                                : timeLeft <= 5
-                                  ? "border-yellow-500 text-yellow-500"
-                                  : "border-brand-primary text-brand-primary",
-                        )}
+                    <motion.div
+                        className="text-7xl select-none"
+                        animate={prefersReduced ? {} : {
+                            scale: [1, 1 + urgency * 0.12, 1],
+                            rotate: timeLeft <= 3 ? [-3, 3, -3, 3, 0] : 0,
+                        }}
+                        transition={{
+                            duration: timeLeft <= 3 ? 0.22 : timeLeft <= 6 ? 0.38 : 0.55,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        }}
                     >
-                        {timeLeft}
-                    </div>
+                        💣
+                    </motion.div>
                 </div>
 
                 {/* Syllable display */}
                 {started && syllable ? (
-                    <div className="bg-surface-card border-2 border-brand-primary rounded-2xl px-8 py-4">
+                    <motion.div
+                        key={syllable}
+                        initial={prefersReduced ? {} : { opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                        className="bg-surface-card border-2 border-brand-primary rounded-2xl px-8 py-4"
+                    >
                         <span className="text-4xl font-black tracking-widest text-brand-primary">
                             {syllable}
                         </span>
-                    </div>
+                    </motion.div>
                 ) : (
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-brand-primary rounded-full animate-pulse" />
@@ -307,20 +308,25 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
             </div>
 
             {/* Last word feedback */}
-            {lastWord && (
-                <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                        "text-sm font-medium px-3 py-1 rounded-full",
-                        lastWord.valid
-                            ? "bg-feedback-success-bg text-feedback-success"
-                            : "bg-feedback-error-bg text-feedback-error",
-                    )}
-                >
-                    {lastWord.valid ? `✓ "${lastWord.word}"` : `✗ "${lastWord.word}" — invalide`}
-                </motion.div>
-            )}
+            <AnimatePresence mode="wait">
+                {lastWord && (
+                    <motion.div
+                        key={lastWord.word}
+                        initial={{ opacity: 0, y: -10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.15 }}
+                        className={cn(
+                            "text-sm font-medium px-4 py-1.5 rounded-full",
+                            lastWord.valid
+                                ? "bg-feedback-success-bg text-feedback-success"
+                                : "bg-feedback-error-bg text-feedback-error",
+                        )}
+                    >
+                        {lastWord.valid ? `✓ "${lastWord.word}"` : `✗ "${lastWord.word}" — invalide`}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Input */}
             {gameOver === 0 && started && (
@@ -362,24 +368,19 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                 </div>
             )}
 
-            {/* Game over */}
+            {/* Game over modal */}
             {gameOver !== 0 && (
-                <div className="flex flex-col items-center gap-4 bg-surface-card border border-border-default rounded-2xl p-6 w-full">
-                    <p className="text-xl font-bold text-text-primary">
-                        {gameOver === playerNum ? "Tu as gagné ! 🎉" : "Tu as perdu… 💥"}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                        Joueur {gameOver} remporte la partie
-                    </p>
-                    <div className="flex flex-col gap-2 w-full">
-                        <button
-                            onClick={onExit}
-                            className="w-full py-3 bg-brand-primary text-white rounded-xl font-semibold"
-                        >
-                            Retour au lobby
-                        </button>
-                    </div>
-                </div>
+                <GameResultModal
+                    outcome={gameOver === playerNum ? "win" : "lose"}
+                    title={gameOver === playerNum ? "Tu as gagné !" : "Tu as perdu…"}
+                    subtitle={
+                        gameOver === playerNum
+                            ? "La bombe a explosé pour l'adversaire !"
+                            : "La bombe t'a explosé à la figure !"
+                    }
+                    onExit={onExit}
+                    exitLabel="Retour au lobby"
+                />
             )}
         </div>
     )
