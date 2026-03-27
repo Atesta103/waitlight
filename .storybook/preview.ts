@@ -32,6 +32,8 @@ if (typeof window !== "undefined") {
     }
 }
 
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime"
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
@@ -40,6 +42,15 @@ const queryClient = new QueryClient({
         },
     },
 })
+
+const mockRouter = {
+    back: () => {},
+    forward: () => {},
+    push: () => {},
+    replace: () => {},
+    refresh: () => {},
+    prefetch: () => {},
+}
 
 const preview: Preview = {
     parameters: {
@@ -65,8 +76,10 @@ const preview: Preview = {
     decorators: [
         (Story) => 
             React.createElement(QueryClientProvider, { client: queryClient },
-                React.createElement(Suspense, { fallback: null },
-                    React.createElement(Story)
+                React.createElement(AppRouterContext.Provider, { value: mockRouter },
+                    React.createElement(Suspense, { fallback: null },
+                        React.createElement(Story)
+                    )
                 )
             )
     ],
