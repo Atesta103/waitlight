@@ -363,7 +363,6 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
-    // @ts-ignore - name_flagged is not yet in generated types
     const { data: ticket, error: insertError } = await supabase
         .from("queue_items")
         .insert({
@@ -387,21 +386,19 @@ export async function reportTicketNameAction(
     ticketId: string,
     merchantId: string,
     offendingName: string
-): Promise<{ data: any } | { error: string }> {
+): Promise<{ data: { id: string; customer_name: string; name_flagged: boolean } } | { error: string }> {
     try {
         const supabase = await createClient()
 
         // 1. Add to banned words if it doesn't exist
-        // @ts-ignore - banned_words is not yet in generated types
-        const { error: insertError } = await supabase.from("banned_words").insert({
-                word: offendingName.toLowerCase(),
-                merchant_id: merchantId,
-            })
-            // Ignore if it already exists (UNIQUE index)
-        
+        await supabase.from("banned_words").insert({
+            word: offendingName.toLowerCase(),
+            merchant_id: merchantId,
+        })
+        // Ignore duplicate error — UNIQUE index on word
+
         // 2. Overwrite the name with a generic identifier
         const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
-        // @ts-ignore - name_flagged is not yet in generated types
         const { data: updatedTicket, error: updateError } = await supabase
             .from("queue_items")
             .update({
@@ -410,25 +407,24 @@ export async function reportTicketNameAction(
             })
             .eq("id", ticketId)
             .eq("merchant_id", merchantId)
-            .select()
+            .select("id, customer_name, name_flagged")
             .single()
 
         if (updateError) throw updateError
         return { data: updatedTicket }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Failed to report name:", err)
         return { error: "Failed to report name. Please try again." }
     }
 }
 
 export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
-    try {
-        if (!name) return { isBanned: false }
-        const supabase = await createClient()
-        // @ts-ignore - banned_words is not yet in generated types
-        const { data } = await supabase.from("banned_words").select("id").eq("word", name.toLowerCase()).single()
-        return { isBanned: !!data }
-    } catch (err) {
-        return { isBanned: false }
-    }
+    if (!name) return { isBanned: false }
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from("banned_words")
+        .select("id")
+        .eq("word", name.toLowerCase())
+        .single()
+    return { isBanned: !!data }
 }
