@@ -30,7 +30,7 @@ function QRCodeDisplay({
     className,
 }: QRCodeDisplayProps) {
     const [token, setToken] = useState<string | null>(null)
-    const [expiresAt, setExpiresAt] = useState<number | null>(null)
+    const [fetchedAt, setFetchedAt] = useState<number | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
     const [progress, setProgress] = useState(1) // 0 to 1 for smooth animation
     const [qrVisible, setQrVisible] = useState(false) // Wait for first token
@@ -46,9 +46,8 @@ function QRCodeDisplay({
         setTimeout(() => {
             if ("data" in result) {
                 setToken(result.data.nonce)
-                setExpiresAt(new Date(result.data.expiresAt).getTime())
+                setFetchedAt(Date.now())
             }
-            // Ideally handle error if it fails
             setCountdown(TOTAL_S)
             setProgress(1)
             setQrVisible(true)
@@ -65,21 +64,23 @@ function QRCodeDisplay({
         return () => clearInterval(tick)
     }, [])
 
-    /* Precision timer for smooth animation and exact 0s end */
+    /* Precision timer — visual countdown based on rotation interval, not token TTL */
     useEffect(() => {
-        if (!token || !expiresAt) return
+        if (!token || !fetchedAt) return
+
+        const visualExpiry = fetchedAt + REFRESH_INTERVAL_MS
 
         const timer = setInterval(() => {
             const now = Date.now()
-            const remaining = Math.max(0, expiresAt - now)
+            const remaining = Math.max(0, visualExpiry - now)
             const p = remaining / REFRESH_INTERVAL_MS
-            
+
             setProgress(p)
             setCountdown(Math.ceil(remaining / 1000))
         }, 50) // 20fps for progress updates
 
         return () => clearInterval(timer)
-    }, [token, expiresAt])
+    }, [token, fetchedAt])
 
     const color =
         countdown >= 7
