@@ -32,6 +32,7 @@ export type MerchantSettingsData = {
         name: string
         slug: string
         logo_url: string | null
+        brand_color: string | null // Added brand_color
         default_prep_time_min: number
         is_open: boolean
         /** Auto-computed average prep time (IQR + EMA). `null` = not enough data yet. */
@@ -79,7 +80,7 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
         .select(
-            "id, name, slug, logo_url, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
+            "id, name, slug, logo_url, brand_color, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
         )
         .eq("id", user.id)
         .single()
@@ -107,6 +108,7 @@ export async function getMerchantSettingsAction(): Promise<
                 name: merchant.name,
                 slug: merchant.slug,
                 logo_url: merchant.logo_url,
+                brand_color: merchant.brand_color,
                 default_prep_time_min: merchant.default_prep_time_min,
                 is_open: merchant.is_open,
                 calculated_avg_prep_time:
@@ -202,6 +204,7 @@ export async function updateMerchantIdentityAction(
             name: parsed.data.name,
             slug: parsed.data.slug,
             logo_url: parsed.data.logo_url ?? null,
+            brand_color: parsed.data.brand_color ?? "#4F46E5",
             default_prep_time_min: parsed.data.default_prep_time_min,
             // Record when the slug changed so the next call can enforce the cooldown.
             ...(slugChanged

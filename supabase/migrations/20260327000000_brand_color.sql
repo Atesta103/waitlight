@@ -1,0 +1,1 @@
+ALTER TABLE merchants ADD COLUMN brand_color TEXT DEFAULT '#4F46E5';

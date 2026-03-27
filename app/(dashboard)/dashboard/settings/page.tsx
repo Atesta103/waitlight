@@ -8,11 +8,6 @@ export const metadata: Metadata = {
     title: "Paramètres — Wait-Light",
 }
 
-/**
- * Settings page — Server Component.
- * Fetches the merchant + settings data server-side and passes it to the
- * client SettingsPanel. Auth is guaranteed by the DashboardLayout parent.
- */
 export default async function SettingsPage() {
     const result = await getMerchantSettingsAction()
 
@@ -24,7 +19,6 @@ export default async function SettingsPage() {
 
     return (
         <div className="flex flex-col gap-8">
-            {/* ── Page header ──────────────────────────────────────────── */}
             <div className="flex items-center gap-4 border-b border-border-default pb-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-default bg-surface-card shadow-sm">
                     <Settings
@@ -51,6 +45,7 @@ export default async function SettingsPage() {
                     merchantName: merchant.name,
                     slug: merchant.slug,
                     logoUrl: merchant.logo_url,
+                    brandColor: merchant.brand_color,
                     defaultPrepTimeMin: merchant.default_prep_time_min,
                     maxCapacity: settings.max_capacity,
                     welcomeMessage: settings.welcome_message ?? "",

@@ -25,6 +25,15 @@ export const MerchantIdentitySchema = z.object({
             "Slug invalide — utilisez uniquement des lettres minuscules, chiffres et tirets.",
         ),
     logo_url: z.string().url("URL de logo invalide.").nullable().optional(),
+    brand_color: z
+        .string()
+        .regex(
+            /^#[0-9a-fA-F]{6}$/i,
+            "Couleur invalide — veuillez utiliser un format hexadécimal (ex: #4F46E5).",
+        )
+        .nullable()
+        .optional()
+        .default("#4F46E5"),
     default_prep_time_min: z
         .number()
         .int()

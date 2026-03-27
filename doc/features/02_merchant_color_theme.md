@@ -4,15 +4,15 @@
 
 - Feature: Merchant Color Theme
 - Owner: Founding Team
-- Status: `proposed`
-- Last updated: 2026-03-24
+- Status: `implemented`
+- Last updated: 2026-03-27
 - Value to user: 4
 - Strategic priority: 4
 - Time to code: 2
-- Readiness score: 0/100
+- Readiness score: 100/100
 
 ## Business Value
-Allows merchants on pro/premium plans to customize the color of their public-facing queue page (`[slug]/wait/[ticketId]`) and the merchant dashboard slightly, enhancing visual continuity with their brand.
+Allows merchants to customize the color of their public-facing queue page (`[slug]/wait/[ticketId]`) and the merchant dashboard slightly, enhancing visual continuity with their brand.
 
 ## Definition of Done
 - Database schema updated (add `brand_color` string field to `merchants` table).

@@ -10,6 +10,7 @@ import {
     DialogFooter,
 } from "@/components/ui/Dialog"
 import { Input } from "@/components/ui/Input"
+import { ColorPicker } from "@/components/ui/ColorPicker"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
@@ -50,6 +51,7 @@ type SettingsData = {
     merchantName: string
     slug: string
     logoUrl: string | null
+    brandColor: string | null
     defaultPrepTimeMin: number
     maxCapacity: number
     welcomeMessage: string
@@ -496,6 +498,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         merchantName: initialData.merchantName,
         slug: initialData.slug,
         logoUrl: initialData.logoUrl,
+        brand_color: initialData.brandColor,
         defaultPrepTimeMin: initialData.defaultPrepTimeMin,
     })
     const [identityChanged, setIdentityChanged] = useState(false)
@@ -665,6 +668,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 name: identity.merchantName,
                 slug: identity.slug,
                 logo_url: identity.logoUrl ?? undefined,
+                brand_color: identity.brand_color ?? "#4F46E5",
                 default_prep_time_min: identity.defaultPrepTimeMin,
             })
             if ("error" in result) {
@@ -689,6 +693,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             merchantName: initialData.merchantName,
             slug: initialData.slug,
             logoUrl: initialData.logoUrl,
+            brand_color: initialData.brandColor,
             defaultPrepTimeMin: initialData.defaultPrepTimeMin,
         })
         setIdentityChanged(false)
@@ -849,6 +854,14 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             checkAvailability={
                                                 checkSlugAvailabilitySettingsAction
                                             }
+                                        />
+
+                                        {/* Brand Color */}
+                                        <ColorPicker
+                                            label="Couleur de la marque"
+                                            value={identity.brand_color ?? "#4F46E5"}
+                                            onChange={(e) => updateIdentity("brand_color", e.target.value)}
+                                            hint="Couleur principale sur votre page publique."
                                         />
                                     </div>
                                 </CardContent>

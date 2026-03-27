@@ -29,6 +29,7 @@
   --color-text-secondary: #6b7280;
   --color-text-disabled: #d1d5db;
   --color-text-inverse: #ffffff;
+  --color-text-on-primary: #ffffff;
 
   /* Borders */
   --color-border-default: #e5e7eb;

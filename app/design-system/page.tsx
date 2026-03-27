@@ -1218,6 +1218,7 @@ export default function DesignSystemPage() {
                                     merchantName: "Boulangerie Martin",
                                     slug: "boulangerie-martin",
                                     logoUrl: null,
+                                    brandColor: "#4F46E5",
                                     defaultPrepTimeMin: 5,
                                     maxCapacity: 20,
                                     welcomeMessage:
