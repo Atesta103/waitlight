@@ -322,12 +322,22 @@ export async function joinQueueAction(
     }
 
     // ── 2. Validate QR token ─────────────────────────────────────────────────
-    const { data: tokenValid, error: tokenError } = await supabase.rpc(
-        "validate_qr_token",
-        { p_nonce: token, p_slug: slug },
-    )
+    let tokenValid = false;
+    
+    // In development mode, allow a bypass token for local testing
+    if (process.env.NODE_ENV === "development" && token === "dev_test_mode") {
+        tokenValid = true;
+    } else {
+        const { data, error: tokenError } = await supabase.rpc(
+            "validate_qr_token",
+            { p_nonce: token, p_slug: slug },
+        )
+        if (!tokenError && data) {
+            tokenValid = true;
+        }
+    }
 
-    if (tokenError || !tokenValid) {
+    if (!tokenValid) {
         return {
             error: "Ce QR code a expiré ou a déjà été utilisé. Veuillez scanner le QR code actuel.",
         }
