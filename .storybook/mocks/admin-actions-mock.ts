@@ -1,2 +1,4 @@
 export const togglePaywallBypass = async () => { console.log("Mocked togglePaywallBypass"); return { success: true }; };
-export default {};
+
+const mock = {};
+export default mock;
