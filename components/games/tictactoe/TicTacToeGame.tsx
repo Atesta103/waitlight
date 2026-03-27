@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { useGameChannel } from "@/components/games/shared/useGameChannel"
 import { GameResultModal } from "@/components/games/shared/GameResultModal"
 import { cn } from "@/lib/utils/cn"
+import { createClient } from "@/lib/supabase/client"
 
 // Each player may have at most 3 pieces — placing a 4th removes the oldest.
 const MAX_PIECES = 3
@@ -24,7 +25,10 @@ const WIN_LINES = [
 interface HelloMsg  { type: "hello"; name: string; player: 1 | 2 }
 interface MoveMsg   { type: "move";  cell: number; player: 1 | 2 }
 interface ResetMsg  { type: "reset" }
-type GameMsg = HelloMsg | MoveMsg | ResetMsg
+interface RematchRequestMsg { type: "rematch_request"; player: 1 | 2 }
+interface RematchAcceptMsg { type: "rematch_accept"; player: 1 | 2 }
+interface RematchDeclineMsg { type: "rematch_decline"; player: 1 | 2 }
+type GameMsg = HelloMsg | MoveMsg | ResetMsg | RematchRequestMsg | RematchAcceptMsg | RematchDeclineMsg
 
 // ---------------------------------------------------------------------------
 // Game logic
@@ -96,15 +100,33 @@ interface TicTacToeGameProps {
     merchantId: string
     roomCode: string
     playerNum: 1 | 2
+    ticketId: string
     myName: string
     onExit: () => void
 }
 
-export function TicTacToeGame({ merchantId, roomCode, playerNum, myName, onExit }: TicTacToeGameProps) {
+export function TicTacToeGame({ merchantId, roomCode, playerNum, ticketId, myName, onExit }: TicTacToeGameProps) {
     const [state, setState] = useState<GameState>(initialState)
     const [opponentName, setOpponentName] = useState("Adversaire")
+    const [incomingRematchRequest, setIncomingRematchRequest] = useState(false)
+    const [waitingRematchResponse, setWaitingRematchResponse] = useState(false)
+    const [rematchNotice, setRematchNotice] = useState<string | null>(null)
     const prefersReduced = useReducedMotion()
     const channelName = `tictactoe:${merchantId}:${roomCode}`
+    const hasExitedRef = useRef(false)
+
+    const safeExit = useCallback(() => {
+        if (hasExitedRef.current) return
+        hasExitedRef.current = true
+        onExit()
+    }, [onExit])
+
+    const resetGame = useCallback(() => {
+        setState(initialState())
+        setIncomingRematchRequest(false)
+        setWaitingRematchResponse(false)
+        setRematchNotice(null)
+    }, [])
 
     const p1Name = playerNum === 1 ? myName : opponentName
     const p2Name = playerNum === 2 ? myName : opponentName
@@ -118,10 +140,23 @@ export function TicTacToeGame({ merchantId, roomCode, playerNum, myName, onExit 
                 if (msg.player === playerNum) return  // own move already applied locally
                 setState((prev) => applyMove(prev, msg.cell, msg.player) ?? prev)
             } else if (msg.type === "reset") {
-                setState(initialState())
+                resetGame()
+            } else if (msg.type === "rematch_request") {
+                if (msg.player === playerNum) return
+                setIncomingRematchRequest(true)
+                setWaitingRematchResponse(false)
+                setRematchNotice(`${opponentName} veut sa revanche.`)
+            } else if (msg.type === "rematch_accept") {
+                if (msg.player === playerNum) return
+                resetGame()
+            } else if (msg.type === "rematch_decline") {
+                if (msg.player === playerNum) return
+                setIncomingRematchRequest(false)
+                setWaitingRematchResponse(false)
+                setRematchNotice(`${opponentName} a refusé la revanche.`)
             }
         },
-        [playerNum],
+        [playerNum, resetGame, opponentName],
     )
 
     const { broadcast } = useGameChannel({ channelName, onMessage })
@@ -133,6 +168,28 @@ export function TicTacToeGame({ merchantId, roomCode, playerNum, myName, onExit 
         return () => clearTimeout(t)
     }, [broadcast, myName, playerNum])
 
+    useEffect(() => {
+        const supabase = createClient()
+        const presenceChannel = supabase.channel(`${channelName}:presence`, {
+            config: { presence: { key: ticketId } },
+        })
+
+        presenceChannel
+            .on("presence", { event: "leave" }, ({ key }) => {
+                if (key !== ticketId) safeExit()
+            })
+            .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    void presenceChannel.track({ roomCode, playerNum })
+                }
+            })
+
+        return () => {
+            void presenceChannel.untrack()
+            void supabase.removeChannel(presenceChannel)
+        }
+    }, [channelName, roomCode, playerNum, ticketId, safeExit])
+
     const handleCellClick = useCallback(
         (cell: number) => {
             const next = applyMove(state, cell, playerNum)
@@ -143,10 +200,24 @@ export function TicTacToeGame({ merchantId, roomCode, playerNum, myName, onExit 
         [state, playerNum, broadcast],
     )
 
-    const handleReset = useCallback(() => {
-        setState(initialState())
-        broadcast({ type: "reset" } satisfies ResetMsg)
-    }, [broadcast])
+    const requestRematch = useCallback(() => {
+        if (waitingRematchResponse || incomingRematchRequest) return
+        setWaitingRematchResponse(true)
+        setRematchNotice("Demande envoyée. En attente de réponse…")
+        broadcast({ type: "rematch_request", player: playerNum } satisfies RematchRequestMsg)
+    }, [waitingRematchResponse, incomingRematchRequest, broadcast, playerNum])
+
+    const acceptRematch = useCallback(() => {
+        resetGame()
+        broadcast({ type: "rematch_accept", player: playerNum } satisfies RematchAcceptMsg)
+    }, [resetGame, broadcast, playerNum])
+
+    const declineRematch = useCallback(() => {
+        setIncomingRematchRequest(false)
+        setWaitingRematchResponse(false)
+        setRematchNotice("Revanche refusée.")
+        broadcast({ type: "rematch_decline", player: playerNum } satisfies RematchDeclineMsg)
+    }, [broadcast, playerNum])
 
     const isMyTurn = state.turn === playerNum && state.winner === 0
 
@@ -258,18 +329,32 @@ export function TicTacToeGame({ merchantId, roomCode, playerNum, myName, onExit 
                 </div>
             </div>
 
+            {state.winner !== 0 && rematchNotice && (
+                <p className="text-xs text-text-secondary text-center">{rematchNotice}</p>
+            )}
+
             {state.winner !== 0 && (
                 <GameResultModal
-                    outcome={state.winner === playerNum ? "win" : "lose"}
-                    title={state.winner === playerNum ? "Tu as gagné !" : "Tu as perdu…"}
+                    outcome={incomingRematchRequest ? "draw" : state.winner === playerNum ? "win" : "lose"}
+                    title={incomingRematchRequest ? "Demande de revanche" : state.winner === playerNum ? "Tu as gagné !" : "Tu as perdu…"}
                     subtitle={
-                        state.winner !== playerNum
+                        incomingRematchRequest
+                            ? `${opponentName} veut rejouer cette partie.`
+                            : state.winner !== playerNum
                             ? `${state.winner === 1 ? p1Name : p2Name} remporte la partie`
                             : undefined
                     }
-                    onRestart={handleReset}
-                    onExit={onExit}
-                    exitLabel="Retour au lobby"
+                    onRestart={incomingRematchRequest ? acceptRematch : requestRematch}
+                    restartLabel={
+                        incomingRematchRequest
+                            ? "Accepter"
+                            : waitingRematchResponse
+                              ? "En attente…"
+                              : "Demander une revanche"
+                    }
+                    restartDisabled={waitingRematchResponse}
+                    onExit={incomingRematchRequest ? declineRematch : safeExit}
+                    exitLabel={incomingRematchRequest ? "Refuser" : "Retour au lobby"}
                 />
             )}
         </div>

@@ -6,6 +6,7 @@ import { useGameChannel } from "@/components/games/shared/useGameChannel"
 import { GameResultModal } from "@/components/games/shared/GameResultModal"
 import { getRandomSyllable, isValidWord, preloadWords } from "./words"
 import { cn } from "@/lib/utils/cn"
+import { createClient } from "@/lib/supabase/client"
 
 const MAX_LIVES = 3
 const TURN_DURATION = 10 // seconds
@@ -22,11 +23,12 @@ interface BombPartyGameProps {
     merchantId: string
     roomCode: string
     playerNum: 1 | 2
+    ticketId: string
     myName: string
     onExit: () => void
 }
 
-export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit }: BombPartyGameProps) {
+export function BombPartyGame({ merchantId, roomCode, playerNum, ticketId, myName, onExit }: BombPartyGameProps) {
     const isHost = playerNum === 1
     const channelName = `bombparty:${merchantId}:${roomCode}`
 
@@ -48,6 +50,13 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
     const activePlayerRef = useRef<1 | 2>(1)
     const livesRef = useRef({ p1: MAX_LIVES, p2: MAX_LIVES })
     const timeLeftRef = useRef(TURN_DURATION)
+    const hasExitedRef = useRef(false)
+
+    const safeExit = useCallback(() => {
+        if (hasExitedRef.current) return
+        hasExitedRef.current = true
+        onExit()
+    }, [onExit])
 
     const clearTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current)
@@ -126,6 +135,28 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
         }, 1500)
         return () => clearTimeout(timer)
     }, [isHost, broadcast])
+
+    useEffect(() => {
+        const supabase = createClient()
+        const presenceChannel = supabase.channel(`${channelName}:presence`, {
+            config: { presence: { key: ticketId } },
+        })
+
+        presenceChannel
+            .on("presence", { event: "leave" }, ({ key }) => {
+                if (key !== ticketId) safeExit()
+            })
+            .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    void presenceChannel.track({ roomCode, playerNum })
+                }
+            })
+
+        return () => {
+            void presenceChannel.untrack()
+            void supabase.removeChannel(presenceChannel)
+        }
+    }, [channelName, roomCode, playerNum, ticketId, safeExit])
 
     // Countdown timer — all side effects outside the setTimeLeft updater (React 18 Strict Mode safety)
     useEffect(() => {
@@ -378,7 +409,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit 
                             ? "La bombe a explosé pour l'adversaire !"
                             : "La bombe t'a explosé à la figure !"
                     }
-                    onExit={onExit}
+                    onExit={safeExit}
                     exitLabel="Retour au lobby"
                 />
             )}

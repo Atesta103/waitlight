@@ -19,6 +19,7 @@ export function BombPartyLobby({ merchantId, ticketId, myName }: BombPartyLobbyP
                 merchantId={merchantId}
                 roomCode={game.roomCode}
                 playerNum={game.playerNum}
+                ticketId={ticketId}
                 myName={myName}
                 onExit={() => setGame(null)}
             />

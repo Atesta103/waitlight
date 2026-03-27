@@ -13,6 +13,7 @@ interface GameResultModalProps {
     scoreLabel?: string
     onRestart?: () => void
     restartLabel?: string
+    restartDisabled?: boolean
     onExit?: () => void
     exitLabel?: string
 }
@@ -57,6 +58,7 @@ export function GameResultModal({
     scoreLabel = "Score",
     onRestart,
     restartLabel = "Rejouer",
+    restartDisabled = false,
     onExit,
     exitLabel,
 }: GameResultModalProps) {
@@ -140,7 +142,8 @@ export function GameResultModal({
                     {onRestart && (
                         <button
                             onClick={onRestart}
-                            className="w-full py-3.5 bg-brand-primary text-white rounded-xl font-semibold text-sm active:opacity-80 transition-opacity"
+                            disabled={restartDisabled}
+                            className="w-full py-3.5 bg-brand-primary text-white rounded-xl font-semibold text-sm active:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {restartLabel}
                         </button>

@@ -19,6 +19,7 @@ export function Connect4Lobby({ merchantId, ticketId, myName }: Connect4LobbyPro
                 merchantId={merchantId}
                 roomCode={game.roomCode}
                 playerNum={game.playerNum}
+                ticketId={ticketId}
                 myName={myName}
                 onExit={() => setGame(null)}
             />

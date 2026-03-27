@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { useGameChannel } from "@/components/games/shared/useGameChannel"
 import { GameResultModal } from "@/components/games/shared/GameResultModal"
 import { cn } from "@/lib/utils/cn"
+import { createClient } from "@/lib/supabase/client"
 
 const COLS = 7
 const ROWS = 6
@@ -78,11 +79,12 @@ interface Connect4GameProps {
     merchantId: string
     roomCode: string
     playerNum: 1 | 2
+    ticketId: string
     myName: string
     onExit: () => void
 }
 
-export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }: Connect4GameProps) {
+export function Connect4Game({ merchantId, roomCode, playerNum, ticketId, myName, onExit }: Connect4GameProps) {
     const [board, setBoard] = useState<Board>(emptyBoard)
     const [currentTurn, setCurrentTurn] = useState<1 | 2>(1)
     const [winner, setWinner] = useState<0 | 1 | 2 | "draw">(0)
@@ -91,6 +93,13 @@ export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }
     const [opponentName, setOpponentName] = useState("Adversaire")
     const prefersReduced = useReducedMotion()
     const channelName = `connect4:${merchantId}:${roomCode}`
+    const hasExitedRef = useRef(false)
+
+    const safeExit = useCallback(() => {
+        if (hasExitedRef.current) return
+        hasExitedRef.current = true
+        onExit()
+    }, [onExit])
 
     const p1Name = playerNum === 1 ? myName : opponentName
     const p2Name = playerNum === 2 ? myName : opponentName
@@ -140,6 +149,28 @@ export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }
         }, 300)
         return () => clearTimeout(timer)
     }, [broadcast, myName, playerNum])
+
+    useEffect(() => {
+        const supabase = createClient()
+        const presenceChannel = supabase.channel(`${channelName}:presence`, {
+            config: { presence: { key: ticketId } },
+        })
+
+        presenceChannel
+            .on("presence", { event: "leave" }, ({ key }) => {
+                if (key !== ticketId) safeExit()
+            })
+            .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    void presenceChannel.track({ roomCode, playerNum })
+                }
+            })
+
+        return () => {
+            void presenceChannel.untrack()
+            void supabase.removeChannel(presenceChannel)
+        }
+    }, [channelName, roomCode, playerNum, ticketId, safeExit])
 
     const handleColumnClick = useCallback(
         (col: number) => {
@@ -287,7 +318,7 @@ export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }
                             : undefined
                     }
                     onRestart={handleReset}
-                    onExit={onExit}
+                    onExit={safeExit}
                     exitLabel="Retour au lobby"
                 />
             )}
