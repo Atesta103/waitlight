@@ -1219,6 +1219,9 @@ export default function DesignSystemPage() {
                                     slug: "boulangerie-martin",
                                     logoUrl: null,
                                     brandColor: "#4F46E5",
+                                    fontFamily: "Inter",
+                                    borderRadius: "0.5rem",
+                                    themePattern: "none",
                                     defaultPrepTimeMin: 5,
                                     maxCapacity: 20,
                                     welcomeMessage:

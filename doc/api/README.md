@@ -52,6 +52,12 @@ Server Actions for the merchant onboarding flow (first-time setup).
 | ------ | ------ |
 | [actions/onboarding](actions/onboarding.md) | - |
 
+### Other
+
+| Module | Description |
+| ------ | ------ |
+| [types/database](types/database.md) | - |
+
 ### Routes
 
 ### `GET /auth/callback`
@@ -99,20 +105,6 @@ Next.js Middleware (named `proxy` to avoid Next.js file naming ambiguity).
 | Module | Description |
 | ------ | ------ |
 | [proxy](proxy.md) | - |
-
-### Types
-
-Supabase database types — auto-generated via:
-```sh
-supabase gen types typescript --project-id <ref> > types/database.ts
-```
-
-Until the Supabase project is connected, this file provides a minimal
-placeholder so all helpers and actions compile correctly.
-
-| Module | Description |
-| ------ | ------ |
-| [database](database.md) | - |
 
 ### Utilities
 

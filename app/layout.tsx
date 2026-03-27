@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Roboto, Open_Sans, Lato, Poppins } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
@@ -12,6 +12,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const interFont = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const robotoFont = Roboto({ variable: "--font-roboto", weight: ["400", "500", "700"], subsets: ["latin"] });
+const openSansFont = Open_Sans({ variable: "--font-open-sans", subsets: ["latin"] });
+const latoFont = Lato({ variable: "--font-lato", weight: ["400", "700"], subsets: ["latin"] });
+const poppinsFont = Poppins({ variable: "--font-poppins", weight: ["400", "500", "700"], subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interFont.variable} ${robotoFont.variable} ${openSansFont.variable} ${latoFont.variable} ${poppinsFont.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"

@@ -82,7 +82,7 @@ const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
                             aria-label="Code couleur hexadécimal"
                             maxLength={7}
                             className={cn(
-                                "flex h-11 flex-1 px-3 text-base uppercase tabular-nums rounded-md border shadow-sm transition-colors",
+                                "flex h-11 min-w-0 flex-1 px-3 text-base uppercase tabular-nums rounded-md border shadow-sm transition-colors",
                                 "bg-surface-card text-text-primary focus:border-border-focus focus:ring-2 focus:ring-border-focus/25 focus:outline-none",
                                 error ? "border-feedback-error" : "border-border-default"
                             )}

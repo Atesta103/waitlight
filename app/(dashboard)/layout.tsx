@@ -33,7 +33,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant, error } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, bypass_paywall, brand_color")
+        .select("id, name, slug, is_open, bypass_paywall, brand_color, font_family, border_radius")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -71,6 +71,9 @@ export default async function DashboardLayout({
         brandColor = merchant.brand_color
         contrastColor = getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
     }
+    
+    const fontFamily = merchant.font_family || "Inter"
+    const borderRadius = merchant.border_radius || "0.5rem"
 
     return (
         <DashboardProviders>
@@ -78,10 +81,18 @@ export default async function DashboardLayout({
                 id="dashboard-root"
                 className="min-h-screen bg-surface-base"
                 style={{
+                    fontFamily: `var(--font-brand)`,
                     "--color-brand-primary": brandColor,
                     "--color-brand-primary-hover": brandColor,
                     "--color-border-focus": brandColor,
                     "--color-text-on-primary": contrastColor,
+                    "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
+                    "--radius-brand": borderRadius,
+                    "--radius-sm": borderRadius,
+                    "--radius-md": borderRadius,
+                    "--radius-lg": borderRadius,
+                    "--radius-xl": borderRadius,
+                    "--radius-2xl": borderRadius,
                 } as React.CSSProperties}
             >
                 <header className="sticky top-0 z-40 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">

@@ -14,7 +14,7 @@
 function checkSlugAvailabilityAction(slug): Promise<boolean>;
 ```
 
-Defined in: [lib/actions/onboarding.ts:25](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/onboarding.ts#L25)
+Defined in: [lib/actions/onboarding.ts:25](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/onboarding.ts#L25)
 
 Check whether a slug is already taken (no merchant exclusion).
 
@@ -46,7 +46,7 @@ function createMerchantAction(formData): Promise<{
 }>;
 ```
 
-Defined in: [lib/actions/onboarding.ts:60](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/onboarding.ts#L60)
+Defined in: [lib/actions/onboarding.ts:60](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/onboarding.ts#L60)
 
 Create the `merchants` and `settings` rows for the authenticated user.
 Final step of the onboarding wizard.

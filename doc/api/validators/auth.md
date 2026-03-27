@@ -14,7 +14,7 @@
 type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 ```
 
-Defined in: [lib/validators/auth.ts:63](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L63)
+Defined in: [lib/validators/auth.ts:63](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L63)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [lib/validators/auth.ts:63](https://github.com/Atesta103/waitlight/b
 type LoginInput = z.infer<typeof LoginSchema>;
 ```
 
-Defined in: [lib/validators/auth.ts:40](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L40)
+Defined in: [lib/validators/auth.ts:40](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L40)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [lib/validators/auth.ts:40](https://github.com/Atesta103/waitlight/b
 type RegisterInput = z.infer<typeof RegisterSchema>;
 ```
 
-Defined in: [lib/validators/auth.ts:55](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L55)
+Defined in: [lib/validators/auth.ts:55](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L55)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [lib/validators/auth.ts:55](https://github.com/Atesta103/waitlight/b
 type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 ```
 
-Defined in: [lib/validators/auth.ts:77](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L77)
+Defined in: [lib/validators/auth.ts:77](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L77)
 
 ## Variables
 
@@ -56,7 +56,7 @@ const ForgotPasswordSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/auth.ts:59](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L59)
+Defined in: [lib/validators/auth.ts:59](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L59)
 
 ***
 
@@ -69,7 +69,7 @@ const LoginSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/auth.ts:35](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L35)
+Defined in: [lib/validators/auth.ts:35](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L35)
 
 ***
 
@@ -83,7 +83,7 @@ const RegisterSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/auth.ts:44](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L44)
+Defined in: [lib/validators/auth.ts:44](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L44)
 
 ***
 
@@ -96,4 +96,4 @@ const ResetPasswordSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/auth.ts:67](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/auth.ts#L67)
+Defined in: [lib/validators/auth.ts:67](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/auth.ts#L67)

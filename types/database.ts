@@ -73,6 +73,9 @@ export type Database = {
           avg_prep_computed_at: string | null
           avg_wait_time: number | null
           brand_color: string | null
+          font_family: string | null
+          border_radius: string | null
+          theme_pattern: string | null
           bypass_paywall: boolean
           calculated_avg_prep_time: number | null
           created_at: string
@@ -88,6 +91,8 @@ export type Database = {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
           brand_color?: string | null
+          font_family?: string | null
+          border_radius?: string | null
           bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
@@ -103,6 +108,8 @@ export type Database = {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
           brand_color?: string | null
+          font_family?: string | null
+          border_radius?: string | null
           bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string

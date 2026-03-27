@@ -14,7 +14,7 @@
 type OnboardingInput = z.infer<typeof OnboardingSchema>;
 ```
 
-Defined in: [lib/validators/onboarding.ts:30](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/onboarding.ts#L30)
+Defined in: [lib/validators/onboarding.ts:30](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/onboarding.ts#L30)
 
 ## Variables
 
@@ -29,4 +29,4 @@ const OnboardingSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/onboarding.ts:9](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/onboarding.ts#L9)
+Defined in: [lib/validators/onboarding.ts:9](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/onboarding.ts#L9)

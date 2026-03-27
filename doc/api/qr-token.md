@@ -23,7 +23,7 @@ isQrTokenValid(currentSlot() - 2)       // false (too old)
 function currentSlot(now?): number;
 ```
 
-Defined in: [lib/utils/qr-token.ts:34](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/utils/qr-token.ts#L34)
+Defined in: [lib/utils/qr-token.ts:34](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/utils/qr-token.ts#L34)
 
 Returns the current valid slot index.
 
@@ -45,7 +45,7 @@ Returns the current valid slot index.
 function isQrTokenValid(token, now?): boolean;
 ```
 
-Defined in: [lib/utils/qr-token.ts:48](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/utils/qr-token.ts#L48)
+Defined in: [lib/utils/qr-token.ts:48](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/utils/qr-token.ts#L48)
 
 Returns true if the given token is valid at `now`.
 
@@ -72,7 +72,7 @@ Accepts:
 const QR_GRACE_MS: 5000 = 5_000;
 ```
 
-Defined in: [lib/utils/qr-token.ts:29](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/utils/qr-token.ts#L29)
+Defined in: [lib/utils/qr-token.ts:29](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/utils/qr-token.ts#L29)
 
 How long (ms) the previous token is still accepted after it expires.
 Set to allow a full page load after scanning at the last second.
@@ -85,6 +85,6 @@ Set to allow a full page load after scanning at the last second.
 const QR_REFRESH_INTERVAL_MS: 10000 = 10_000;
 ```
 
-Defined in: [lib/utils/qr-token.ts:23](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/utils/qr-token.ts#L23)
+Defined in: [lib/utils/qr-token.ts:23](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/utils/qr-token.ts#L23)
 
 Must stay in sync with QRCodeDisplay.tsx

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef, useCallback, useEffect } from "react"
+import { useState, useTransition, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/Card"
 import {
@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/Dialog"
 import { Input } from "@/components/ui/Input"
 import { ColorPicker } from "@/components/ui/ColorPicker"
-import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
+import { Select } from "@/components/ui/Select"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
+import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
 import { SlugInput } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
 import { duration, ease } from "@/lib/utils/motion"
@@ -54,6 +55,9 @@ type SettingsData = {
     slug: string
     logoUrl: string | null
     brandColor: string | null
+    fontFamily: string | null
+    borderRadius: string | null
+    themePattern: string | null
     defaultPrepTimeMin: number
     maxCapacity: number
     welcomeMessage: string
@@ -502,6 +506,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         slug: initialData.slug,
         logoUrl: initialData.logoUrl,
         brand_color: initialData.brandColor,
+        font_family: initialData.fontFamily,
+        border_radius: initialData.borderRadius,
+        theme_pattern: initialData.themePattern,
         defaultPrepTimeMin: initialData.defaultPrepTimeMin,
     })
     const [identityChanged, setIdentityChanged] = useState(false)
@@ -672,6 +679,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 slug: identity.slug,
                 logo_url: identity.logoUrl ?? undefined,
                 brand_color: identity.brand_color ?? "#4F46E5",
+                font_family: (identity.font_family as any) ?? "Inter",
+                border_radius: (identity.border_radius as any) ?? "0.5rem",
+                theme_pattern: (identity.theme_pattern as any) ?? "none",
                 default_prep_time_min: identity.defaultPrepTimeMin,
             })
             if ("error" in result) {
@@ -682,12 +692,26 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 
                 // Update theme variables directly after successful save
                 const root = document.getElementById("dashboard-root")
-                if (root && identity.brand_color && isValidHexCode(identity.brand_color)) {
-                    const contrast = getContrastYIQ(identity.brand_color) === "white" ? "#FFFFFF" : "#000000"
-                    root.style.setProperty("--color-brand-primary", identity.brand_color)
-                    root.style.setProperty("--color-brand-primary-hover", identity.brand_color)
-                    root.style.setProperty("--color-border-focus", identity.brand_color)
-                    root.style.setProperty("--color-text-on-primary", contrast)
+                if (root) {
+                    if (identity.brand_color && isValidHexCode(identity.brand_color)) {
+                        const contrast = getContrastYIQ(identity.brand_color) === "white" ? "#FFFFFF" : "#000000"
+                        root.style.setProperty("--color-brand-primary", identity.brand_color)
+                        root.style.setProperty("--color-brand-primary-hover", identity.brand_color)
+                        root.style.setProperty("--color-border-focus", identity.brand_color)
+                        root.style.setProperty("--color-text-on-primary", contrast)
+                    }
+                    if (identity.font_family) {
+                        root.style.setProperty("font-family", `var(--font-brand)`)
+                        root.style.setProperty("--font-brand", `var(--font-${identity.font_family.toLowerCase().replace(" ", "-")})`)
+                    }
+                    if (identity.border_radius) {
+                        root.style.setProperty("--radius-brand", identity.border_radius)
+                        root.style.setProperty("--radius-sm", identity.border_radius)
+                        root.style.setProperty("--radius-md", identity.border_radius)
+                        root.style.setProperty("--radius-lg", identity.border_radius)
+                        root.style.setProperty("--radius-xl", identity.border_radius)
+                        root.style.setProperty("--radius-2xl", identity.border_radius)
+                    }
                 }
             }
         })
@@ -707,6 +731,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             slug: initialData.slug,
             logoUrl: initialData.logoUrl,
             brand_color: initialData.brandColor,
+            font_family: initialData.fontFamily,
+            border_radius: initialData.borderRadius,
+            theme_pattern: initialData.themePattern,
             defaultPrepTimeMin: initialData.defaultPrepTimeMin,
         })
         setIdentityChanged(false)
@@ -869,13 +896,107 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             }
                                         />
 
-                                        {/* Brand Color */}
-                                        <ColorPicker
-                                            label="Couleur de la marque"
-                                            value={identity.brand_color ?? "#4F46E5"}
-                                            onChange={(e) => updateIdentity("brand_color", e.target.value)}
-                                            hint="Couleur principale sur votre page publique."
-                                        />
+                                        {/* Brand Color & Typography & Layout */}
+                                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                                            <div className="min-w-0">
+                                                <ColorPicker
+                                                    label="Couleur de marque"
+                                                    value={identity.brand_color ?? "#4F46E5"}
+                                                    onChange={(e) => updateIdentity("brand_color", e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <Select
+                                                    label="Typographie"
+                                                    value={identity.font_family ?? "Inter"}
+                                                    onChange={(e) => updateIdentity("font_family", e.target.value)}
+                                                    options={[
+                                                        { value: "Inter", label: "Inter" },
+                                                        { value: "Roboto", label: "Roboto" },
+                                                        { value: "Open Sans", label: "Open Sans" },
+                                                        { value: "Lato", label: "Lato" },
+                                                        { value: "Poppins", label: "Poppins" },
+                                                    ]}
+                                                />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <Select
+                                                    label="Arrondi des bords"
+                                                    value={identity.border_radius ?? "0.5rem"}
+                                                    onChange={(e) => updateIdentity("border_radius", e.target.value)}
+                                                    options={[
+                                                        { value: "0.25rem", label: "Léger" },
+                                                        { value: "0.5rem", label: "Moyen" },
+                                                        { value: "1rem", label: "Fort" },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Live Preview */}
+                                    <div className="mt-8 border-t border-border-default pt-8">
+                                        <div className="grid gap-4 lg:grid-cols-[minmax(220px,280px)_1fr]">
+                                            <div className="space-y-3">
+                                                <h3 className="text-sm font-semibold text-text-primary">Choix de l&apos;arrière-plan</h3>
+                                                <Select
+                                                    label="Arrière-plan"
+                                                    value={identity.theme_pattern ?? "none"}
+                                                    onChange={(e) => updateIdentity("theme_pattern", e.target.value)}
+                                                    options={[
+                                                        { value: "none", label: "Uni" },
+                                                        { value: "dots", label: "Points discrets" },
+                                                        { value: "grid", label: "Grille subtile" },
+                                                        { value: "glow", label: "Halo" },
+                                                        { value: "food_burger", label: "Burger & Frite" },
+                                                        { value: "food_pizza", label: "Pizzeria" },
+                                                        { value: "food_coffee", label: "Café & Bistrot" },
+                                                        { value: "food_cutlery", label: "Fourchette & Couteau" },
+                                                    ]}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <h3 className="mb-2 text-sm font-semibold text-text-primary">Aperçu</h3>
+                                                <div 
+                                                    className="relative border border-border-default rounded-3xl overflow-hidden bg-surface-base h-[30vh]"
+                                                    style={{ fontFamily: `var(--font-${(identity.font_family?.toLowerCase().replace(' ', '-') || 'inter')})` }}
+                                                >
+                                                    <div className="absolute inset-0 rounded-3xl border-2 border-border-default bg-surface-base shadow-lg" />
+                                                    <div className="absolute inset-2 rounded-2xl overflow-hidden bg-surface-base">
+                                                        {/* Tint Base */}
+                                                        <div 
+                                                            className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+                                                            style={{ backgroundColor: identity.brand_color ?? '#4F46E5' }}
+                                                        />
+                                                        
+                                                        {/* Pattern Preview */}
+                                                        {identity.theme_pattern === "dots" && (
+                                                            <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                                                        )}
+                                                        {identity.theme_pattern === "grid" && (
+                                                            <div className="absolute inset-0 z-0 opacity-[0.02] dark:opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+                                                        )}
+                                                        {identity.theme_pattern === "glow" && (
+                                                            <div className="absolute inset-0 z-0 opacity-[0.10] dark:opacity-[0.15]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />
+                                                        )}
+                                                        {(identity.theme_pattern?.startsWith("food_")) && (
+                                                            <svg className="absolute inset-0 z-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] text-text-primary" aria-hidden="true">
+                                                                <defs>
+                                                                    <pattern id={`preview-motif`} x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                                                                        {identity.theme_pattern === "food_burger" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" /></g>}
+                                                                        {identity.theme_pattern === "food_pizza" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="m12 14-1 1" /><path fill="currentColor" d="m13.75 18.25-1.25 1.42" /><path fill="currentColor" d="M17.775 5.654a15.68 15.68 0 0 0-12.121 12.12" /><path fill="currentColor" d="M18.8 9.3a1 1 0 0 0 2.1 7.7" /><path fill="currentColor" d="M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z" /></g>}
+                                                                        {identity.theme_pattern === "food_coffee" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" /></g>}
+                                                                        {identity.theme_pattern === "food_cutlery" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.86 3.75 3.97V22h2.5v-9.03C11.34 12.86 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" /></g>}
+                                                                    </pattern>
+                                                                </defs>
+                                                                <rect x="0" y="0" width="100%" height="100%" fill="url(#preview-motif)" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -912,7 +1033,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
                                                 <h4 className="text-sm font-medium text-text-primary">
-                                                    Thème de l'application
+                                                    Thème de l&apos;application
                                                 </h4>
                                                 <p className="text-sm text-text-secondary">
                                                     Choisissez votre préférence visuelle pour le tableau de bord.

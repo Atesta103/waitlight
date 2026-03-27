@@ -34,6 +34,21 @@ export const MerchantIdentitySchema = z.object({
         .nullable()
         .optional()
         .default("#4F46E5"),
+    font_family: z
+        .enum(["Inter", "Roboto", "Open Sans", "Lato", "Poppins"])
+        .default("Inter")
+        .optional()
+        .nullable(),
+    border_radius: z
+        .enum(["0px", "0.25rem", "0.5rem", "1rem", "9999px"])
+        .default("0.5rem")
+        .optional()
+        .nullable(),
+    theme_pattern: z
+        .enum(["none", "dots", "grid", "glow", "food_burger", "food_pizza", "food_coffee", "food_cutlery"])
+        .default("none")
+        .optional()
+        .nullable(),
     default_prep_time_min: z
         .number()
         .int()
