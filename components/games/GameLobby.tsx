@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Gamepad2 } from "lucide-react"
 import { GAMES } from "./shared/types"
 import { cn } from "@/lib/utils/cn"
 
@@ -17,19 +17,24 @@ export function GameLobby({ ticketId, slug }: GameLobbyProps) {
     return (
         <div className="min-h-screen bg-surface-base flex flex-col">
             {/* Header */}
-            <header className="flex items-center gap-3 px-4 py-3 bg-surface-card border-b border-border-default">
-                <button
-                    onClick={() => router.push(`/${slug}/wait/${ticketId}`)}
-                    className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-base transition-colors"
-                    aria-label="Retour à la salle d'attente"
-                >
-                    <ArrowLeft className="w-5 h-5 text-text-primary" />
-                </button>
-                <div>
-                    <h1 className="text-lg font-semibold text-text-primary">Jeux</h1>
-                    <p className="text-xs text-text-secondary">Patiente en t'amusant !</p>
-                </div>
-            </header>
+            <div className="px-4 pt-4">
+                <header className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-card px-4 py-3">
+                    <button
+                        onClick={() => router.push(`/${slug}/wait/${ticketId}`)}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-base transition-colors shrink-0"
+                        aria-label="Retour à la salle d'attente"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-text-primary" />
+                    </button>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary">
+                        <Gamepad2 size={15} className="text-white" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <h1 className="font-semibold text-text-primary truncate">Jeux</h1>
+                        <p className="text-xs text-text-secondary">Patiente en t'amusant !</p>
+                    </div>
+                </header>
+            </div>
 
             {/* Game grid */}
             <main className="flex-1 p-4">

@@ -7,9 +7,10 @@ import { BombPartyGame } from "./BombPartyGame"
 interface BombPartyLobbyProps {
     merchantId: string
     ticketId: string
+    myName: string
 }
 
-export function BombPartyLobby({ merchantId, ticketId }: BombPartyLobbyProps) {
+export function BombPartyLobby({ merchantId, ticketId, myName }: BombPartyLobbyProps) {
     const [game, setGame] = useState<{ roomCode: string; playerNum: 1 | 2 } | null>(null)
 
     if (game) {
@@ -18,6 +19,7 @@ export function BombPartyLobby({ merchantId, ticketId }: BombPartyLobbyProps) {
                 merchantId={merchantId}
                 roomCode={game.roomCode}
                 playerNum={game.playerNum}
+                myName={myName}
                 onExit={() => setGame(null)}
             />
         )

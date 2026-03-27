@@ -7,9 +7,10 @@ import { Connect4Game } from "./Connect4Game"
 interface Connect4LobbyProps {
     merchantId: string
     ticketId: string
+    myName: string
 }
 
-export function Connect4Lobby({ merchantId, ticketId }: Connect4LobbyProps) {
+export function Connect4Lobby({ merchantId, ticketId, myName }: Connect4LobbyProps) {
     const [game, setGame] = useState<{ roomCode: string; playerNum: 1 | 2 } | null>(null)
 
     if (game) {
@@ -18,6 +19,7 @@ export function Connect4Lobby({ merchantId, ticketId }: Connect4LobbyProps) {
                 merchantId={merchantId}
                 roomCode={game.roomCode}
                 playerNum={game.playerNum}
+                myName={myName}
                 onExit={() => setGame(null)}
             />
         )

@@ -52,6 +52,16 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
     // Touch tracking
     const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
+    // Resolve CSS custom properties once — canvas doesn't process var() natively
+    const colorsRef = useRef({ head: "#818cf8", body: "165,180,252", food: "#34d399" })
+    useEffect(() => {
+        const style = getComputedStyle(document.documentElement)
+        const brand = style.getPropertyValue("--color-brand-primary").trim()
+        const success = style.getPropertyValue("--color-feedback-success").trim()
+        if (brand) colorsRef.current.head = brand
+        if (success) colorsRef.current.food = success
+    }, [])
+
     const draw = useCallback(() => {
         const canvas = canvasRef.current
         if (!canvas) return
@@ -59,13 +69,14 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
         if (!ctx) return
 
         const state = stateRef.current
+        const colors = colorsRef.current
 
         // Background
         ctx.fillStyle = "#0f172a"
         ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
         // Grid dots (subtle)
-        ctx.fillStyle = "rgba(255,255,255,0.03)"
+        ctx.fillStyle = "rgba(255,255,255,0.05)"
         for (let x = 0; x < GRID; x++) {
             for (let y = 0; y < GRID; y++) {
                 ctx.fillRect(x * CELL + CELL / 2 - 1, y * CELL + CELL / 2 - 1, 2, 2)
@@ -75,18 +86,18 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
         // Food
         const fx = state.food.x * CELL + CELL / 2
         const fy = state.food.y * CELL + CELL / 2
-        ctx.fillStyle = "var(--color-feedback-success, #10b981)"
+        ctx.fillStyle = colors.food || "#34d399"
         ctx.beginPath()
-        ctx.arc(fx, fy, CELL / 2 - 2, 0, Math.PI * 2)
+        ctx.arc(fx, fy, CELL / 2 - 1, 0, Math.PI * 2)
         ctx.fill()
 
-        // Snake body
+        // Snake body — use bright indigo-300 for body (high contrast on dark bg)
         state.snake.forEach((seg, i) => {
             const isHead = i === 0
             const alpha = isHead ? 1 : Math.max(0.65, 0.95 - (i / Math.max(state.snake.length, 8)) * 0.35)
             ctx.fillStyle = isHead
-                ? "var(--color-brand-primary, #6366f1)"
-                : `rgba(99, 102, 241, ${alpha})`
+                ? colors.head
+                : `rgba(${colors.body}, ${alpha})`
             const pad = isHead ? 1 : 2
             ctx.beginPath()
             ctx.roundRect(
@@ -100,7 +111,7 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
         })
 
         // Score overlay
-        ctx.fillStyle = "rgba(255,255,255,0.7)"
+        ctx.fillStyle = "rgba(255,255,255,0.85)"
         ctx.font = "bold 13px system-ui"
         ctx.textAlign = "left"
         ctx.fillText(`Score: ${state.score}`, 8, 20)

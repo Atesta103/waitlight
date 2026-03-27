@@ -1,4 +1,4 @@
-export type GameId = "snake" | "flappy" | "2048" | "pong" | "connect4" | "bombparty"
+export type GameId = "snake" | "flappy" | "2048" | "connect4" | "bombparty"
 
 export type GameMode = "solo" | "multiplayer"
 
@@ -35,14 +35,6 @@ export const GAMES: GameMeta[] = [
         emoji: "🔢",
         mode: "solo",
         avgDuration: "5-10 min",
-    },
-    {
-        id: "pong",
-        title: "Pong",
-        description: "Affronte un autre joueur en temps réel.",
-        emoji: "🏓",
-        mode: "multiplayer",
-        avgDuration: "3-5 min",
     },
     {
         id: "connect4",

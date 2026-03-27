@@ -11,6 +11,12 @@ const ROWS = 6
 type Cell = 0 | 1 | 2
 type Board = Cell[][]
 
+interface HelloMsg {
+    type: "hello"
+    name: string
+    player: 1 | 2
+}
+
 interface MoveMsg {
     type: "move"
     col: number
@@ -21,7 +27,7 @@ interface ResetMsg {
     type: "reset"
 }
 
-type GameMsg = MoveMsg | ResetMsg
+type GameMsg = HelloMsg | MoveMsg | ResetMsg
 
 function emptyBoard(): Board {
     return Array.from({ length: ROWS }, () => Array(COLS).fill(0) as Cell[])
@@ -71,22 +77,29 @@ interface Connect4GameProps {
     merchantId: string
     roomCode: string
     playerNum: 1 | 2
+    myName: string
     onExit: () => void
 }
 
-export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connect4GameProps) {
+export function Connect4Game({ merchantId, roomCode, playerNum, myName, onExit }: Connect4GameProps) {
     const [board, setBoard] = useState<Board>(emptyBoard)
     const [currentTurn, setCurrentTurn] = useState<1 | 2>(1)
     const [winner, setWinner] = useState<0 | 1 | 2 | "draw">(0)
     const [hoverCol, setHoverCol] = useState<number | null>(null)
     const [lastDrop, setLastDrop] = useState<{ row: number; col: number } | null>(null)
+    const [opponentName, setOpponentName] = useState("Adversaire")
     const prefersReduced = useReducedMotion()
     const channelName = `connect4:${merchantId}:${roomCode}`
+
+    const p1Name = playerNum === 1 ? myName : opponentName
+    const p2Name = playerNum === 2 ? myName : opponentName
 
     const onMessage = useCallback(
         (payload: Record<string, unknown>) => {
             const msg = payload as unknown as GameMsg
-            if (msg.type === "move") {
+            if (msg.type === "hello") {
+                if (msg.player !== playerNum) setOpponentName(msg.name)
+            } else if (msg.type === "move") {
                 if (msg.player === playerNum) return // own move already applied locally
                 setBoard((prev) => {
                     const result = dropPiece(prev, msg.col, msg.player)
@@ -111,32 +124,46 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
         [playerNum],
     )
 
-    const { broadcast } = useGameChannel({ channelName, onMessage })
+    const { broadcast } = useGameChannel({
+        channelName,
+        onMessage,
+        onReady: useCallback(() => {
+            // broadcast is not available here — handled via separate effect
+        }, []),
+    })
+
+    // Send hello when channel is ready (via broadcast ref, after mount)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            broadcast({ type: "hello", name: myName, player: playerNum } satisfies HelloMsg)
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [broadcast, myName, playerNum])
 
     const handleColumnClick = useCallback(
         (col: number) => {
             if (winner !== 0) return
             if (currentTurn !== playerNum) return
 
-            setBoard((prev) => {
-                const result = dropPiece(prev, col, playerNum)
-                if (!result) return prev
+            // Compute move using current board (in deps) — outside state updater to avoid Strict Mode double-call
+            const result = dropPiece(board, col, playerNum)
+            if (!result) return
 
-                broadcast({ type: "move", col, player: playerNum } satisfies MoveMsg)
-                setLastDrop({ row: result.row, col })
+            setBoard(result.board)
+            setLastDrop({ row: result.row, col })
 
-                if (checkWin(result.board, result.row, col, playerNum)) {
-                    setWinner(playerNum)
-                } else if (isDraw(result.board)) {
-                    setWinner("draw")
-                } else {
-                    setCurrentTurn(playerNum === 1 ? 2 : 1)
-                }
+            if (checkWin(result.board, result.row, col, playerNum)) {
+                setWinner(playerNum)
+            } else if (isDraw(result.board)) {
+                setWinner("draw")
+            } else {
+                setCurrentTurn(playerNum === 1 ? 2 : 1)
+            }
 
-                return result.board
-            })
+            // Broadcast outside state updater — fires exactly once
+            broadcast({ type: "move", col, player: playerNum } satisfies MoveMsg)
         },
-        [winner, currentTurn, playerNum, broadcast],
+        [winner, currentTurn, playerNum, board, broadcast],
     )
 
     const handleReset = useCallback(() => {
@@ -160,14 +187,16 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
                             style={{ background: currentTurn === 1 ? "#ef4444" : "#eab308" }}
                         />
                         <span className="text-sm font-medium text-text-primary">
-                            {isMyTurn ? "C'est ton tour !" : `Tour du Joueur ${currentTurn}`}
+                            {isMyTurn ? "C'est ton tour !" : `Tour de ${currentTurn === 1 ? p1Name : p2Name}`}
                         </span>
                     </>
                 ) : winner === "draw" ? (
                     <span className="text-sm font-medium text-text-secondary">Match nul !</span>
                 ) : (
                     <span className="text-sm font-bold text-text-primary">
-                        {winner === playerNum ? "Tu as gagné ! 🎉" : `Joueur ${winner} gagne !`}
+                        {winner === playerNum
+                            ? "Tu as gagné ! 🎉"
+                            : `${winner === 1 ? p1Name : p2Name} gagne !`}
                     </span>
                 )}
             </div>
@@ -249,11 +278,11 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
             <div className="flex gap-4 text-sm text-text-secondary">
                 <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <span>J1{playerNum === 1 ? " (Toi)" : ""}</span>
+                    <span>{p1Name}{playerNum === 1 ? " (Toi)" : ""}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <span>J2{playerNum === 2 ? " (Toi)" : ""}</span>
+                    <span>{p2Name}{playerNum === 2 ? " (Toi)" : ""}</span>
                 </div>
             </div>
 
@@ -262,7 +291,7 @@ export function Connect4Game({ merchantId, roomCode, playerNum, onExit }: Connec
                 <div className="flex flex-col gap-2 w-full max-w-xs">
                     <button
                         onClick={handleReset}
-                        className="w-full py-3 bg-brand-primary text-white rounded-xl font-semibold"
+                        className="w-full py-3 bg-brand-primary text-text-inverse rounded-xl font-semibold"
                     >
                         Rejouer
                     </button>

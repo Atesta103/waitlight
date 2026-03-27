@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { useGameChannel } from "@/components/games/shared/useGameChannel"
-import { getRandomSyllable, containsSyllable } from "./words"
+import { getRandomSyllable, isValidWord, preloadWords } from "./words"
 import { cn } from "@/lib/utils/cn"
 
 const MAX_LIVES = 3
@@ -37,20 +37,28 @@ interface StartMsg {
     syllable: string
 }
 
-type GameMsg = AnswerMsg | NextTurnMsg | LifeLostMsg | GameOverMsg | StartMsg
+interface HelloMsg {
+    type: "hello"
+    name: string
+    player: 1 | 2
+}
+
+type GameMsg = HelloMsg | AnswerMsg | NextTurnMsg | LifeLostMsg | GameOverMsg | StartMsg
 
 interface BombPartyGameProps {
     merchantId: string
     roomCode: string
     playerNum: 1 | 2
+    myName: string
     onExit: () => void
 }
 
-export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombPartyGameProps) {
+export function BombPartyGame({ merchantId, roomCode, playerNum, myName, onExit }: BombPartyGameProps) {
     const isHost = playerNum === 1
     const channelName = `bombparty:${merchantId}:${roomCode}`
 
     const [syllable, setSyllable] = useState<string>("")
+    const [opponentName, setOpponentName] = useState("Adversaire")
     const [activePlayer, setActivePlayer] = useState<1 | 2>(1)
     const [lives, setLives] = useState<{ p1: number; p2: number }>({ p1: MAX_LIVES, p2: MAX_LIVES })
     const [input, setInput] = useState("")
@@ -64,16 +72,22 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const activePlayerRef = useRef<1 | 2>(1)
     const livesRef = useRef({ p1: MAX_LIVES, p2: MAX_LIVES })
+    const timeLeftRef = useRef(TURN_DURATION) // mirrors timeLeft state, safe to read in setInterval
 
     const clearTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current)
     }
 
+    const p1Name = playerNum === 1 ? myName : opponentName
+    const p2Name = playerNum === 2 ? myName : opponentName
+
     const onMessage = useCallback(
         (payload: Record<string, unknown>) => {
             const msg = payload as unknown as GameMsg
 
-            if (msg.type === "start") {
+            if (msg.type === "hello") {
+                if (msg.player !== playerNum) setOpponentName(msg.name)
+            } else if (msg.type === "start") {
                 setSyllable(msg.syllable)
                 setActivePlayer(1)
                 activePlayerRef.current = 1
@@ -105,10 +119,21 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
                 clearTimer()
             }
         },
-        [],
+        [playerNum, setOpponentName],
     )
 
     const { broadcast } = useGameChannel({ channelName, onMessage })
+
+    // Preload French word list in background (fail-open if unavailable)
+    useEffect(() => { preloadWords() }, [])
+
+    // Send hello when channel is ready
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            broadcast({ type: "hello", name: myName, player: playerNum } satisfies HelloMsg)
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [broadcast, myName, playerNum])
 
     // Host starts the game when both join
     useEffect(() => {
@@ -125,50 +150,53 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
         return () => clearTimeout(timer)
     }, [isHost, broadcast])
 
-    // Countdown timer — both players tick visually; only host drives state changes
+    // Countdown timer — restarts on every turn change; only host drives state changes.
+    // All side effects are OUTSIDE the setTimeLeft updater to avoid React 18 Strict Mode
+    // double-invocation (which caused both players to lose a life per timeout).
     useEffect(() => {
         if (!started || gameOver !== 0) return
+        timeLeftRef.current = TURN_DURATION
+        setTimeLeft(TURN_DURATION)
         clearTimer()
         timerRef.current = setInterval(() => {
-            setTimeLeft((t) => {
-                if (t <= 1) {
-                    if (isHost) {
-                        // Host decides timeout consequences
-                        const ap = activePlayerRef.current
-                        const newLives = {
-                            p1: ap === 1 ? livesRef.current.p1 - 1 : livesRef.current.p1,
-                            p2: ap === 2 ? livesRef.current.p2 - 1 : livesRef.current.p2,
-                        }
-                        livesRef.current = newLives
-                        setLives(newLives)
-                        broadcast({ type: "life_lost", player: ap } satisfies LifeLostMsg)
+            const next = timeLeftRef.current - 1
+            timeLeftRef.current = next <= 0 ? TURN_DURATION : next
+            setTimeLeft(timeLeftRef.current)
 
-                        const loser = newLives.p1 <= 0 ? 1 : newLives.p2 <= 0 ? 2 : 0
-                        if (loser !== 0) {
-                            const w: 1 | 2 = loser === 1 ? 2 : 1
-                            broadcast({ type: "game_over", winner: w } satisfies GameOverMsg)
-                            setGameOver(w)
-                            clearTimer()
-                            return 0
-                        }
-
-                        const next: 1 | 2 = ap === 1 ? 2 : 1
-                        const newSyl = getRandomSyllable()
-                        activePlayerRef.current = next
-                        setActivePlayer(next)
-                        setInput("")
-                        setFeedback("")
-                        setLastWord(null)
-                        broadcast({ type: "next_turn", syllable: newSyl, activePlayer: next } satisfies NextTurnMsg)
-                        setSyllable(newSyl)
-                    }
-                    return TURN_DURATION
+            if (next <= 0 && isHost) {
+                const ap = activePlayerRef.current
+                const newLives = {
+                    p1: ap === 1 ? livesRef.current.p1 - 1 : livesRef.current.p1,
+                    p2: ap === 2 ? livesRef.current.p2 - 1 : livesRef.current.p2,
                 }
-                return t - 1
-            })
+                livesRef.current = newLives
+                setLives(newLives)
+                broadcast({ type: "life_lost", player: ap } satisfies LifeLostMsg)
+
+                const loser = newLives.p1 <= 0 ? 1 : newLives.p2 <= 0 ? 2 : 0
+                if (loser !== 0) {
+                    const w: 1 | 2 = loser === 1 ? 2 : 1
+                    broadcast({ type: "game_over", winner: w } satisfies GameOverMsg)
+                    setGameOver(w)
+                    clearTimer()
+                    return
+                }
+
+                const nextPlayer: 1 | 2 = ap === 1 ? 2 : 1
+                const newSyl = getRandomSyllable()
+                activePlayerRef.current = nextPlayer
+                setActivePlayer(nextPlayer)
+                setInput("")
+                setFeedback("")
+                setLastWord(null)
+                broadcast({ type: "next_turn", syllable: newSyl, activePlayer: nextPlayer } satisfies NextTurnMsg)
+                setSyllable(newSyl)
+            }
         }, 1000)
         return () => clearTimer()
-    }, [started, gameOver, broadcast, isHost])
+    // activePlayer in deps: timer resets to TURN_DURATION on every turn change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [started, gameOver, broadcast, isHost, activePlayer])
 
     const submitWord = useCallback(() => {
         if (activePlayer !== playerNum || gameOver !== 0) return
@@ -178,7 +206,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
             setTimeout(() => setFeedback(""), 600)
             return
         }
-        const valid = containsSyllable(word, syllable)
+        const valid = isValidWord(word, syllable)
         setLastWord({ word, valid })
         broadcast({ type: "answer", word, valid, player: playerNum } satisfies AnswerMsg)
         setFeedback(valid ? "valid" : "invalid")
@@ -215,16 +243,20 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, onExit }: BombP
             {/* Lives */}
             <div className="flex justify-between w-full bg-surface-card border border-border-default rounded-xl px-4 py-3">
                 <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-text-secondary">J1{playerNum === 1 ? " (Toi)" : ""}</span>
+                    <span className="text-xs text-text-secondary font-medium truncate max-w-20">
+                        {p1Name}{playerNum === 1 ? " ✦" : ""}
+                    </span>
                     <div className="flex gap-0.5 text-lg">{renderHearts(lives.p1)}</div>
                 </div>
                 <div className="flex flex-col items-center justify-center">
                     <span className="text-xs text-text-secondary">
-                        {activePlayer === playerNum ? "Ton tour !" : `Tour J${activePlayer}`}
+                        {activePlayer === playerNum ? "Ton tour !" : `Tour de ${activePlayer === 1 ? p1Name : p2Name}`}
                     </span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-text-secondary">J2{playerNum === 2 ? " (Toi)" : ""}</span>
+                    <span className="text-xs text-text-secondary font-medium truncate max-w-20">
+                        {p2Name}{playerNum === 2 ? " ✦" : ""}
+                    </span>
                     <div className="flex gap-0.5 text-lg">{renderHearts(lives.p2)}</div>
                 </div>
             </div>

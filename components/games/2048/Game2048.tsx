@@ -5,120 +5,157 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { GameOverlay } from "@/components/games/shared/GameOverlay"
 import { cn } from "@/lib/utils/cn"
 
-type Board = (number | null)[][]
+type MoveDir = "left" | "right" | "up" | "down"
 
 interface TileState {
     id: number
     value: number
     row: number
     col: number
-    merged?: boolean
-    isNew?: boolean
+    isMerged?: boolean   // plays a pop animation this frame
+    isNew?: boolean      // pops in from scale 0
+    isAbsorbed?: boolean // sliding to merge target, then exits
 }
 
 let tileIdCounter = 0
-function nextId() {
-    return ++tileIdCounter
-}
+function nextId() { return ++tileIdCounter }
 
-function emptyBoard(): Board {
-    return Array.from({ length: 4 }, () => Array(4).fill(null))
-}
+// ---------------------------------------------------------------------------
+// Board helpers (operate on tile arrays, not raw 2D arrays)
+// ---------------------------------------------------------------------------
 
-function addRandom(board: Board): Board {
-    const empties: { r: number; c: number }[] = []
-    for (let r = 0; r < 4; r++)
-        for (let c = 0; c < 4; c++)
-            if (!board[r][c]) empties.push({ r, c })
-    if (empties.length === 0) return board
-    const { r, c } = empties[Math.floor(Math.random() * empties.length)]
-    const newBoard = board.map((row) => [...row])
-    newBoard[r][c] = Math.random() < 0.9 ? 2 : 4
-    return newBoard
-}
-
-function getInitialBoard(): Board {
-    let board = emptyBoard()
-    board = addRandom(board)
-    board = addRandom(board)
-    return board
-}
-
-function slideRow(row: (number | null)[]): { result: (number | null)[]; score: number } {
-    const nums = row.filter((v) => v !== null) as number[]
-    let score = 0
-    const merged: (number | null)[] = []
-    let i = 0
-    while (i < nums.length) {
-        if (i + 1 < nums.length && nums[i] === nums[i + 1]) {
-            const val = nums[i] * 2
-            merged.push(val)
-            score += val
-            i += 2
-        } else {
-            merged.push(nums[i])
-            i++
-        }
+function tilesToGrid(tiles: TileState[]): (number | null)[][] {
+    const grid: (number | null)[][] = Array.from({ length: 4 }, () => Array(4).fill(null))
+    for (const t of tiles) {
+        if (!t.isAbsorbed) grid[t.row][t.col] = t.value
     }
-    while (merged.length < 4) merged.push(null)
-    return { result: merged, score }
+    return grid
 }
 
-type MoveDir = "left" | "right" | "up" | "down"
-
-function move(board: Board, dir: MoveDir): { board: Board; score: number; moved: boolean } {
-    let totalScore = 0
-    let moved = false
-    const newBoard = emptyBoard()
-
-    const getRow = (r: number): (number | null)[] => {
-        if (dir === "left" || dir === "right") return [...board[r]]
-        return board.map((row) => row[r])
-    }
-
-    const setRow = (r: number, arr: (number | null)[]) => {
-        if (dir === "left" || dir === "right") {
-            newBoard[r] = arr
-        } else {
-            arr.forEach((v, i) => {
-                newBoard[i][r] = v
-            })
-        }
-    }
-
-    for (let i = 0; i < 4; i++) {
-        let row = getRow(i)
-        if (dir === "right" || dir === "down") row = row.reverse()
-        const { result, score } = slideRow(row)
-        let finalRow = result
-        if (dir === "right" || dir === "down") finalRow = finalRow.reverse()
-        setRow(i, finalRow)
-        totalScore += score
-
-        // Check if moved
-        const original = getRow(i)
-        const orig = (dir === "right" || dir === "down") ? [...original].reverse() : original
-        const res = (dir === "right" || dir === "down") ? [...result].reverse() : result
-        if (orig.some((v, j) => v !== res[j])) moved = true
-    }
-
-    return { board: newBoard, score: totalScore, moved }
+function hasWon(tiles: TileState[]): boolean {
+    return tiles.some((t) => !t.isAbsorbed && t.value === 2048)
 }
 
-function hasWon(board: Board): boolean {
-    return board.some((row) => row.some((v) => v === 2048))
-}
-
-function canMove(board: Board): boolean {
+function canMove(tiles: TileState[]): boolean {
+    const grid = tilesToGrid(tiles)
     for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
-            if (!board[r][c]) return true
-            if (c + 1 < 4 && board[r][c] === board[r][c + 1]) return true
-            if (r + 1 < 4 && board[r][c] === board[r + 1][c]) return true
+            if (!grid[r][c]) return true
+            if (c + 1 < 4 && grid[r][c] === grid[r][c + 1]) return true
+            if (r + 1 < 4 && grid[r][c] === grid[r + 1][c]) return true
         }
     }
     return false
 }
+
+function addRandomTile(tiles: TileState[]): TileState | null {
+    const grid = tilesToGrid(tiles)
+    const empties: { r: number; c: number }[] = []
+    for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 4; c++)
+            if (!grid[r][c]) empties.push({ r, c })
+    if (empties.length === 0) return null
+    const { r, c } = empties[Math.floor(Math.random() * empties.length)]
+    return { id: nextId(), value: Math.random() < 0.9 ? 2 : 4, row: r, col: c, isNew: true }
+}
+
+function getInitialTiles(): TileState[] {
+    const tiles: TileState[] = []
+    for (let n = 0; n < 2; n++) {
+        const t = addRandomTile(tiles)
+        if (t) tiles.push(t)
+    }
+    return tiles
+}
+
+// ---------------------------------------------------------------------------
+// Core move logic — keeps stable tile IDs so framer-motion can animate slides
+// ---------------------------------------------------------------------------
+
+interface MoveResult {
+    survivingTiles: TileState[]   // tiles after the move (merged tiles have isMerged=true)
+    absorbedTiles: TileState[]    // absorbed half of each merge, repositioned to merge target
+    score: number
+    moved: boolean
+}
+
+function moveWithTiles(currentTiles: TileState[], dir: MoveDir): MoveResult {
+    // Build grid from active (non-absorbed) tiles
+    const grid: (TileState | null)[][] = Array.from({ length: 4 }, () => Array(4).fill(null))
+    for (const t of currentTiles) {
+        if (!t.isAbsorbed) grid[t.row][t.col] = { ...t, isMerged: false, isNew: false }
+    }
+
+    let totalScore = 0
+    let moved = false
+    const survivingTiles: TileState[] = []
+    const pendingAbsorbed: { removed: TileState; targetRow: number; targetCol: number }[] = []
+
+    for (let i = 0; i < 4; i++) {
+        // Extract the line for this row/column, reversing for right/down so we always process
+        // tiles toward position 0 (left/up side) and reverse positions afterward.
+        let line: (TileState | null)[]
+        if (dir === "left" || dir === "right") {
+            line = dir === "right" ? [...grid[i]].reverse() : [...grid[i]]
+        } else {
+            const col = grid.map((row) => row[i])
+            line = dir === "down" ? [...col].reverse() : col
+        }
+
+        const nonNull = line.filter((t): t is TileState => t !== null)
+        const merged: { tile: TileState; absorbed?: TileState }[] = []
+
+        let j = 0
+        while (j < nonNull.length) {
+            if (j + 1 < nonNull.length && nonNull[j].value === nonNull[j + 1].value) {
+                const newVal = nonNull[j].value * 2
+                totalScore += newVal
+                merged.push({
+                    tile: { ...nonNull[j], value: newVal, isMerged: true },
+                    absorbed: nonNull[j + 1],
+                })
+                j += 2
+            } else {
+                merged.push({ tile: { ...nonNull[j] } })
+                j++
+            }
+        }
+
+        // Assign final grid positions
+        for (let k = 0; k < merged.length; k++) {
+            // For right/down, position 0 → grid index 3, 1 → 2, etc.
+            const pos = (dir === "right" || dir === "down") ? (3 - k) : k
+            const newRow = (dir === "left" || dir === "right") ? i : pos
+            const newCol = (dir === "left" || dir === "right") ? pos : i
+            const { tile, absorbed } = merged[k]
+
+            if (newRow !== tile.row || newCol !== tile.col || tile.isMerged) moved = true
+
+            const updatedTile = { ...tile, row: newRow, col: newCol }
+            survivingTiles.push(updatedTile)
+
+            if (absorbed) {
+                // Absorbed tile will animate to the merge position, then exit
+                pendingAbsorbed.push({ removed: absorbed, targetRow: newRow, targetCol: newCol })
+            }
+        }
+    }
+
+    const absorbedTiles = pendingAbsorbed.map(({ removed, targetRow, targetCol }) => ({
+        ...removed,
+        row: targetRow,
+        col: targetCol,
+        isAbsorbed: true,
+        isMerged: false,
+        isNew: false,
+    }))
+
+    return { survivingTiles, absorbedTiles, score: totalScore, moved }
+}
+
+// ---------------------------------------------------------------------------
+// Tile colors
+// ---------------------------------------------------------------------------
 
 function tileColor(value: number): string {
     const map: Record<number, string> = {
@@ -137,90 +174,98 @@ function tileColor(value: number): string {
     return map[value] ?? "bg-purple-700 text-white"
 }
 
-function boardToTiles(board: Board): TileState[] {
-    const tiles: TileState[] = []
-    for (let r = 0; r < 4; r++) {
-        for (let c = 0; c < 4; c++) {
-            if (board[r][c] !== null) {
-                tiles.push({ id: nextId(), value: board[r][c]!, row: r, col: c })
-            }
-        }
-    }
-    return tiles
-}
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+const GRID_SIZE = 320
+const PADDING = 8  // p-2 = 8px each side
+const GAP = 8      // gap-2 = 8px
+const INNER = GRID_SIZE - PADDING * 2         // 304px
+const CELL_SIZE = (INNER - 3 * GAP) / 4      // 70px
 
 export function Game2048() {
-    const [board, setBoard] = useState<Board>(getInitialBoard)
+    const [tiles, setTiles] = useState<TileState[]>(getInitialTiles)
     const [score, setScore] = useState(0)
     const [bestScore, setBestScore] = useState(0)
     const [status, setStatus] = useState<"playing" | "won" | "lost">("playing")
-    const [tiles, setTiles] = useState<TileState[]>(() => boardToTiles(getInitialBoard()))
+
+    // tilesRef mirrors state for synchronous reads in handleMove + setTimeout
+    const tilesRef = useRef<TileState[]>([])
+    const isAnimating = useRef(false)
     const touchStartRef = useRef<{ x: number; y: number } | null>(null)
     const prefersReduced = useReducedMotion()
 
+    useEffect(() => { tilesRef.current = tiles }, [tiles])
+
     const handleMove = useCallback(
         (dir: MoveDir) => {
-            if (status !== "playing") return
-            setBoard((prev) => {
-                const { board: next, score: earned, moved } = move(prev, dir)
-                if (!moved) return prev
+            if (status !== "playing" || isAnimating.current) return
 
-                let finalBoard = next
-                let newBoard = addRandom(next)
-                // Find the new tile
-                const newTiles: TileState[] = []
-                for (let r = 0; r < 4; r++) {
-                    for (let c = 0; c < 4; c++) {
-                        if (newBoard[r][c] !== null) {
-                            newTiles.push({ id: nextId(), value: newBoard[r][c]!, row: r, col: c })
-                        }
-                    }
-                }
-                finalBoard = newBoard
+            const active = tilesRef.current.filter((t) => !t.isAbsorbed)
+            const { survivingTiles, absorbedTiles, score: earned, moved } = moveWithTiles(active, dir)
+            if (!moved) return
 
-                setTiles(newTiles)
+            isAnimating.current = true
+
+            // Phase 1 — slide tiles to new positions; absorbed tiles slide to merge target
+            const phase1 = [...survivingTiles, ...absorbedTiles]
+            tilesRef.current = phase1
+            setTiles(phase1)
+
+            // Phase 2 — remove absorbed tiles, clear merge flags, spawn new tile
+            setTimeout(() => {
+                const base = tilesRef.current
+                    .filter((t) => !t.isAbsorbed)
+                    .map((t) => ({ ...t, isMerged: false, isNew: false }))
+                const newTile = addRandomTile(base)
+                const final = newTile ? [...base, newTile] : base
+
+                tilesRef.current = final
+                setTiles(final)
                 setScore((s) => {
                     const ns = s + earned
                     setBestScore((b) => Math.max(b, ns))
                     return ns
                 })
 
-                if (hasWon(finalBoard)) setStatus("won")
-                else if (!canMove(finalBoard)) setStatus("lost")
+                if (hasWon(final)) setStatus("won")
+                else if (!canMove(final)) setStatus("lost")
 
-                return finalBoard
-            })
+                isAnimating.current = false
+            }, prefersReduced ? 0 : 150)
         },
-        [status],
+        [status, prefersReduced],
     )
 
     const resetGame = useCallback(() => {
-        const b = getInitialBoard()
-        setBoard(b)
-        setTiles(boardToTiles(b))
+        const t = getInitialTiles()
+        tilesRef.current = t
+        setTiles(t)
         setScore(0)
         setStatus("playing")
+        isAnimating.current = false
     }, [])
 
-    // Keyboard
+    // Keyboard navigation
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             switch (e.key) {
-                case "ArrowLeft": e.preventDefault(); handleMove("left"); break
+                case "ArrowLeft":  e.preventDefault(); handleMove("left");  break
                 case "ArrowRight": e.preventDefault(); handleMove("right"); break
-                case "ArrowUp": e.preventDefault(); handleMove("up"); break
-                case "ArrowDown": e.preventDefault(); handleMove("down"); break
+                case "ArrowUp":    e.preventDefault(); handleMove("up");    break
+                case "ArrowDown":  e.preventDefault(); handleMove("down");  break
             }
         }
         window.addEventListener("keydown", onKey)
         return () => window.removeEventListener("keydown", onKey)
     }, [handleMove])
 
+    // Touch / swipe
     const onTouchStart = (e: React.TouchEvent) => {
         const t = e.touches[0]
         touchStartRef.current = { x: t.clientX, y: t.clientY }
     }
-
     const onTouchEnd = (e: React.TouchEvent) => {
         if (!touchStartRef.current) return
         const t = e.changedTouches[0]
@@ -257,26 +302,23 @@ export function Game2048() {
             {/* Grid */}
             <div
                 className="relative bg-slate-300 rounded-xl p-2 touch-none"
-                style={{ width: 320, height: 320 }}
+                style={{ width: GRID_SIZE, height: GRID_SIZE }}
                 onTouchStart={onTouchStart}
                 onTouchEnd={onTouchEnd}
             >
-                {/* Empty cells */}
+                {/* Empty cell background */}
                 <div className="grid grid-cols-4 gap-2 h-full">
                     {Array.from({ length: 16 }).map((_, i) => (
                         <div key={i} className="bg-slate-200 rounded-lg" />
                     ))}
                 </div>
 
-                {/* Tiles */}
+                {/* Animated tiles — positioned via x/y transforms (GPU composited) */}
                 <div className="absolute inset-2">
                     <AnimatePresence>
                         {tiles.map((tile) => {
-                            const inner = 320 - 16 // 304px after p-2 padding
-                            const cellSize = (inner - 3 * 8) / 4 // 70px — matches CSS grid cells
-                            const gap = 8
-                            const left = tile.col * (cellSize + gap)
-                            const top = tile.row * (cellSize + gap)
+                            const tx = tile.col * (CELL_SIZE + GAP)
+                            const ty = tile.row * (CELL_SIZE + GAP)
                             return (
                                 <motion.div
                                     key={tile.id}
@@ -285,23 +327,37 @@ export function Game2048() {
                                         tileColor(tile.value),
                                     )}
                                     style={{
-                                        width: cellSize,
-                                        height: cellSize,
-                                        left,
-                                        top,
+                                        width: CELL_SIZE,
+                                        height: CELL_SIZE,
+                                        // Absorbed tiles render behind the surviving merged tile
+                                        zIndex: tile.isAbsorbed ? 1 : 2,
                                         fontSize: tile.value >= 1024 ? "18px" : tile.value >= 128 ? "22px" : "26px",
                                     }}
-                                    initial={
-                                        prefersReduced
-                                            ? {}
-                                            : tile.isNew
-                                              ? { scale: 0 }
-                                              : { scale: 0.9 }
+                                    // New tiles pop in from scale 0 at the correct position
+                                    initial={prefersReduced ? false : {
+                                        x: tx,
+                                        y: ty,
+                                        scale: tile.isNew ? 0 : 1,
+                                    }}
+                                    // Slide via transform (GPU); merged tiles do a quick pop
+                                    animate={prefersReduced ? { x: tx, y: ty } : {
+                                        x: tx,
+                                        y: ty,
+                                        scale: tile.isMerged ? [1, 1.2, 1] : 1,
+                                    }}
+                                    exit={
+                                        tile.isAbsorbed
+                                            // Already behind the merged tile — just vanish
+                                            ? { opacity: 0, transition: { duration: 0.05 } }
+                                            : prefersReduced
+                                              ? {}
+                                              : { scale: 0, opacity: 0, transition: { duration: 0.08 } }
                                     }
-                                    animate={{ scale: 1, left, top }}
-                                    exit={prefersReduced ? {} : { scale: 0, opacity: 0 }}
-                                    transition={{ duration: 0.1 }}
-                                    layout={!prefersReduced}
+                                    transition={{
+                                        x: { duration: 0.12, ease: "easeOut" },
+                                        y: { duration: 0.12, ease: "easeOut" },
+                                        scale: { duration: 0.15, ease: "easeOut" },
+                                    }}
                                 >
                                     {tile.value}
                                 </motion.div>
@@ -310,7 +366,7 @@ export function Game2048() {
                     </AnimatePresence>
                 </div>
 
-                {/* Overlays */}
+                {/* Game-over overlays */}
                 {status === "won" && (
                     <GameOverlay
                         title="Tu as gagné ! 🎉"

@@ -8,12 +8,12 @@ const W = 320
 const H = 480
 const BIRD_X = 60
 const BIRD_R = 14
-const GRAVITY = 0.27
-const FLAP_VEL = -7.5
+const GRAVITY = 0.30
+const FLAP_VEL = -5.5
 const PIPE_W = 52
-const PIPE_GAP = 165
-const PIPE_SPEED = 1.8
-const PIPE_INTERVAL = 90 // frames
+const PIPE_GAP = 150
+const PIPE_SPEED = 3
+const PIPE_INTERVAL = 120 // frames
 
 interface Pipe {
     x: number

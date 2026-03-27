@@ -9,6 +9,7 @@ type BroadcastPayload = Record<string, unknown>
 interface UseGameChannelOptions {
     channelName: string
     onMessage: (payload: BroadcastPayload) => void
+    onReady?: () => void
     enabled?: boolean
 }
 
@@ -24,14 +25,15 @@ interface UseGameChannelReturn {
 export function useGameChannel({
     channelName,
     onMessage,
+    onReady,
     enabled = true,
 }: UseGameChannelOptions): UseGameChannelReturn {
     const channelRef = useRef<RealtimeChannel | null>(null)
     const onMessageRef = useRef<(payload: BroadcastPayload) => void>(onMessage)
+    const onReadyRef = useRef<(() => void) | undefined>(onReady)
 
-    useEffect(() => {
-        onMessageRef.current = onMessage
-    }, [onMessage])
+    useEffect(() => { onMessageRef.current = onMessage }, [onMessage])
+    useEffect(() => { onReadyRef.current = onReady }, [onReady])
 
     useEffect(() => {
         if (!enabled || !channelName) return
@@ -45,7 +47,9 @@ export function useGameChannel({
             onMessageRef.current(payload as BroadcastPayload)
         })
 
-        channel.subscribe()
+        channel.subscribe((status) => {
+            if (status === "SUBSCRIBED") onReadyRef.current?.()
+        })
         channelRef.current = channel
 
         return () => {
