@@ -39,6 +39,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      banned_words: {
+        Row: {
+          created_at: string
+          id: string
+          merchant_id: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchant_id?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchant_id?: string | null
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banned_words_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchants: {
         Row: {
           avg_prep_computed_at: string | null
@@ -162,6 +191,7 @@ export type Database = {
           id: string
           joined_at: string
           merchant_id: string
+          name_flagged: boolean
           status: string
         }
         Insert: {
@@ -171,6 +201,7 @@ export type Database = {
           id?: string
           joined_at?: string
           merchant_id: string
+          name_flagged?: boolean
           status?: string
         }
         Update: {
@@ -180,6 +211,7 @@ export type Database = {
           id?: string
           joined_at?: string
           merchant_id?: string
+          name_flagged?: boolean
           status?: string
         }
         Relationships: [

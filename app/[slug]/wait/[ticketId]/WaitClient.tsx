@@ -47,18 +47,21 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
     const fetchTicket = useCallback(async () => {
         const supabase = supabaseRef.current
-        // @ts-ignore - name_flagged is not yet in generated DB types
-        const { data, error } = await supabase.from("queue_items").select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at").eq("id", ticketId).single()
+        const { data, error } = await supabase
+            .from("queue_items")
+            .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at")
+            .eq("id", ticketId)
+            .single()
 
         if (error || !data) {
             setNotFound(true)
             return
         }
 
-        setTicket(data as unknown as TicketData)
+        setTicket(data as TicketData)
 
         // Clean up localStorage when ticket is done or cancelled
-        if ((data as any).status === "done" || (data as any).status === "cancelled") {
+        if (data.status === "done" || data.status === "cancelled") {
             try {
                 localStorage.removeItem(
                     `${STORAGE_KEY_PREFIX}${merchant.slug}`,
