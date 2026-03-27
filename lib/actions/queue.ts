@@ -386,17 +386,17 @@ export async function reportTicketNameAction(
     ticketId: string,
     merchantId: string,
     offendingName: string
-): Promise<{ data: unknown } | { error: string }> {
+): Promise<{ data: { id: string; customer_name: string; name_flagged: boolean } } | { error: string }> {
     try {
         const supabase = await createClient()
 
         // 1. Add to banned words if it doesn't exist
-        const { error: _insertError } = await supabase.from("banned_words").insert({
-                word: offendingName.toLowerCase(),
-                merchant_id: merchantId,
-            })
-            // Ignore if it already exists (UNIQUE index)
-        
+        await supabase.from("banned_words").insert({
+            word: offendingName.toLowerCase(),
+            merchant_id: merchantId,
+        })
+        // Ignore duplicate error — UNIQUE index on word
+
         // 2. Overwrite the name with a generic identifier
         const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
         const { data: updatedTicket, error: updateError } = await supabase
@@ -407,7 +407,7 @@ export async function reportTicketNameAction(
             })
             .eq("id", ticketId)
             .eq("merchant_id", merchantId)
-            .select()
+            .select("id, customer_name, name_flagged")
             .single()
 
         if (updateError) throw updateError
@@ -419,12 +419,12 @@ export async function reportTicketNameAction(
 }
 
 export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
-    try {
-        if (!name) return { isBanned: false }
-        const supabase = await createClient()
-        const { data } = await supabase.from("banned_words").select("id").eq("word", name.toLowerCase()).single()
-        return { isBanned: !!data }
-    } catch (_err) {
-        return { isBanned: false }
-    }
+    if (!name) return { isBanned: false }
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from("banned_words")
+        .select("id")
+        .eq("word", name.toLowerCase())
+        .single()
+    return { isBanned: !!data }
 }
