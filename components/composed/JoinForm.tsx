@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Checkbox } from "@/components/ui/Checkbox"
 import { cn } from "@/lib/utils/cn"
+import { checkNameAction } from "@/lib/actions/queue"
 
 type JoinFormProps = {
     onSubmit: (data: { customerName: string; consent: boolean }) => void
@@ -18,6 +19,32 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
     const [errors, setErrors] = useState<{ name?: string; consent?: string }>(
         {},
     )
+    const [isCheckingName, setIsCheckingName] = useState(false)
+
+    useEffect(() => {
+        const checkName = async () => {
+            const trimmed = customerName.trim()
+            if (trimmed.length < 2) return
+
+            setIsCheckingName(true)
+            const result = await checkNameAction(trimmed)
+            if (result.isBanned) {
+                setErrors(prev => ({ ...prev, name: "Ce prénom n'est pas autorisé." }))
+            } else {
+                setErrors(prev => {
+                    const next = { ...prev }
+                    if (next.name === "Ce prénom n'est pas autorisé.") {
+                        delete next.name
+                    }
+                    return next
+                })
+            }
+            setIsCheckingName(false)
+        }
+
+        const timeoutId = setTimeout(checkName, 400)
+        return () => clearTimeout(timeoutId)
+    }, [customerName])
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -33,6 +60,10 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
         if (!consent) {
             newErrors.consent =
                 "Vous devez accepter les conditions pour continuer."
+        }
+        
+        if (errors.name && errors.name === "Ce prénom n'est pas autorisé.") {
+            newErrors.name = errors.name
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -70,8 +101,8 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
 
             <Button
                 type="submit"
-                isLoading={isLoading}
-                disabled={isLoading}
+                isLoading={isLoading || isCheckingName}
+                disabled={isLoading || isCheckingName || !!errors.name}
                 size="lg"
                 className="w-full"
             >

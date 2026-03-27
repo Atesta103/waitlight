@@ -22,8 +22,8 @@ export const Waiting: Story = {
         status: "waiting",
         position: 1,
         joinedAt: JOINED_AT,
-        onCall: (id) => alert(`Call ${id}`),
-        onCancel: (id) => alert(`Cancel ${id}`),
+        onCall: (id: string) => alert(`Call ${id}`),
+        onCancel: (id: string) => alert(`Cancel ${id}`),
     },
 }
 
@@ -34,8 +34,8 @@ export const Called: Story = {
         status: "called",
         position: 2,
         joinedAt: CALLED_AT,
-        onComplete: (id) => alert(`Complete ${id}`),
-        onCancel: (id) => alert(`Cancel ${id}`),
+        onComplete: (id: string) => alert(`Complete ${id}`),
+        onCancel: (id: string) => alert(`Cancel ${id}`),
     },
 }
 
