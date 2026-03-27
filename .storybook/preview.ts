@@ -11,6 +11,25 @@ if (typeof window !== "undefined") {
     window.process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy_key_for_storybook"
     window.process.env.NEXT_PUBLIC_SUPABASE_URL = "https://dummy.supabase.co"
     window.process.env.STRIPE_SECRET_KEY = "dummy_stripe_key"
+
+    // Polyfill for Dialog (used in headless test environments like Chromatic/JSDOM)
+    if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.showModal) {
+        HTMLDialogElement.prototype.showModal = function() {
+            this.setAttribute("open", "");
+        };
+        HTMLDialogElement.prototype.close = function() {
+            this.removeAttribute("open");
+        };
+    }
+
+    // Polyfill for ResizeObserver (used by Recharts/ResponsiveContainer)
+    if (typeof window !== "undefined" && !window.ResizeObserver) {
+        window.ResizeObserver = class ResizeObserver {
+            observe() {}
+            unobserve() {}
+            disconnect() {}
+        };
+    }
 }
 
 const queryClient = new QueryClient({
