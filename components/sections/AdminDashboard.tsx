@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useTransition } from "react"
+import { useState, useTransition } from "react"
 import type Stripe from "stripe"
 import { Users, CreditCard, FileText, ExternalLink } from "lucide-react"
 import { STATUS_LABELS } from "@/lib/subscription-status"
@@ -120,7 +120,7 @@ export function AdminDashboard({
     customerToMerchant,
 }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>("clients")
-    const thirtyDaysAgoSec = useMemo(() => Date.now() / 1000 - 30 * 86400, [])
+    const [thirtyDaysAgoSec] = useState(() => Date.now() / 1000 - 30 * 86400)
 
 
     const subByMerchant = Object.fromEntries(

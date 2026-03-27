@@ -13,7 +13,7 @@
  */
 
 import { readFileSync, readdirSync, unlinkSync } from "fs";
-import { join, basename } from "path";
+import { join } from "path";
 import { execSync } from "child_process";
 
 const FEATURES_DIR = join(process.cwd(), "doc", "features");
