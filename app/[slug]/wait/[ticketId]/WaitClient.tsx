@@ -47,7 +47,6 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
     const fetchTicket = useCallback(async () => {
         const supabase = supabaseRef.current
-        // @ts-ignore - name_flagged is not yet in generated DB types
         const { data, error } = await supabase.from("queue_items").select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at").eq("id", ticketId).single()
 
         if (error || !data) {
@@ -58,7 +57,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         setTicket(data as unknown as TicketData)
 
         // Clean up localStorage when ticket is done or cancelled
-        if ((data as any).status === "done" || (data as any).status === "cancelled") {
+        if ((data as TicketData).status === "done" || (data as TicketData).status === "cancelled") {
             try {
                 localStorage.removeItem(
                     `${STORAGE_KEY_PREFIX}${merchant.slug}`,
@@ -209,7 +208,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 </DialogContent>
                 <DialogFooter>
                     <Button onClick={() => setAcknowledgedFlag(true)}>
-                        J'ai compris
+                        J&apos;ai compris
                     </Button>
                 </DialogFooter>
             </Dialog>

@@ -363,8 +363,7 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
-    // @ts-ignore - name_flagged is not yet in generated types
-    const { data: ticket, error: insertError } = await supabase
+    const { data: ticket, error: _insertError } = await supabase
         .from("queue_items")
         .insert({
             merchant_id: merchant.id,
@@ -375,9 +374,9 @@ export async function joinQueueAction(
         .select("id")
         .single()
 
-    if (insertError || !ticket) {
-        console.error("joinQueueAction failed:", insertError);
-        return { error: `Impossible de rejoindre la file. Erreur: ${insertError?.message || "Inconnue"}` }
+    if (_insertError || !ticket) {
+        console.error("joinQueueAction failed:", _insertError);
+        return { error: `Impossible de rejoindre la file. Erreur: ${_insertError?.message || "Inconnue"}` }
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }
@@ -387,13 +386,12 @@ export async function reportTicketNameAction(
     ticketId: string,
     merchantId: string,
     offendingName: string
-): Promise<{ data: any } | { error: string }> {
+): Promise<{ data: unknown } | { error: string }> {
     try {
         const supabase = await createClient()
 
         // 1. Add to banned words if it doesn't exist
-        // @ts-ignore - banned_words is not yet in generated types
-        const { error: insertError } = await supabase.from("banned_words").insert({
+        const { error: _insertError } = await supabase.from("banned_words").insert({
                 word: offendingName.toLowerCase(),
                 merchant_id: merchantId,
             })
@@ -401,7 +399,6 @@ export async function reportTicketNameAction(
         
         // 2. Overwrite the name with a generic identifier
         const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
-        // @ts-ignore - name_flagged is not yet in generated types
         const { data: updatedTicket, error: updateError } = await supabase
             .from("queue_items")
             .update({
@@ -415,7 +412,7 @@ export async function reportTicketNameAction(
 
         if (updateError) throw updateError
         return { data: updatedTicket }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Failed to report name:", err)
         return { error: "Failed to report name. Please try again." }
     }
@@ -425,10 +422,9 @@ export async function checkNameAction(name: string): Promise<{ isBanned: boolean
     try {
         if (!name) return { isBanned: false }
         const supabase = await createClient()
-        // @ts-ignore - banned_words is not yet in generated types
         const { data } = await supabase.from("banned_words").select("id").eq("word", name.toLowerCase()).single()
         return { isBanned: !!data }
-    } catch (err) {
+    } catch (_err) {
         return { isBanned: false }
     }
 }
