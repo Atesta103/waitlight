@@ -1,4 +1,6 @@
+import React, { Suspense } from "react"
 import type { Preview } from "@storybook/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import "../app/globals.css"
 
 // Mock process.env for components relying on it (e.g. QRCodeDisplay)
@@ -11,6 +13,14 @@ if (typeof window !== "undefined") {
     window.process.env.STRIPE_SECRET_KEY = "dummy_stripe_key"
 }
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: false,
+            staleTime: Infinity,
+        },
+    },
+})
 
 const preview: Preview = {
     parameters: {
@@ -33,6 +43,14 @@ const preview: Preview = {
             appDirectory: true,
         },
     },
+    decorators: [
+        (Story) => 
+            React.createElement(QueryClientProvider, { client: queryClient },
+                React.createElement(Suspense, { fallback: null },
+                    React.createElement(Story)
+                )
+            )
+    ],
 }
 
 export default preview
