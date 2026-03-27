@@ -325,7 +325,7 @@ export async function joinQueueAction(
     let tokenValid = false;
     
     // In development mode, allow a bypass token for local testing
-    if (process.env.NODE_ENV === "development" && token === "dev_test_mode") {
+    if (process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true" && token === "dev_test_mode") {
         tokenValid = true;
     } else {
         const { data, error: tokenError } = await supabase.rpc(

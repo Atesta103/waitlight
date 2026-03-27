@@ -113,14 +113,14 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                     </p>
                 </div>
 
-                {process.env.NODE_ENV === "development" && (
+                {process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true" && (
                     <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-status-called/50 bg-status-called-bg p-4">
                         <div className="flex items-center gap-2 text-status-called">
                             <Beaker size={18} />
                             <p className="font-semibold">Mode Test</p>
                         </div>
                         <p className="text-xs text-text-secondary">
-                            Bouton visible uniquement en développement.
+                            Bouton visible car NEXT_PUBLIC_ENABLE_TEST_MODE=true.
                         </p>
                         <Button 
                             variant="secondary" 
