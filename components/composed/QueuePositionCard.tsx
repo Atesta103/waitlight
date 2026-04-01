@@ -155,7 +155,7 @@ function QueuePositionCard({
 
                 <div className="flex flex-col gap-1">
                     <p className="text-lg font-bold text-text-primary">
-                        Vous êtes le prochain !
+                        Vous êtes le/la prochain-e !
                     </p>
                     <p className="text-sm text-text-secondary">
                         Restez prêt·e, on va vous appeler d&apos;un instant à l&apos;autre.
@@ -190,7 +190,7 @@ function QueuePositionCard({
             {position <= 1 && (
                 <StatusBanner
                     variant="next"
-                    title={position === 0 ? "Vous êtes le prochain !" : "Préparez-vous !"}
+                    title={position === 0 ? "Vous êtes le/la prochain-e !" : "Préparez-vous !"}
                     description={
                         position === 0
                             ? "On va bientôt vous appeler."

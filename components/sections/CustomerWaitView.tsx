@@ -113,7 +113,7 @@ function CustomerWaitView({
                             />
                         </div>
                         <p className="text-center text-sm text-text-secondary">
-                            Gardez cette page ouverte pour être notifié quand ce
+                            Gardez cette page ouverte pour être notifié-e quand ce
                             sera votre tour.
                         </p>
                     </motion.div>

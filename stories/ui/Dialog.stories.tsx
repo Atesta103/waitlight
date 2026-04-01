@@ -53,7 +53,7 @@ export const Default: StoryRender = {
     render: () => (
         <DialogDemo
             title="Confirmer l'action"
-            description="Êtes-vous sûr de vouloir effectuer cette action ? Cette action est irréversible."
+            description="Êtes-vous sûr-e de vouloir effectuer cette action ? Cette action est irréversible."
         />
     ),
 }
@@ -72,7 +72,7 @@ export const SlugChange: StoryRender = {
     render: () => (
         <DialogDemo
             title="Changer le slug"
-            description="Changer votre slug invalidera tous les QR codes actuellement imprimés. Êtes-vous sûr ?"
+            description="Changer votre slug invalidera tous les QR codes actuellement imprimés. Êtes-vous sûr-e ?"
         />
     ),
 }
