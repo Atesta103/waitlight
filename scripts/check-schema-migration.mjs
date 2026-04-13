@@ -31,7 +31,7 @@ if (migrationStaged && !typesStaged) {
 
   Run the following command and stage the result:
 
-    npx supabase gen types typescript --local > types/database.ts
+    npm run gen:types
 
   Then add it to your commit:
 
@@ -42,7 +42,7 @@ if (migrationStaged && !typesStaged) {
 
 if (migrationStaged) {
     console.log("✅ [schema-guard] Supabase migration staged with updated types")
-} else {
-    // Nothing to check
-    process.exit(0)
 }
+
+// Nothing to block — exit cleanly
+process.exit(0)

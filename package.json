@@ -18,6 +18,7 @@
     "check:app-ui-contract": "node scripts/check-app-storybook-contract.mjs",
     "check:dead-exports": "node scripts/check-dead-exports.mjs",
     "check:schema-migration": "node scripts/check-schema-migration.mjs",
+    "seed:analytics": "node --env-file=.env scripts/seed-analytics.mjs",
     "ci:app": "npm run check:app-ui-contract && npm run lint && npm run typecheck && npm run test:unit && npm run build",
     "ci:design-system": "npm run lint && npm run build",
     "ci:all": "npm run ci:app && npm run ci:design-system",
