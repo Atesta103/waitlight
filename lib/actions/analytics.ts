@@ -11,14 +11,14 @@
 import { createClient } from "@/lib/supabase/server"
 
 export type AnalyticsRow = {
-    day_of_week: number       // 0=Sunday … 6=Saturday
-    hour: number              // 0–23
+    day_of_week: number // 0=Sunday … 6=Saturday
+    hour: number // 0–23
     ticket_count: number
     avg_wait_minutes: number | null
 }
 
 export type DateRangeInput = {
-    start: string | null  // ISO timestamp or null for "all time"
+    start: string | null // ISO timestamp or null for "all time"
     end: string | null
 }
 
@@ -50,8 +50,10 @@ export async function getAnalyticsAction(
         return { error: "Session expirée. Veuillez vous reconnecter." }
     }
 
-    // Always use get_analytics_range so data is live (no materialized view refresh needed).
-    // The materialized view + get_analytics RPC remain available for direct DB use / future optimisation.
+    // Call the `get_analytics_range` RPC (Remote Procedure Call) — a PostgreSQL function
+    // executed server-side that enforces row-level security (RLS) automatically.
+    // The RPC filters results by merchant_id = auth.uid(), so no cross-tenant data leaks.
+    // If range dates are omitted (null), the RPC returns full historical analytics.
     const { data, error } = await supabase.rpc("get_analytics_range", {
         p_merchant_id: user.id,
         p_start: range?.start ?? undefined,
