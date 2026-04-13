@@ -1,1 +1,27 @@
-npx --no -- commitlint --edit "$1"
+MSG=$(cat "$1")
+
+# Run commitlint silently — discard its colored output
+npx --no -- commitlint --edit "$1" --no-color > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "================================================================"
+  echo "  COMMIT REJECTED: wrong message format (Conventional Commits)"
+  echo "================================================================"
+  echo ""
+  echo "  Your message: \"$MSG\""
+  echo ""
+  echo "  Required:  type(scope): description"
+  echo ""
+  echo "  Examples:"
+  echo "    feat: add queue analytics page"
+  echo "    fix: resolve ticket position bug"
+  echo "    chore: clean up scripts folder"
+  echo "    refactor(auth): simplify sign-in flow"
+  echo ""
+  echo "  Types: feat | fix | chore | refactor | docs | style | test"
+  echo "         perf | ci | build"
+  echo "================================================================"
+  echo ""
+  exit 1
+fi

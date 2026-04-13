@@ -36,8 +36,7 @@ try {
 
 const featureStaged = staged.some((f) => f.startsWith("doc/features/") && f.endsWith(".md"))
 if (staged.length > 0 && !featureStaged) {
-  // No spec files staged → skip silently
-  process.exit(0)
+  process.exit(0) // No spec files staged — skip silently
 }
 
 // ── Analyse a spec file ────────────────────────────────────────────────────────
@@ -107,7 +106,6 @@ if (deleted.length > 0) {
   for (const p of deleted) {
     execSync(`git add "${p}"`, { stdio: "inherit" })
   }
-  console.log(`✅ ${deleted.length} completed spec file(s) removed and staged.`)
-} else {
-  console.log("✔  Spec check: no fully-completed specs to remove.")
+  console.log(`✅ [spec-check] ${deleted.length} completed spec file(s) removed and staged.`)
 }
+// Nothing deleted → silent exit 0
