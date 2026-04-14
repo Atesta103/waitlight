@@ -28,7 +28,7 @@ function NextInLineCard({ className }: NextInLineCardProps) {
             </motion.div>
             <div className="flex flex-col gap-2">
                 <h2 className="text-2xl font-bold text-text-primary">
-                    Vous êtes le prochain !
+                    Vous êtes le/la prochain-e !
                 </h2>
                 <p className="text-sm font-medium text-text-secondary">
                     Préparez-vous, on va bientôt vous appeler.

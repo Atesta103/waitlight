@@ -1266,7 +1266,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 <DialogContent>
                     <p className="text-sm text-text-secondary">
                         Cette action supprimera définitivement le logo du
-                        commerce. Êtes-vous sûr ?
+                        commerce. Êtes-vous sûr-e ?
                     </p>
                     {deleteLogoError ? (
                         <p

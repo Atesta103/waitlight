@@ -105,7 +105,7 @@ export function SubscribeClient({ error, subscription }: Props) {
                         />
                         <span>
                             Vous avez annulé le paiement. Votre essai gratuit
-                            de 14 jours vous attend dès que vous êtes prêt.
+                            de 14 jours vous attend dès que vous êtes prêt-e.
                         </span>
                     </div>
                 )}
