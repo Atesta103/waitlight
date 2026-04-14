@@ -159,17 +159,17 @@ function ToggleRow({
             className={cn(
                 "flex items-start justify-between gap-4 rounded-xl border p-4 transition-colors",
                 checked
-                    ? "border-brand-primary/30 bg-brand-primary/5"
+                    ? "border-brand-primary/40 bg-brand-primary/10"
                     : "border-border-default bg-surface-base",
             )}
         >
             <div className="flex items-start gap-3">
                 <span
                     className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
                         checked
-                            ? "bg-brand-primary/15 text-brand-primary"
-                            : "bg-border-default/50 text-text-secondary",
+                            ? "border-brand-primary/40 bg-brand-primary/20 text-text-primary"
+                            : "border-border-default bg-border-default/50 text-text-secondary",
                     )}
                     aria-hidden="true"
                 >
@@ -483,7 +483,7 @@ function UploadZone({
 
 function ChangedBadge() {
     return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-brand-primary/12 px-2 py-0.5 text-xs font-medium text-brand-primary">
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand-primary/40 bg-brand-primary/20 px-2 py-0.5 text-xs font-medium text-text-primary">
             <span
                 className="h-1.5 w-1.5 rounded-full bg-brand-primary"
                 aria-hidden="true"
@@ -1158,15 +1158,16 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             description="L'algorithme ajuste le temps affiché aux clients en fonction de vos données réelles."
                             badge={
                                 calcPrepTime !== null ? (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-feedback-success/12 px-2.5 py-0.5 text-xs font-medium text-feedback-success">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-feedback-success/35 bg-feedback-success/20 px-2.5 py-0.5 text-xs font-medium text-text-primary">
                                         <Sparkles
                                             size={11}
+                                            className="text-feedback-success"
                                             aria-hidden="true"
                                         />
                                         Ajusté auto
                                     </span>
                                 ) : (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-border-default/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border-default bg-surface-base px-2.5 py-0.5 text-xs font-medium text-text-primary">
                                         Temps manuel
                                     </span>
                                 )
@@ -1364,7 +1365,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     <div className="flex gap-3">
                         <AlertTriangle
                             size={20}
-                            className="shrink-0 text-yellow-500"
+                            className="shrink-0 text-feedback-error"
                             aria-hidden="true"
                         />
                         <div>
