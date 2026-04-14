@@ -2,9 +2,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: [
-    "172.20.10.2",
-    "10.24.249.200" // adresse ip partage de connexion helios
+    "10.15.4.159",
+    "*.ngrok-free.dev",
+    "*.ngrok.io",
   ],
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "ngrok-skip-browser-warning", value: "true" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
