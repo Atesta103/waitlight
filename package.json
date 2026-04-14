@@ -25,7 +25,7 @@
     "build-storybook": "storybook build",
     "test:storybook": "vitest run --project storybook",
     "chromatic": "npx chromatic --exit-once-uploaded",
-    "prepare": "husky"
+    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky; fi"  
   },
   "lint-staged": {
     "doc/features/**/*.md": "tsx scripts/rank-specs.ts",
