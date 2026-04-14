@@ -16,6 +16,8 @@ const meta = {
     args: {
         customerName: "Marie",
         connectionState: "connected" as const,
+        slug: "boulangerie-marie",
+        ticketId: "ticket_001",
     },
 } satisfies Meta<typeof CustomerWaitView>
 
