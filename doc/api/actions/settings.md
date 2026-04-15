@@ -14,7 +14,7 @@
 function checkSlugAvailabilitySettingsAction(slug): Promise<boolean>;
 ```
 
-Defined in: [lib/actions/settings.ts:373](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L373)
+Defined in: [lib/actions/settings.ts:395](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L395)
 
 Check if a slug is available, **excluding the calling merchant's own slug**.
 
@@ -48,7 +48,7 @@ function deleteLogoAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/settings.ts:320](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L320)
+Defined in: [lib/actions/settings.ts:342](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L342)
 
 Remove the merchant's logo from Supabase Storage and clear `logo_url`.
 
@@ -86,7 +86,7 @@ function getMerchantSettingsAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/settings.ts:63](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L63)
+Defined in: [lib/actions/settings.ts:71](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L71)
 
 Fetch the current merchant profile and settings for the authenticated user.
 
@@ -125,7 +125,7 @@ function regenerateQRAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/settings.ts:281](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L281)
+Defined in: [lib/actions/settings.ts:303](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L303)
 
 Trigger a visual QR Code re-render by bumping `qr_regenerated_at`.
 
@@ -154,6 +154,44 @@ ISO 8601 timestamp of the bump — used as a React key to force QR remount.
 
 ***
 
+### resetAvgPrepTimeAction()
+
+```ts
+function resetAvgPrepTimeAction(): Promise<
+  | {
+  data: null;
+}
+  | {
+  error: string;
+}>;
+```
+
+Defined in: [lib/actions/settings.ts:427](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L427)
+
+Reset the auto-computed preparation time, returning the merchant to
+manual mode (`default_prep_time_min`).
+
+Sets `calculated_avg_prep_time = NULL` and `avg_prep_computed_at = NULL`.
+The cron job will re-activate once enough new ticket data accumulates.
+
+**Errors:**
+| `error` string | Cause |
+|---|---|
+| `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+| `"Erreur lors de la réinitialisation. Veuillez réessayer."` | Supabase update failed |
+
+#### Returns
+
+`Promise`\<
+  \| \{
+  `data`: `null`;
+\}
+  \| \{
+  `error`: `string`;
+\}\>
+
+***
+
 ### updateMerchantIdentityAction()
 
 ```ts
@@ -168,7 +206,7 @@ function updateMerchantIdentityAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/settings.ts:142](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L142)
+Defined in: [lib/actions/settings.ts:160](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L160)
 
 Update the merchant's display name, public slug, logo URL, and default prep time.
 
@@ -179,11 +217,15 @@ Returns the new slug so the caller can refresh QR Code rendering.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | \{ `default_prep_time_min`: `number`; `logo_url?`: `string` \| `null`; `name`: `string`; `slug`: `string`; \} | Merchant identity fields. Validated by [MerchantIdentitySchema](../validators/settings.md#merchantidentityschema). |
+| `input` | \{ `border_radius?`: `"0px"` \| `"0.25rem"` \| `"0.5rem"` \| `"1rem"` \| `"9999px"` \| `null`; `brand_color`: `string` \| `null`; `default_prep_time_min`: `number`; `font_family?`: `"Inter"` \| `"Roboto"` \| `"Open Sans"` \| `"Lato"` \| `"Poppins"` \| `null`; `logo_url?`: `string` \| `null`; `name`: `string`; `slug`: `string`; `theme_pattern?`: \| `"none"` \| `"dots"` \| `"grid"` \| `"glow"` \| `"food_burger"` \| `"food_pizza"` \| `"food_coffee"` \| `"food_cutlery"` \| `null`; \} | Merchant identity fields. Validated by [MerchantIdentitySchema](../validators/settings.md#merchantidentityschema). |
+| `input.border_radius?` | `"0px"` \| `"0.25rem"` \| `"0.5rem"` \| `"1rem"` \| `"9999px"` \| `null` | - |
+| `input.brand_color` | `string` \| `null` | - |
 | `input.default_prep_time_min` | `number` | - |
+| `input.font_family?` | `"Inter"` \| `"Roboto"` \| `"Open Sans"` \| `"Lato"` \| `"Poppins"` \| `null` | - |
 | `input.logo_url?` | `string` \| `null` | - |
 | `input.name` | `string` | - |
 | `input.slug` | `string` | - |
+| `input.theme_pattern?` | \| `"none"` \| `"dots"` \| `"grid"` \| `"glow"` \| `"food_burger"` \| `"food_pizza"` \| `"food_coffee"` \| `"food_cutlery"` \| `null` | - |
 
 #### Returns
 
@@ -224,7 +266,7 @@ function updateQueueSettingsAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/settings.ts:231](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L231)
+Defined in: [lib/actions/settings.ts:253](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L253)
 
 Update queue configuration: capacity, welcome message, and notification flags.
 
@@ -255,12 +297,18 @@ Update queue configuration: capacity, welcome message, and notification flags.
 ```ts
 type MerchantSettingsData = {
   merchant: {
+     avg_prep_computed_at: string | null;
+     border_radius: string | null;
+     brand_color: string | null;
+     calculated_avg_prep_time: number | null;
      default_prep_time_min: number;
+     font_family: string | null;
      id: string;
      is_open: boolean;
      logo_url: string | null;
      name: string;
      slug: string;
+     theme_pattern: string | null;
   };
   settings: {
      auto_close_enabled: boolean;
@@ -272,22 +320,28 @@ type MerchantSettingsData = {
 };
 ```
 
-Defined in: [lib/actions/settings.ts:29](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L29)
+Defined in: [lib/actions/settings.ts:29](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L29)
 
 #### Properties
 
-| Property | Type | Defined in |
-| ------ | ------ | ------ |
-| <a id="merchant"></a> `merchant` | \{ `default_prep_time_min`: `number`; `id`: `string`; `is_open`: `boolean`; `logo_url`: `string` \| `null`; `name`: `string`; `slug`: `string`; \} | [lib/actions/settings.ts:30](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L30) |
-| `merchant.default_prep_time_min` | `number` | [lib/actions/settings.ts:35](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L35) |
-| `merchant.id` | `string` | [lib/actions/settings.ts:31](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L31) |
-| `merchant.is_open` | `boolean` | [lib/actions/settings.ts:36](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L36) |
-| `merchant.logo_url` | `string` \| `null` | [lib/actions/settings.ts:34](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L34) |
-| `merchant.name` | `string` | [lib/actions/settings.ts:32](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L32) |
-| `merchant.slug` | `string` | [lib/actions/settings.ts:33](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L33) |
-| <a id="settings"></a> `settings` | \{ `auto_close_enabled`: `boolean`; `max_capacity`: `number`; `notifications_enabled`: `boolean`; `qr_regenerated_at`: `string` \| `null`; `welcome_message`: `string` \| `null`; \} | [lib/actions/settings.ts:38](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L38) |
-| `settings.auto_close_enabled` | `boolean` | [lib/actions/settings.ts:43](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L43) |
-| `settings.max_capacity` | `number` | [lib/actions/settings.ts:39](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L39) |
-| `settings.notifications_enabled` | `boolean` | [lib/actions/settings.ts:42](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L42) |
-| `settings.qr_regenerated_at` | `string` \| `null` | [lib/actions/settings.ts:41](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L41) |
-| `settings.welcome_message` | `string` \| `null` | [lib/actions/settings.ts:40](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/settings.ts#L40) |
+| Property | Type | Description | Defined in |
+| ------ | ------ | ------ | ------ |
+| <a id="merchant"></a> `merchant` | \{ `avg_prep_computed_at`: `string` \| `null`; `border_radius`: `string` \| `null`; `brand_color`: `string` \| `null`; `calculated_avg_prep_time`: `number` \| `null`; `default_prep_time_min`: `number`; `font_family`: `string` \| `null`; `id`: `string`; `is_open`: `boolean`; `logo_url`: `string` \| `null`; `name`: `string`; `slug`: `string`; `theme_pattern`: `string` \| `null`; \} | - | [lib/actions/settings.ts:30](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L30) |
+| `merchant.avg_prep_computed_at` | `string` \| `null` | UTC timestamp of the last `calculate_avg_prep()` run. | [lib/actions/settings.ts:44](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L44) |
+| `merchant.border_radius` | `string` \| `null` | - | [lib/actions/settings.ts:37](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L37) |
+| `merchant.brand_color` | `string` \| `null` | - | [lib/actions/settings.ts:35](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L35) |
+| `merchant.calculated_avg_prep_time` | `number` \| `null` | Auto-computed average prep time (IQR + EMA). `null` = not enough data yet. | [lib/actions/settings.ts:42](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L42) |
+| `merchant.default_prep_time_min` | `number` | - | [lib/actions/settings.ts:39](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L39) |
+| `merchant.font_family` | `string` \| `null` | - | [lib/actions/settings.ts:36](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L36) |
+| `merchant.id` | `string` | - | [lib/actions/settings.ts:31](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L31) |
+| `merchant.is_open` | `boolean` | - | [lib/actions/settings.ts:40](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L40) |
+| `merchant.logo_url` | `string` \| `null` | - | [lib/actions/settings.ts:34](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L34) |
+| `merchant.name` | `string` | - | [lib/actions/settings.ts:32](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L32) |
+| `merchant.slug` | `string` | - | [lib/actions/settings.ts:33](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L33) |
+| `merchant.theme_pattern` | `string` \| `null` | - | [lib/actions/settings.ts:38](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L38) |
+| <a id="settings"></a> `settings` | \{ `auto_close_enabled`: `boolean`; `max_capacity`: `number`; `notifications_enabled`: `boolean`; `qr_regenerated_at`: `string` \| `null`; `welcome_message`: `string` \| `null`; \} | - | [lib/actions/settings.ts:46](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L46) |
+| `settings.auto_close_enabled` | `boolean` | - | [lib/actions/settings.ts:51](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L51) |
+| `settings.max_capacity` | `number` | - | [lib/actions/settings.ts:47](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L47) |
+| `settings.notifications_enabled` | `boolean` | - | [lib/actions/settings.ts:50](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L50) |
+| `settings.qr_regenerated_at` | `string` \| `null` | - | [lib/actions/settings.ts:49](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L49) |
+| `settings.welcome_message` | `string` \| `null` | - | [lib/actions/settings.ts:48](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/settings.ts#L48) |

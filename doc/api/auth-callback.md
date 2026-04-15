@@ -14,7 +14,7 @@
 function GET(request): Promise<NextResponse<unknown>>;
 ```
 
-Defined in: [app/auth/callback/route.ts:43](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/app/auth/callback/route.ts#L43)
+Defined in: [app/auth/callback/route.ts:44](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/app/auth/callback/route.ts#L44)
 
 Auth callback Route Handler.
 

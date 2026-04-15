@@ -14,7 +14,7 @@
 function proxy(request): Promise<NextResponse<unknown>>;
 ```
 
-Defined in: [proxy.ts:34](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L34)
+Defined in: [proxy.ts:34](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/proxy.ts#L34)
 
 Next.js Proxy (formerly Middleware) — runs on every matching request.
 
@@ -44,10 +44,10 @@ const config: {
 };
 ```
 
-Defined in: [proxy.ts:73](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L73)
+Defined in: [proxy.ts:82](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/proxy.ts#L82)
 
 #### Type Declaration
 
 | Name | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="property-matcher"></a> `matcher` | `string`[] | [proxy.ts:74](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L74) |
+| <a id="property-matcher"></a> `matcher` | `string`[] | [proxy.ts:83](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/proxy.ts#L83) |

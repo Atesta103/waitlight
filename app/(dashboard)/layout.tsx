@@ -4,6 +4,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { isActiveStatus } from "@/lib/subscription-status"
 import { QueryProvider } from "@/components/providers/QueryProvider"
+import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
 import { LayoutDashboard, BarChart2 } from "lucide-react"
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant, error } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, bypass_paywall")
+        .select("id, name, slug, is_open, bypass_paywall, brand_color, font_family, border_radius")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -62,9 +63,38 @@ export default async function DashboardLayout({
         }
     }
 
+    const defaultColor = "#4F46E5"
+    let brandColor = defaultColor
+    let contrastColor = "#FFFFFF"
+
+    if (merchant.brand_color && isValidHexCode(merchant.brand_color)) {
+        brandColor = merchant.brand_color
+        contrastColor = getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
+    }
+    
+    const fontFamily = merchant.font_family || "Inter"
+    const borderRadius = merchant.border_radius || "0.5rem"
+
     return (
         <QueryProvider>
-            <div className="min-h-screen bg-surface-base">
+            <div 
+                id="dashboard-root"
+                className="min-h-screen bg-surface-base"
+                style={{
+                    fontFamily: `var(--font-brand)`,
+                    "--color-brand-primary": brandColor,
+                    "--color-brand-primary-hover": brandColor,
+                    "--color-border-focus": brandColor,
+                    "--color-text-on-primary": contrastColor,
+                    "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
+                    "--radius-brand": borderRadius,
+                    "--radius-sm": borderRadius,
+                    "--radius-md": borderRadius,
+                    "--radius-lg": borderRadius,
+                    "--radius-xl": borderRadius,
+                    "--radius-2xl": borderRadius,
+                } as React.CSSProperties}
+            >
                 <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
                     <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
                         <div className="flex items-center gap-2 md:hidden">

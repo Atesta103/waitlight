@@ -23,7 +23,7 @@ function generateQrTokenAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/qr.ts:40](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/qr.ts#L40)
+Defined in: [lib/actions/qr.ts:40](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/qr.ts#L40)
 
 Generate a cryptographic one-time token for the authenticated merchant's
 rotating QR code.
