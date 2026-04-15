@@ -15,6 +15,7 @@ type DropdownProps = {
     trigger: React.ReactNode
     items: DropdownItem[]
     align?: "left" | "right"
+    side?: "top" | "bottom"
     className?: string
 }
 
@@ -22,6 +23,7 @@ function Dropdown({
     trigger,
     items,
     align = "right",
+    side = "bottom",
     className,
 }: DropdownProps) {
     const [open, setOpen] = useState(false)
@@ -77,7 +79,8 @@ function Dropdown({
                 <div
                     role="menu"
                     className={cn(
-                        "absolute z-50 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-border-default bg-surface-card py-1 shadow-lg",
+                        "absolute z-50 min-w-[180px] overflow-hidden rounded-lg border border-border-default bg-surface-card py-1 shadow-lg",
+                        side === "bottom" ? "top-full mt-1" : "bottom-full mb-1",
                         align === "right" ? "right-0" : "left-0",
                     )}
                 >

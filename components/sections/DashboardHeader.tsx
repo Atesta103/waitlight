@@ -23,53 +23,63 @@ function DashboardHeader({
     return (
         <header
             className={cn(
-                "flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border-default bg-surface-card px-4 py-4 sm:px-6",
+                "rounded-xl border border-border-default bg-surface-card px-4 py-4 sm:px-6",
                 className,
             )}
         >
-            {/* Merchant identity */}
-            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary">
-                    <Store
-                        size={15}
-                        className="text-white"
-                        aria-hidden="true"
-                    />
-                </span>
-                <span className="truncate font-semibold text-text-primary">
-                    {merchantName}
-                </span>
-            </div>
+            <div className="flex items-start justify-between gap-3 sm:items-center">
+                {/* Merchant identity */}
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary">
+                        <Store
+                            size={15}
+                            className="text-white"
+                            aria-hidden="true"
+                        />
+                    </span>
+                    <span className="truncate font-semibold text-text-primary">
+                        {merchantName}
+                    </span>
+                </div>
 
-            {/* Waiting counter */}
-            <div
-                className="flex items-center gap-2 text-sm text-text-secondary"
-                aria-live="polite"
-                aria-atomic="true"
-            >
-                <Users size={14} aria-hidden="true" />
-                <span>
-                    {waitingCount === 0
-                        ? "Aucun client"
-                        : waitingCount === 1
-                            ? "1 client"
-                            : `${waitingCount} clients`}
-                </span>
-            </div>
-
-            {/* Status badge + toggle */}
-            <div className="ml-auto flex items-center gap-3">
                 <Badge
                     status={isOpen ? "called" : "cancelled"}
                     showIcon={false}
+                    className="shrink-0"
                 >
                     {isOpen ? "Ouvert" : "Fermé"}
                 </Badge>
-                <Toggle
-                    checked={isOpen}
-                    onChange={onToggleOpen}
-                    label={isOpen ? "Fermer la file" : "Ouvrir la file"}
-                />
+            </div>
+
+            <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
+                {/* Waiting counter */}
+                <div
+                    className="flex items-center gap-2 text-sm text-text-secondary"
+                    aria-live="polite"
+                    aria-atomic="true"
+                >
+                    <Users size={14} aria-hidden="true" />
+                    <span>
+                        {waitingCount === 0
+                            ? "Aucun client"
+                            : waitingCount === 1
+                              ? "1 client"
+                              : `${waitingCount} clients`}
+                    </span>
+                </div>
+
+                {/* Toggle block */}
+                <div className="flex items-center justify-between rounded-lg bg-surface-base px-3 py-2 sm:justify-end sm:gap-2 sm:bg-transparent sm:p-0">
+                    <span className="text-sm font-medium text-text-primary sm:hidden">
+                        {isOpen ? "File ouverte" : "File fermée"}
+                    </span>
+                    <Toggle
+                        checked={isOpen}
+                        onChange={onToggleOpen}
+                        label={isOpen ? "Fermer la file" : "Ouvrir la file"}
+                        className="[&>span]:hidden sm:[&>span]:inline"
+                    />
+                </div>
             </div>
         </header>
     )

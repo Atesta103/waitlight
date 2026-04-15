@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils/cn"
 type UserMenuProps = {
     name: string
     className?: string
+    dropdownSide?: "top" | "bottom"
 }
 
 /** Extracts up to 2 initials from a name. */
@@ -25,12 +26,17 @@ function getInitials(name: string): string {
  * Composed — avatar button in the header that opens a dropdown with
  * account actions (settings, sign out).
  */
-function UserMenu({ name, className }: UserMenuProps) {
+function UserMenu({
+    name,
+    className,
+    dropdownSide = "bottom",
+}: UserMenuProps) {
     const router = useRouter()
 
     return (
         <Dropdown
             align="right"
+            side={dropdownSide}
             className={className}
             trigger={
                 <span

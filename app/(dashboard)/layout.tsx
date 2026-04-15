@@ -65,55 +65,97 @@ export default async function DashboardLayout({
     return (
         <DashboardProviders>
             <div className="min-h-screen bg-surface-base">
-                <header className="sticky top-0 z-40 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">
-                    <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-2.5">
-                        {/* Left — nav */}
-                        <nav aria-label="Navigation du tableau de bord">
-                            <ul className="flex items-center gap-0.5 list-none m-0 p-0">
-                                <li>
-                                    <Link
-                                        href="/dashboard"
-                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors"
-                                    >
-                                        <LayoutDashboard
-                                            size={16}
-                                            aria-hidden="true"
-                                        />
-                                        <span className="hidden sm:inline">
-                                            File d&apos;attente
-                                        </span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/analytics"
-                                        className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors"
-                                    >
-                                        <BarChart2
-                                            size={16}
-                                            aria-hidden="true"
-                                        />
-                                        <span className="hidden sm:inline">
-                                            Analytiques
-                                        </span>
-                                    </Link>
-                                </li>
-                            </ul>
-                        </nav>
+                <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                    <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
+                        <div className="flex items-center gap-2 md:hidden">
+                            <nav
+                                aria-label="Navigation du tableau de bord"
+                                className="flex items-center gap-1"
+                            >
+                                <Link
+                                    href="/dashboard"
+                                    className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                    aria-label="File d'attente"
+                                >
+                                    <LayoutDashboard size={18} aria-hidden="true" />
+                                </Link>
+                                <Link
+                                    href="/analytics"
+                                    className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                    aria-label="Analytiques"
+                                >
+                                    <BarChart2 size={18} aria-hidden="true" />
+                                </Link>
+                            </nav>
 
-                        <HeaderQueueControl
-                            initialIsOpen={merchant.is_open}
-                            merchantSlug={merchant.slug}
-                            merchantId={merchant.id}
-                        />
+                            <div className="min-w-0 flex-1">
+                                <HeaderQueueControl
+                                    initialIsOpen={merchant.is_open}
+                                    merchantSlug={merchant.slug}
+                                    merchantId={merchant.id}
+                                    mode="mobile"
+                                />
+                            </div>
 
-                        {/* Right — user menu */}
-                        <div className="flex justify-end">
-                            <UserMenu name={merchant.name} />
+                            <div className="shrink-0">
+                                <UserMenu
+                                    name={merchant.name}
+                                    dropdownSide="top"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="hidden items-center gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
+                            {/* Left — nav */}
+                            <nav aria-label="Navigation du tableau de bord">
+                                <ul className="m-0 flex list-none items-center gap-0.5 p-0">
+                                    <li>
+                                        <Link
+                                            href="/dashboard"
+                                            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                        >
+                                            <LayoutDashboard
+                                                size={16}
+                                                aria-hidden="true"
+                                            />
+                                            <span className="hidden sm:inline">
+                                                File d&apos;attente
+                                            </span>
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            href="/analytics"
+                                            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                        >
+                                            <BarChart2
+                                                size={16}
+                                                aria-hidden="true"
+                                            />
+                                            <span className="hidden sm:inline">
+                                                Analytiques
+                                            </span>
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </nav>
+
+                            <HeaderQueueControl
+                                initialIsOpen={merchant.is_open}
+                                merchantSlug={merchant.slug}
+                                merchantId={merchant.id}
+                            />
+
+                            {/* Right — user menu */}
+                            <div className="flex justify-end">
+                                <UserMenu name={merchant.name} />
+                            </div>
                         </div>
                     </div>
                 </header>
-                <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+                <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8">
+                    {children}
+                </main>
             </div>
         </DashboardProviders>
     )
