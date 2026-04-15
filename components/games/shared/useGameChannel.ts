@@ -15,7 +15,6 @@ interface UseGameChannelOptions {
 
 interface UseGameChannelReturn {
     broadcast: (payload: BroadcastPayload) => void
-    channel: RealtimeChannel | null
 }
 
 /**
@@ -66,5 +65,5 @@ export function useGameChannel({
         })
     }, [])
 
-    return { broadcast, channel: channelRef.current }
+    return { broadcast }
 }

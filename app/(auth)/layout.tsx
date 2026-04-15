@@ -26,7 +26,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                     WaitLight
                 </h1>
                 <p className="max-w-xs text-lg font-medium text-brand-primary opacity-80 md:max-w-sm md:text-xl">
-                    Gérez votre file d'attente sans effort
+                    Gérez votre file d&apos;attente sans effort
                 </p>
             </div>
 

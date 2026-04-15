@@ -39,7 +39,10 @@ const nextConfig: NextConfig = {
         return [
             {
                 source: "/(.*)",
-                headers: [{ key: "ngrok-skip-browser-warning", value: "true" }],
+                headers: [
+                    { key: "ngrok-skip-browser-warning", value: "true" },
+                    ...securityHeaders,
+                ],
             },
         ]
     },
