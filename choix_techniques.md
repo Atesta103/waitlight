@@ -24,9 +24,14 @@ Ce document centralise l'argumentaire technique du projet Wait-Light afin de vou
 
 **Pourquoi utiliser une clé Super Admin plutôt que faire passer des requêtes via un compte utilisateur classique dédié ?**
 
-- **Le problème de la RLS** : La RLS est très stricte. Parfois, le système a besoin d'agir de manière globale (ex: purger l'historique de tous les tickets à minuit, déclencher un "appel" qui modifie les états de tickets qui n'appartiennent pas directement à la requête cliente pure, ou générer un ticket côté serveur de manière sécurisée).
-- **Le rôle du Service Role Key** : Cette clé outrepasse la Row Level Security (RLS). Elle est **strictement interdite côté client**.
-- **La justification** : Nous utilisons cette clé exclusivement dans nos **Server Actions**, **Edge Functions** ou **Webhooks/Tâches Cron**. Elle nous permet d'exécuter de la logique complexe nécessitant une vue d'ensemble sur des tables, sans pour autant exposer un "faux" utilisateur admin qui serait un cauchemar de sécurité s'il était compromis.
+L'utilisation du `SUPABASE_SERVICE_ROLE_KEY` est la **bonne pratique officielle** dictée par l'architecture Supabase pour ce type de besoin. Créer un compte "System" classique serait une régression architecturale.
+
+- **Le problème d'un compte système dédié (Complexité RLS et Sécurité)** : Si nous utilisions un compte classique, nous serions obligés d'ajouter une condition complexe sur **absolument toutes les politiques de nos tables** (ex: `auth.uid() = merchant_id OR auth.email() = 'system@waitlight.com'`). Cela alourdit la base, augmente le risque d'oubli, et expose un mot de passe ou un token système qui, s'il fuyait, permettrait à un attaquant de se connecter et d'opérer depuis l'application cliente standard.
+- **La simplicité et le côté "Stateless"** : Un compte classique requiert une complexe gestion de session (login, requêtes de connexion, rafraîchissement de tokens JWT longue durée). À l'inverse, le Service Role Key s'envoie en un seul en-tête HTTP et octroie un bypass instantané de l'ensemble des règles RLS, de manière stricte et uniquement depuis l'environnement backend sécurisé.
+- **Utilisation concrète et justifiée dans Wait-Light** : 
+  - **Les Webhooks Stripe (`app/api/webhooks/stripe/`)** : Lors d'un paiement, Stripe contacte notre API en arrière-plan. Le marchand n'étant pas connecté de notre côté, le Webhook doit pourtant impérativement insérer ou mettre à jour la table `subscriptions`. Le bypass RLS sécurisé (via vérification cryptographique de la signature Stripe) est vital ici.
+  - **Vérifications et Forçage Super-Admin (`lib/actions/admin.ts`)** : Il existe une action `togglePaywallBypass` pour déverrouiller certaines options bloquées. La RLS du marchand lui refuse logiquement de modifier son propre champ `bypass_paywall`. Le backend rend cela possible en vérifiant d'abord la validité d'un des administrateurs figurant dans l'environnement (`ADMIN_EMAILS`), puis en effectuant la requête via `adminSupabase` qui outrepasse la sécurité RLS.
+- **Règle absolue** : Cette clé est **strictement interdite côté client**, et est confinée dans les **Server Actions** et **API Routes**, via l'import strict d'un client dédié `lib/supabase/admin.ts`.
 
 ## 4. Design System & Storybook
 
