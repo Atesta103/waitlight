@@ -592,9 +592,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Logo upload
+    // Upload de Logo
     // ─────────────────────────────────────────────────────────────────────────
-
+    // Validation du fichier (format et taille max) puis upload via Supabase Storage.
+    // L'URL publique est ensuite récupérée et sauvegardée dans l'état local avant la MAJ de la base.
     const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
@@ -651,9 +652,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Logo delete
+    // Suppression de Logo
     // ─────────────────────────────────────────────────────────────────────────
-
+    // Appelle le server action qui vide le dossier Storage et met à null `logo_url` en BDD.
     const handleConfirmDeleteLogo = () => {
         startDeleteLogoTransition(async () => {
             const result = await deleteLogoAction()
@@ -669,9 +670,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Save handlers
+    // Sauvegarde Identité
     // ─────────────────────────────────────────────────────────────────────────
-
+    // Appelle le action server pour updater les tokens visuels (couleur, police, radius, slug, etc.).
+    // En cas de succès, injecte dynamiquement les variables CSS modifiées dans le DOM pour un aperçu immédiat.
     const doSaveIdentity = () => {
         startIdentityTransition(async () => {
             const result = await updateMerchantIdentityAction({

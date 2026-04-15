@@ -286,45 +286,7 @@ export async function updateQueueSettingsAction(
     return { data: null }
 }
 
-/**
- * Trigger a visual QR Code re-render by bumping `qr_regenerated_at`.
- *
- * Does **not** change the merchant slug or join URL. The `qr_regenerated_at`
- * timestamp is used client-side as a React key to force the QR component to remount.
- *
- * @returns ISO 8601 timestamp of the bump — used as a React key to force QR remount.
- *
- * **Errors:**
- * | `error` string | Cause |
- * |---|---|
- * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
- * | `"Erreur lors de la régénération du QR Code."` | Supabase update failed |
- */
-export async function regenerateQRAction(): Promise<
-    { data: { qr_regenerated_at: string } } | { error: string }
-> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
 
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
-
-    const now = new Date().toISOString()
-
-    const { error } = await supabase
-        .from("settings")
-        .update({ qr_regenerated_at: now })
-        .eq("merchant_id", user.id)
-
-    if (error) {
-        return { error: "Erreur lors de la régénération du QR Code." }
-    }
-
-    return { data: { qr_regenerated_at: now } }
-}
 
 /**
  * Remove the merchant's logo from Supabase Storage and clear `logo_url`.

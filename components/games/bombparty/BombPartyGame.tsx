@@ -161,6 +161,7 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, ticketId, myNam
     useEffect(() => {
         if (!started || gameOver !== 0) return
         timeLeftRef.current = TURN_DURATION
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTimeLeft(TURN_DURATION)
         clearTimer()
         timerRef.current = setInterval(() => {

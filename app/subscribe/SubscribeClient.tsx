@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, useReducedMotion } from "framer-motion"
-import { Check, AlertCircle, Info, CreditCard } from "lucide-react"
-import {
-    createCheckoutSessionAction,
+import { Check, AlertCircle, Info, CreditCard, ArrowLeft, LogOut } from "lucide-react"
+import { createCheckoutSessionAction,
     createPortalSessionAction,
     type SubscriptionRow,
 } from "@/lib/actions/billing"
+import { signOutAction } from "@/lib/actions/auth"
 import { Button } from "@/components/ui/Button"
 
 type Props = {
@@ -58,12 +58,37 @@ export function SubscribeClient({ error, subscription }: Props) {
     }
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-surface-base px-4 py-12">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-surface-base px-4 py-12 relative">
+            {/* Top Navigation */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between items-center sm:top-8 sm:left-8 sm:right-8">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-text-secondary"
+                    onClick={() => router.push("/onboarding")}
+                >
+                    <ArrowLeft size={16} aria-hidden="true" />
+                    <span className="hidden sm:inline">Retour</span>
+                </Button>
+
+                <form action={signOutAction}>
+                    <Button 
+                        type="submit" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-text-secondary"
+                    >
+                        <LogOut size={16} aria-hidden="true" />
+                        <span className="hidden sm:inline">Déconnexion</span>
+                    </Button>
+                </form>
+            </div>
+
             <motion.div
                 initial={prefersReduced ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-md"
+                className="w-full max-w-md mt-12 sm:mt-0"
             >
                 {/* Header */}
                 <div className="mb-8 text-center">
@@ -186,7 +211,7 @@ export function SubscribeClient({ error, subscription }: Props) {
                             onClick={handlePortal}
                             isLoading={loading}
                             aria-busy={loading}
-                            className="w-full"
+                            className="w-full h-auto py-3 sm:h-11 sm:py-0"
                         >
                             <CreditCard size={16} aria-hidden="true" />
                             Mettre à jour le paiement
@@ -196,7 +221,7 @@ export function SubscribeClient({ error, subscription }: Props) {
                             onClick={handleCheckout}
                             isLoading={loading}
                             aria-busy={loading}
-                            className="w-full"
+                            className="w-full h-auto py-3 sm:h-11 sm:py-0"
                         >
                             Commencer l&apos;essai gratuit de 14 jours
                         </Button>

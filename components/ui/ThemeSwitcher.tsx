@@ -9,8 +9,9 @@ export function ThemeSwitcher() {
     const [mounted, setMounted] = useState(false)
     const { theme, setTheme } = useTheme()
 
-    // Avoid hydration mismatch
+    // Pour éviter l'erreur d'hydratation Next.js
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true)
     }, [])
 
