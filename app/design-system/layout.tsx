@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Inter, Outfit, Sora, Merriweather } from "next/font/google"
-import { DashboardProviders } from "@/app/(dashboard)/providers"
+import { QueryProvider } from "@/components/providers/QueryProvider"
 
 /* Pre-load all font options so the ThemePicker previews render correctly */
 const inter = Inter({
@@ -31,12 +31,12 @@ export default function DesignSystemLayout({
     children: ReactNode
 }) {
     return (
-        <DashboardProviders>
+        <QueryProvider>
             <div
                 className={`${inter.variable} ${outfit.variable} ${sora.variable} ${merriweather.variable}`}
             >
                 {children}
             </div>
-        </DashboardProviders>
+        </QueryProvider>
     )
 }

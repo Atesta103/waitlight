@@ -185,3 +185,4 @@ _(empty — populate as the project progresses)_
 | [`doc/api/database.md`](./doc/api/database.md)                             | Supabase Database type definitions (generated)                       |
 | [`doc/api/qr-token.md`](./doc/api/qr-token.md)                             | QR token utility — HMAC-SHA256 sign/verify (generated)               |
 | [`doc/api/validators/`](./doc/api/validators/)                             | Zod schemas per domain — auth, queue, settings, onboarding (generated)|
+| [`doc/postgres-features.md`](./doc/postgres-features.md)                 | Syntaxe des fonctionnalités natives Postgres (RLS, Triggers, RPC) avancées |

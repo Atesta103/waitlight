@@ -32,7 +32,7 @@ export function QueueSection({
     initialItems,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
-    // Sync state with shared query key
+    // Use TanStack Query as a global state store across components to sync the queue status, without an actual HTTP fetcher
     const { data: isOpen = initialIsOpen } = useQuery({
         queryKey: ["queue-status", merchantId],
         queryFn: () => Promise.resolve(initialIsOpen), // Just provide a default if not already in cache
@@ -64,6 +64,10 @@ export function QueueSection({
         onError: (_err, newIsOpen) => {
             // Roll back on error
             queryClient.setQueryData(["queue-status", merchantId], !newIsOpen)
+        },
+        onSettled: () => {
+            // Invalidate the query to ensure we're synced with the server
+            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
         },
     })
 

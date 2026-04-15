@@ -6,8 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { JoinForm } from "@/components/composed/JoinForm"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { joinQueueAction } from "@/lib/actions/queue"
-import { QrCode, Store, Sparkles, Beaker } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { QrCode, Store, Sparkles } from "lucide-react"
 
 type Merchant = {
     id: string
@@ -113,24 +112,6 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                     </p>
                 </div>
 
-                {process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true" && (
-                    <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-status-called/50 bg-status-called-bg p-4">
-                        <div className="flex items-center gap-2 text-status-called">
-                            <Beaker size={18} />
-                            <p className="font-semibold">Mode Test</p>
-                        </div>
-                        <p className="text-xs text-text-secondary">
-                            Bouton visible car NEXT_PUBLIC_ENABLE_TEST_MODE=true.
-                        </p>
-                        <Button 
-                            variant="secondary" 
-                            size="sm"
-                            onClick={() => router.push(`/${merchant.slug}/join?t=dev_test_mode`)}
-                        >
-                            Simuler un scan de QR Code
-                        </Button>
-                    </div>
-                )}
             </div>
         )
     }

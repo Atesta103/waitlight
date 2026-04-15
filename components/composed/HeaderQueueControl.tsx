@@ -30,12 +30,24 @@ export function HeaderQueueControl({
 
     const toggleMutation = useMutation({
         mutationFn: () => toggleQueueOpenAction({ is_open: true }),
-        onSuccess: () => {
-            // Update cache so all components see the new status
+        onMutate: () => {
+            // Optimistic update
             queryClient.setQueryData(["queue-status", merchantId], true)
+        },
+        onError: () => {
+            // Rollback on error
+            queryClient.setQueryData(["queue-status", merchantId], false)
+        },
+        onSuccess: () => {
             // Redirect to QR display
             router.push("/dashboard/qr-display")
         },
+        onSettled: () => {
+            // Invalidate the query to ensure we're synced with the server
+            // Note: Since this query uses a static initialData fallback without an active fetch function right now, 
+            // the state will remain optimistically correct for this window.
+            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
+        }
     })
 
     if (!isOpen) {

@@ -36,7 +36,7 @@ export function MultiplayerLobby({
 }: MultiplayerLobbyProps) {
     const [view, setView] = useState<"list" | "waiting">("list")
     const [rooms, setRooms] = useState<Room[]>([])
-    const [myRoomCode, setMyRoomCode] = useState("")
+    const [_myRoomCode, setMyRoomCode] = useState("")
     const [joiningCode, setJoiningCode] = useState<string | null>(null)
 
     const discoveryRef = useRef<RealtimeChannel | null>(null)
@@ -97,7 +97,7 @@ export function MultiplayerLobby({
             .subscribe()
 
         gameRef.current = gameChannel
-    }, [gameType, merchantId, ticketId, onGameStart])
+    }, [gameType, merchantId, onGameStart])
 
     // ── Join an existing room ─────────────────────────────────────────────────
     const joinGame = useCallback(
@@ -138,8 +138,8 @@ export function MultiplayerLobby({
 
     // ── Cleanup on unmount ────────────────────────────────────────────────────
     useEffect(() => {
+        const supabase = supabaseRef.current
         return () => {
-            const supabase = supabaseRef.current
             if (discoveryRef.current) supabase.removeChannel(discoveryRef.current)
             if (gameRef.current) supabase.removeChannel(gameRef.current)
         }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 
 type FrameCallback = (delta: number) => void
 
@@ -29,24 +29,6 @@ export function useAnimationFrame(callback: FrameCallback, running: boolean) {
         callbackRef.current = callback
     }, [callback])
 
-    const loop = useCallback((time: number) => {
-        if (lastTimeRef.current === null) {
-            lastTimeRef.current = time
-        }
-        const raw = time - lastTimeRef.current
-        lastTimeRef.current = time
-
-        // Cap accumulator to max 4 frames to avoid "spiral of death" after tab focus loss
-        accumRef.current = Math.min(accumRef.current + raw, FRAME_MS * 4)
-
-        while (accumRef.current >= FRAME_MS) {
-            callbackRef.current(FRAME_MS)
-            accumRef.current -= FRAME_MS
-        }
-
-        rafRef.current = requestAnimationFrame(loop)
-    }, [])
-
     useEffect(() => {
         if (!running) {
             if (rafRef.current !== null) {
@@ -60,6 +42,26 @@ export function useAnimationFrame(callback: FrameCallback, running: boolean) {
 
         lastTimeRef.current = null
         accumRef.current = 0
+
+        // Define loop inside the effect so refs are only accessed outside render
+        const loop = (time: number) => {
+            if (lastTimeRef.current === null) {
+                lastTimeRef.current = time
+            }
+            const raw = time - lastTimeRef.current
+            lastTimeRef.current = time
+
+            // Cap accumulator to max 4 frames to avoid "spiral of death" after tab focus loss
+            accumRef.current = Math.min(accumRef.current + raw, FRAME_MS * 4)
+
+            while (accumRef.current >= FRAME_MS) {
+                callbackRef.current(FRAME_MS)
+                accumRef.current -= FRAME_MS
+            }
+
+            rafRef.current = requestAnimationFrame(loop)
+        }
+
         rafRef.current = requestAnimationFrame(loop)
 
         return () => {
@@ -70,5 +72,5 @@ export function useAnimationFrame(callback: FrameCallback, running: boolean) {
                 accumRef.current = 0
             }
         }
-    }, [running, loop])
+    }, [running])
 }
