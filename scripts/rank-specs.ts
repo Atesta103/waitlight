@@ -13,8 +13,12 @@
  *       normalized to 0–100
  *   - Status: parsed from "- Status: `...`" metadata line
  *
- * Gate: blocks with exit(1) if a spec with status `in-progress` has
- * readiness < 80/100.
+ * Modes:
+ *   - Hook mode (called by lint-staged with file args): runs readiness gate only.
+ *     No file renames, no README write — avoids corrupting lint-staged's file tracking.
+ *   - Full mode (npm run docs:rank, no args): gate + rename files + regenerate README.
+ *
+ * Gate: blocks with exit(1) if a spec with status `in-progress` has readiness < 80/100.
  */
 
 import { readdir, readFile, writeFile, rename } from "node:fs/promises"
@@ -24,6 +28,13 @@ import { fileURLToPath } from "node:url"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FEATURES_DIR = path.resolve(__dirname, "../doc/features")
 const README_PATH = path.join(FEATURES_DIR, "README.md")
+
+/**
+ * When called by lint-staged, extra file paths are passed as argv arguments.
+ * In that mode we ONLY run the readiness gate (no file renames, no README write)
+ * to avoid mutating files that lint-staged is tracking.
+ */
+const LINT_STAGED_MODE = process.argv.length > 2
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,7 +168,7 @@ for (const filename of specFiles) {
     specs.push(parseSpec(filename, content))
 }
 
-// ─── Readiness gate ───────────────────────────────────────────────────────────
+// ─── Readiness gate (runs in both modes) ──────────────────────────────────────
 
 const READINESS_THRESHOLD = 80
 let blocked = false
@@ -166,7 +177,7 @@ for (const spec of specs) {
     if (spec.status === "in-progress" && spec.readiness < READINESS_THRESHOLD) {
         console.error(
             `\n❌ [rank-specs] "${spec.title}" is in-progress but only ${spec.readiness}% ready (min: ${READINESS_THRESHOLD}%).\n` +
-            `   Complete at least ${READINESS_THRESHOLD}% of tasks (FR + DoD) or update the metadata readiness score before continuing.\n`
+            `   Complete at least ${READINESS_THRESHOLD}% of tasks (FR + DoD) or update the readiness score in the spec metadata.\n`
         )
         blocked = true
     }
@@ -176,7 +187,14 @@ if (blocked) {
     process.exit(1)
 }
 
-// ─── Sort by interest score desc, readiness as tiebreak ───────────────────────
+// ─── Hook mode: gate passed — exit without mutating files ─────────────────────
+
+if (LINT_STAGED_MODE) {
+    console.log("✅ [rank-specs] Readiness gate passed (hook mode — skipping rename & README)")
+    process.exit(0)
+}
+
+// ─── Full mode (npm run docs:rank): sort → rename files → generate README ─────
 
 const ranked = [...specs].sort((a, b) => {
     if (b.interestScore !== a.interestScore) return b.interestScore - a.interestScore
@@ -188,8 +206,8 @@ const ranked = [...specs].sort((a, b) => {
 for (let i = 0; i < ranked.length; i++) {
     const spec = ranked[i];
     const numStr = String(i + 1).padStart(2, "0");
-    // Remove existing numeric prefixes like "05_", "feature_12_", "Feature 09_" etc.
-    const baseName = spec.filename.replace(/^(feature_?\d*_?|\d+_)/i, "");
+    // Strip any leading numeric prefix (e.g. "02_", "11_") before re-numbering
+    const baseName = spec.filename.replace(/^\d+_/, "");
     const newFilename = `${numStr}_${baseName}`;
 
     if (newFilename !== spec.filename) {

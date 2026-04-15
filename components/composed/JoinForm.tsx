@@ -21,6 +21,7 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
     )
     const [isCheckingName, setIsCheckingName] = useState(false)
 
+    // Debounce name validation to prevent excessive API calls while user is typing
     useEffect(() => {
         const checkName = async () => {
             const trimmed = customerName.trim()

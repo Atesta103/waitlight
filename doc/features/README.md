@@ -5,12 +5,10 @@
 
 | Status | Feature | Value | Priority | Effort | Readiness | Interest Score |
 |--------|---------|-------|----------|--------|-----------|----------------|
-| ⬜ | [16. Name Moderation (Profanity Filter)](./01_name_moderation.md) | 4/5 | 5/5 | 2/5 | 0% | 88 |
-| ✅ | [15. Merchant Color Theme (Branding)](./02_merchant_color_theme.md) | 4/5 | 4/5 | 2/5 | 100% | 79 |
-| ⬜ | [Feature 10: Multichannel Authentication (Google / Apple SSO)](./03_sso_auth.md) | 3/5 | 3/5 | 3/5 | 65% | 58 |
-| ⬜ | [Feature 12: Error & Not-Found Pages](./04_error_page.md) | 2/5 | 3/5 | 1/5 | 30% | 58 |
-| ⬜ | [Feature 11: Internationalization (i18n) — next-intl](./05_i18n_next_intl.md) | 3/5 | 4/5 | 5/5 | 25% | 58 |
-| ❓ | [Feature 09: POS Integration (Point of Sale)](./06_pos_integration.md) | 5/5 | 1/5 | 4/5 | 20% | 54 |
+| ✅ | [15. Merchant Color Theme (Branding)](./01_merchant_color_theme.md) | 4/5 | 4/5 | 2/5 | 100% | 79 |
+| ⬜ | [Feature 10: Multichannel Authentication (Google / Apple SSO)](./02_sso_auth.md) | 3/5 | 3/5 | 3/5 | 65% | 58 |
+| ⬜ | [Feature 11: Internationalization (i18n) — next-intl](./03_i18n_next_intl.md) | 3/5 | 4/5 | 5/5 | 25% | 58 |
+| ❓ | [Feature 09: POS Integration (Point of Sale)](./04_pos_integration.md) | 5/5 | 1/5 | 4/5 | 20% | 54 |
 
 ## Legend
 

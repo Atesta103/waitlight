@@ -1152,6 +1152,8 @@ export default function DesignSystemPage() {
                                     estimatedWaitMinutes={8}
                                     connectionState="connected"
                                     customerName="Marie"
+                                    slug="demo"
+                                    ticketId="preview"
                                 />
                             </div>
                         </SubSection>
@@ -1165,6 +1167,8 @@ export default function DesignSystemPage() {
                                     estimatedWaitMinutes={0}
                                     connectionState="connected"
                                     customerName="Marie"
+                                    slug="demo"
+                                    ticketId="preview"
                                 />
                             </div>
                         </SubSection>
@@ -1178,6 +1182,8 @@ export default function DesignSystemPage() {
                                     estimatedWaitMinutes={8}
                                     connectionState="offline"
                                     customerName="Marie"
+                                    slug="demo"
+                                    ticketId="preview"
                                 />
                             </div>
                         </SubSection>

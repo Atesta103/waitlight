@@ -78,14 +78,11 @@ export async function createMerchantAction(formData: {
 
     const supabase = await createClient()
 
-    // getSession() reads the JWT from cookies without a network round-trip.
-    // The proxy already validated the session via getUser() at the edge,
-    // so this is safe and avoids flaky network errors in Server Actions.
+    // getUser() forces a round-trip to validate the session token,
+    // which is more secure than getSession() which just reads the cookie.
     const {
-        data: { session },
-    } = await supabase.auth.getSession()
-
-    const user = session?.user ?? null
+        data: { user },
+    } = await supabase.auth.getUser()
 
     if (!user) {
         return {

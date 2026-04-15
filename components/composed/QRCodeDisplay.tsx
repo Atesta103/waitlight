@@ -6,11 +6,11 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
-import { QR_REFRESH_INTERVAL_MS } from "@/lib/utils/qr-token"
+import { QR_ROTATION_INTERVAL_MS } from "@/lib/utils/qr-config"
 import { generateQrTokenAction } from "@/lib/actions/qr"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
-const REFRESH_INTERVAL_MS = QR_REFRESH_INTERVAL_MS
+const REFRESH_INTERVAL_MS = QR_ROTATION_INTERVAL_MS
 const TOTAL_S = REFRESH_INTERVAL_MS / 1000
 
 type QRCodeDisplayProps = {
@@ -20,7 +20,6 @@ type QRCodeDisplayProps = {
     size?: number
     className?: string
 }
-
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
@@ -86,25 +85,25 @@ function QRCodeDisplay({
         countdown >= 7
             ? "var(--color-feedback-success)"
             : countdown >= 4
-                ? "var(--color-feedback-warning)"
-                : "var(--color-feedback-error)"
+              ? "var(--color-feedback-warning)"
+              : "var(--color-feedback-error)"
 
     // Geometry calculations for pixel-perfect alignment
     const strokeWidth = 3
     const qrContainerSize = size + 16 // QR + white padding (rounded-lg)
     const padding = 8 // larger gap for visibility
     const viewSize = qrContainerSize + (padding + strokeWidth) * 2
-    
+
     const center = viewSize / 2
     const start = strokeWidth / 2
     const edge = viewSize - strokeWidth / 2
-    
+
     // Exact concentric radius calculation
-    // QR container has rounded-lg (8px). 
+    // QR container has rounded-lg (8px).
     // The distance from QR edge to stroke center is (padding + strokeWidth/2)
     const innerRadius = 8
     const r = innerRadius + padding + strokeWidth / 2
-    
+
     // Path d for a rounded rect starting top-center
     const d = `
         M ${center} ${start}
@@ -150,7 +149,7 @@ function QRCodeDisplay({
                 </div>
 
                 {/* QR Container */}
-                <div 
+                <div
                     className="relative flex items-center justify-center"
                     style={{ width: viewSize, height: viewSize }}
                 >
@@ -188,12 +187,12 @@ function QRCodeDisplay({
                     </div>
 
                     {/* QR Code itself */}
-                    <div 
+                    <div
                         className="relative z-10 overflow-hidden rounded-lg bg-white p-2 shadow-sm"
-                        style={{ 
-                            width: qrContainerSize, 
+                        style={{
+                            width: qrContainerSize,
                             height: qrContainerSize,
-                            boxShadow: "0 0 0 1px rgba(0,0,0,0.05)" // Subtle inner border
+                            boxShadow: "0 0 0 1px rgba(0,0,0,0.05)", // Subtle inner border
                         }}
                     >
                         <div className="relative flex h-full w-full items-center justify-center">
@@ -216,8 +215,6 @@ function QRCodeDisplay({
                         </div>
                     </div>
                 </div>
-
-
 
                 {/* ── Footer hint ─────────────────────────────────────────── */}
                 <div className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-text-secondary">

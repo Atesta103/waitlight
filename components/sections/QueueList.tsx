@@ -32,10 +32,15 @@ type QueueListProps = {
  * Fetches active queue items via TanStack Query, subscribes to Realtime
  * for live updates, and renders TicketCards with optimistic action handling.
  */
-function QueueList({ merchantId, initialItems = [], className }: QueueListProps) {
+function QueueList({
+    merchantId,
+    initialItems = [],
+    className,
+}: QueueListProps) {
     const prefersReduced = useReducedMotion()
     const queryClient = useQueryClient()
-    const [connectionState, setConnectionState] = useState<ConnectionState>("connected")
+    const [connectionState, setConnectionState] =
+        useState<ConnectionState>("connected")
     const audioRef = useRef<AudioContext | null>(null)
 
     // ── TanStack Query ────────────────────────────────────────────────────────
@@ -56,7 +61,10 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
         mutationFn: (id: string) => callTicketAction({ id }),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
-            const prev = queryClient.getQueryData<QueueItem[]>(["queue", merchantId])
+            const prev = queryClient.getQueryData<QueueItem[]>([
+                "queue",
+                merchantId,
+            ])
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
                 (old = []) =>
@@ -86,7 +94,10 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
         mutationFn: (id: string) => completeTicketAction({ id }),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
-            const prev = queryClient.getQueryData<QueueItem[]>(["queue", merchantId])
+            const prev = queryClient.getQueryData<QueueItem[]>([
+                "queue",
+                merchantId,
+            ])
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
                 (old = []) => old.filter((item) => item.id !== id),
@@ -107,7 +118,10 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
         mutationFn: (id: string) => cancelTicketAction({ id }),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
-            const prev = queryClient.getQueryData<QueueItem[]>(["queue", merchantId])
+            const prev = queryClient.getQueryData<QueueItem[]>([
+                "queue",
+                merchantId,
+            ])
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
                 (old = []) => old.filter((item) => item.id !== id),
@@ -124,10 +138,14 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
         },
     })
     const reportNameMutation = useMutation({
-        mutationFn: ({ id, name }: { id: string, name: string }) => reportTicketNameAction(id, merchantId, name),
+        mutationFn: ({ id, name }: { id: string; name: string }) =>
+            reportTicketNameAction(id, name),
         onMutate: async ({ id }) => {
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
-            const prev = queryClient.getQueryData<QueueItem[]>(["queue", merchantId])
+            const prev = queryClient.getQueryData<QueueItem[]>([
+                "queue",
+                merchantId,
+            ])
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
                 (old) =>
@@ -260,7 +278,10 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
     const calledItems = items.filter((i) => i.status === "called")
 
     const displayItems = [
-        ...calledItems.map((i) => ({ ...i, displayPosition: undefined as number | undefined })),
+        ...calledItems.map((i) => ({
+            ...i,
+            displayPosition: undefined as number | undefined,
+        })),
         ...waitingItems.map((item, idx) => ({
             ...item,
             displayPosition: idx + 1,
@@ -316,9 +337,13 @@ function QueueList({ merchantId, initialItems = [], className }: QueueListProps)
                                     position={item.displayPosition}
                                     joinedAt={item.joined_at}
                                     onCall={(id) => callMutation.mutate(id)}
-                                    onComplete={(id) => completeMutation.mutate(id)}
+                                    onComplete={(id) =>
+                                        completeMutation.mutate(id)
+                                    }
                                     onCancel={(id) => cancelMutation.mutate(id)}
-                                    onReportName={(id, name) => reportNameMutation.mutate({ id, name })}
+                                    onReportName={(id, name) =>
+                                        reportNameMutation.mutate({ id, name })
+                                    }
                                 />
                             </motion.div>
                         ))}

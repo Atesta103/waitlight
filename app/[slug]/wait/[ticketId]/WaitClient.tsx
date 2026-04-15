@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
 import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
 import { Spinner } from "@/components/ui/Spinner"
@@ -37,59 +38,58 @@ type WaitClientProps = {
 const STORAGE_KEY_PREFIX = "waitlight_ticket_"
 
 function WaitClient({ merchant, ticketId }: WaitClientProps) {
-    const [ticket, setTicket] = useState<TicketData | null>(null)
-    const [position, setPosition] = useState<number | null>(null)
+    const queryClient = useQueryClient()
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
-    const [notFound, setNotFound] = useState(false)
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
     const supabaseRef = useRef(createClient())
 
-    const fetchTicket = useCallback(async () => {
-        const supabase = supabaseRef.current
-        const { data, error } = await supabase
-            .from("queue_items")
-            .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at")
-            .eq("id", ticketId)
-            .single()
+    // ── TanStack Query ────────────────────────────────────────────────────────
+    const {
+        data: ticket,
+        isError: ticketNotFound,
+    } = useQuery({
+        queryKey: ["ticket", ticketId],
+        queryFn: async () => {
+            const supabase = supabaseRef.current
+            const { data, error } = await supabase
+                .from("queue_items")
+                .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at")
+                .eq("id", ticketId)
+                .single()
 
-        if (error || !data) {
-            setNotFound(true)
-            return
-        }
-
-        setTicket(data as TicketData)
-
-        // Clean up localStorage when ticket is done or cancelled
-        if (data.status === "done" || data.status === "cancelled") {
-            try {
-                localStorage.removeItem(
-                    `${STORAGE_KEY_PREFIX}${merchant.slug}`,
-                )
-            } catch {
-                // Ignore localStorage errors
+            if (error || !data) {
+                throw new Error("Ticket introuvable")
             }
-        }
-    }, [ticketId, merchant.slug])
 
-    const fetchPosition = useCallback(async () => {
-        const supabase = supabaseRef.current
-        const { data, error } = await supabase.rpc("get_position", {
-            ticket_id: ticketId,
-        })
+            // Cleanup localStorage if done or cancelled
+            if (data.status === "done" || data.status === "cancelled") {
+                try {
+                    localStorage.removeItem(`${STORAGE_KEY_PREFIX}${merchant.slug}`)
+                } catch {
+                    // Ignore localStorage errors
+                }
+            }
 
-        if (!error && data !== null) {
-            setPosition(data)
-        }
-    }, [ticketId])
+            return data as TicketData
+        },
+    })
 
-    // Initial fetch
-    useEffect(() => {
-        fetchTicket()
-        fetchPosition()
-    }, [fetchTicket, fetchPosition])
+    const { data: position } = useQuery({
+        queryKey: ["position", ticketId],
+        queryFn: async () => {
+            const supabase = supabaseRef.current
+            const { data, error } = await supabase.rpc("get_position", {
+                ticket_id: ticketId,
+            })
+            if (error || data === null) throw new Error("Erreur ou position introuvable")
+            return data
+        },
+        enabled: !!ticket && ticket.status === "waiting", // Only fetch position if waiting
+        staleTime: 5000,
+    })
 
-    // Realtime subscription
+    // ── Realtime subscription ─────────────────────────────────────────────────
     useEffect(() => {
         const supabase = supabaseRef.current
         const channel = supabase
@@ -103,9 +103,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                     filter: `merchant_id=eq.${merchant.id}`,
                 },
                 () => {
-                    // Refetch on any queue change
-                    fetchTicket()
-                    fetchPosition()
+                    // Invalidate both queries to trigger smooth refetch
+                    queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] })
+                    queryClient.invalidateQueries({ queryKey: ["position", ticketId] })
                 },
             )
             .subscribe((status) => {
@@ -121,21 +121,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [merchant.id, fetchTicket, fetchPosition])
-
-    // Handle tab visibility — refetch when returning to foreground
-    useEffect(() => {
-        function handleVisibility() {
-            if (document.visibilityState === "visible") {
-                fetchTicket()
-                fetchPosition()
-            }
-        }
-
-        document.addEventListener("visibilitychange", handleVisibility)
-        return () =>
-            document.removeEventListener("visibilitychange", handleVisibility)
-    }, [fetchTicket, fetchPosition])
+    }, [merchant.id, ticketId, queryClient])
 
     // Dynamic page title
     useEffect(() => {
@@ -143,14 +129,14 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
         if (ticket.status === "called") {
             document.title = "C'est votre tour ! — Wait-Light"
-        } else if (position !== null && position > 0) {
+        } else if (position !== undefined && position > 0) {
             document.title = `(${position}) En attente — Wait-Light`
         } else {
             document.title = `File d'attente — ${merchant.name}`
         }
     }, [ticket, position, merchant.name])
 
-    if (notFound) {
+    if (ticketNotFound) {
         return (
             <StatusBanner
                 variant="error"
@@ -177,13 +163,14 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
     // Estimate wait time based on position and effective prep time
     const estimatedWaitMinutes =
-        position !== null && position > 0
+        position !== undefined && position > 0
             ? position * effectivePrepTime
             : null
 
     // Count total waiting (position is 1-based, so it gives us
     // the count of people ahead + 1 for the customer themselves)
-    const totalWaiting = position
+    // We default to null if position isn't loaded yet
+    const totalWaiting = position ?? null
     
     // Check if we need to show the moderation warning dialog
     const showModerationWarning = ticket.name_flagged && !acknowledgedFlag
@@ -192,11 +179,13 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         <div className="flex flex-col gap-4">
             <CustomerWaitView
                 status={ticket.status}
-                position={position}
+                position={position ?? null}
                 totalWaiting={totalWaiting}
                 estimatedWaitMinutes={estimatedWaitMinutes}
                 connectionState={connectionState}
                 customerName={ticket.customer_name}
+                slug={merchant.slug}
+                ticketId={ticketId}
             />
 
             <Dialog 

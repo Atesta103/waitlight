@@ -1,10 +1,12 @@
 "use client"
 
+import Link from "next/link"
 import { motion, AnimatePresence, useReducedMotion, type Variants, type Transition } from "framer-motion"
 import { QueuePositionCard } from "@/components/composed/QueuePositionCard"
 import { ConnectionStatus } from "@/components/composed/ConnectionStatus"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { cn } from "@/lib/utils/cn"
+import { Gamepad2 } from "lucide-react"
 import type { ConnectionState } from "@/components/composed/ConnectionStatus"
 
 type TicketStatus = "waiting" | "called" | "done" | "cancelled"
@@ -17,6 +19,8 @@ type CustomerWaitViewProps = {
     estimatedWaitMinutes: number | null
     connectionState: ConnectionState
     customerName: string
+    slug: string
+    ticketId: string
     className?: string
 }
 
@@ -27,6 +31,8 @@ function CustomerWaitView({
     estimatedWaitMinutes,
     connectionState,
     customerName,
+    slug,
+    ticketId,
     className,
 }: CustomerWaitViewProps) {
     const prefersReduced = useReducedMotion()
@@ -119,6 +125,22 @@ function CustomerWaitView({
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {status === "waiting" && (
+                <div className="sticky bottom-0 pt-2">
+                    <Link
+                        href={`/${slug}/wait/${ticketId}/games`}
+                        className={cn(
+                            "flex items-center justify-center gap-2.5 rounded-2xl px-5 py-3.5 w-full",
+                            "bg-brand-primary text-text-inverse font-semibold text-sm",
+                            "shadow-lg hover:opacity-90 active:scale-95 transition-all",
+                        )}
+                    >
+                        <Gamepad2 size={18} aria-hidden="true" />
+                        Jouer en attendant
+                    </Link>
+                </div>
+            )}
         </div>
     )
 }
