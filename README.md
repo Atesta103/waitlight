@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Adresse de test SaaS
 
-## Getting Started
+- URL site hébergé: `https://waitlight.fr`
 
-First, run the development server:
+## Accès de test (Environnement de production)
+L'application propose deux méthodes d'authentification :
+
+- Authentification Sociale : Connexion via Google Auth (Supabase).
+- Authentification Classique : Inscription et connexion par email et mot de passe.
+
+Vous pouvez créer votre propre compte marchand directement sur la page d'inscription.
+
+### Simulation de paiement (Stripe)
+Le système de facturation est actuellement configuré en mode test. Pour simuler une souscription premium sans frais réels, veuillez utiliser les identifiants de carte de test suivants lors du passage en caisse (Stripe Checkout) :
+
+Numéro de carte : 4242 4242 4242 4242
+
+Date d'expiration : Toute date future (ex : 12/28)
+
+CVC : 123
+
+Une fois le paiement validé, le webhook Stripe traite l'événement checkout.session.completed pour mettre à jour les droits de l'utilisateur dans la base de données Supabase en temps réel.
+
+### En local : 
+- Commande a lancé : `npm run dev`
+- URL de test: `http://localhost:3000`
+
+---
+
+# Wait-Light
+
+Wait-Light est un SaaS de gestion de file d'attente virtuelle (Scan and Go).
+
+Objectif:
+
+- Cote marchand: piloter la file en temps reel depuis le dashboard
+- Cote client: scanner un QR code, rejoindre la file, suivre sa position et son temps d'attente
+
+## Fonctionnalites principales
+
+- Onboarding marchand
+- Authentification (email/password + callback auth)
+- Dashboard file d'attente (ouverture/fermeture, suivi, actions)
+- Page publique client par slug marchand
+- Temps d'attente estime
+- Realtime via Supabase
+- Parametrage visuel et metier
+- Abonnement Stripe (checkout + webhooks)
+
+## Stack technique
+
+- Next.js (App Router)
+- React + TypeScript strict
+- Tailwind CSS
+- TanStack Query
+- Framer Motion
+- Supabase (Postgres, Auth, Realtime)
+- Stripe
+- Vitest + Storybook
+
+## Architecture (vue rapide)
+
+```text
+app/
+	(auth)/            pages d'auth marchand
+	(dashboard)/       pages protegees marchand
+	[slug]/            pages publiques client
+	api/               routes API (webhooks, etc.)
+
+components/
+	ui/                atoms
+	composed/          molecules
+	sections/          organisms
+
+lib/
+	actions/           server actions
+	hooks/             hooks TanStack Query
+	validators/        schemas Zod
+	supabase/          clients browser/server/admin
+```
+
+## Prerequis
+
+- Node.js 20+
+- npm 10+
+- Un projet Supabase
+- Un compte Stripe (si vous testez la facturation)
+
+## Installation locale
+
+1. Installer les dependances:
+
+```bash
+npm install
+```
+
+2. Creer votre fichier d'environnement:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Renseigner les variables dans `.env.local`
+
+4. Lancer le serveur local:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Ouvrir:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `http://localhost:3000`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables d'environnement
 
-## Learn More
+Extrait principal (voir `.env.example` pour la liste complete):
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Supabase (public)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Supabase (server only)
+SUPABASE_SERVICE_ROLE_KEY=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Admin
+ADMIN_EMAILS=admin@example.com,admin2@example.com
 
-## Deploy on Vercel
+# Stripe
+STRIPE_SECRET_KEY=
+STRIPE_PRICE_ID=
+STRIPE_WEBHOOK_SECRET=
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Dev local
+NEXT_PUBLIC_ENABLE_TEST_MODE="true"
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts utiles
+
+```bash
+npm run dev            # Lancer en local
+npm run build          # Build production
+npm run start          # Demarrer la build
+npm run lint           # Lint
+npm run typecheck      # Verification TypeScript
+npm run test           # Tests Vitest
+npm run test:unit      # Tests unitaires
+npm run storybook      # Storybook
+npm run build-storybook
+npm run docs           # Documentation TypeDoc
+npm run gen:types      # Regenerer types Supabase
+```
+
+## Documentation projet
+
+- `Spec.md`: specification fonctionnelle et technique
+- `FLOWS.md`: parcours utilisateurs
+- `AGENTS.md`: regles d'implementation et conventions
+- `doc/architecture.md`: patterns Next.js/Supabase
+- `doc/security.md`: checklist securite
+- `doc/design-system.md`: tokens et regles UI
+- `doc/accessibility.md`: exigences accessibilite
+
+## Qualite et conventions
+
+- TypeScript strict
+- Validation des entrees via Zod
+- Server Actions retournent `{ data } | { error: string }`
+- Pas de cle service role cote client
+- Realtime scope par identifiant metier
