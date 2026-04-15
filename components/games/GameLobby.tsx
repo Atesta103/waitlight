@@ -31,7 +31,7 @@ export function GameLobby({ ticketId, slug }: GameLobbyProps) {
                     </span>
                     <div className="min-w-0 flex-1">
                         <h1 className="font-semibold text-text-primary truncate">Jeux</h1>
-                        <p className="text-xs text-text-secondary">Patiente en t'amusant !</p>
+                        <p className="text-xs text-text-secondary">Patiente en t&apos;amusant !</p>
                     </div>
                 </header>
             </div>

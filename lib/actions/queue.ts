@@ -9,6 +9,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { z } from "zod"
 import {
     TicketIdSchema,
     ToggleQueueSchema,
@@ -322,22 +323,14 @@ export async function joinQueueAction(
     }
 
     // ── 2. Validate QR token ─────────────────────────────────────────────────
-    let tokenValid = false;
-    
-    // In development mode, allow a bypass token for local testing
-    if (process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true" && token === "dev_test_mode") {
-        tokenValid = true;
-    } else {
-        const { data, error: tokenError } = await supabase.rpc(
-            "validate_qr_token",
-            { p_nonce: token, p_slug: slug },
-        )
-        if (!tokenError && data) {
-            tokenValid = true;
-        }
-    }
+    // Always validate via the SECURITY DEFINER RPC — no bypass path exists.
+    // The RPC atomically checks (exists + not expired + not used) and sets used = true.
+    const { data: tokenData, error: tokenError } = await supabase.rpc(
+        "validate_qr_token",
+        { p_nonce: token, p_slug: slug },
+    )
 
-    if (!tokenValid) {
+    if (tokenError || !tokenData) {
         return {
             error: "Ce QR code a expiré ou a déjà été utilisé. Veuillez scanner le QR code actuel.",
         }
@@ -363,7 +356,7 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
-    const { data: ticket, error: _insertError } = await supabase
+    const { data: ticket, error: insertError } = await supabase
         .from("queue_items")
         .insert({
             merchant_id: merchant.id,
@@ -374,9 +367,10 @@ export async function joinQueueAction(
         .select("id")
         .single()
 
-    if (_insertError || !ticket) {
-        console.error("joinQueueAction failed:", _insertError);
-        return { error: `Impossible de rejoindre la file. Erreur: ${_insertError?.message || "Inconnue"}` }
+    if (insertError || !ticket) {
+        // Log the raw error server-side only — never expose DB internals to the client.
+        console.error("[joinQueueAction] DB insert failed:", insertError)
+        return { error: "Impossible de rejoindre la file. Veuillez réessayer." }
     }
 
     return { data: { ticketId: ticket.id, merchantId: merchant.id } }
@@ -384,20 +378,36 @@ export async function joinQueueAction(
 
 export async function reportTicketNameAction(
     ticketId: string,
-    merchantId: string,
-    offendingName: string
+    offendingName: string,
 ): Promise<{ data: { id: string; customer_name: string; name_flagged: boolean } } | { error: string }> {
+    // Validate inputs
+    const ticketUuidParsed = z.string().uuid().safeParse(ticketId)
+    if (!ticketUuidParsed.success) {
+        return { error: "Identifiant de ticket invalide." }
+    }
+
+    const supabase = await createClient()
+
+    // Get merchant identity from the authenticated session — never from input params.
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
     try {
-        const supabase = await createClient()
-
-        // 1. Add to banned words if it doesn't exist
+        // Append offending name to this merchant's banned words list.
+        // UNIQUE constraint on (word, merchant_id) — duplicate silently ignored.
         await supabase.from("banned_words").insert({
-            word: offendingName.toLowerCase(),
-            merchant_id: merchantId,
+            word: offendingName.toLowerCase().trim(),
+            merchant_id: user.id,
         })
-        // Ignore duplicate error — UNIQUE index on word
 
-        // 2. Overwrite the name with a generic identifier
+        // Overwrite the name with a generic identifier.
+        // The double .eq("merchant_id", user.id) ensures a merchant can only
+        // modify tickets in their own queue — cross-tenant modification is impossible.
         const genericName = `Client-${Math.floor(1000 + Math.random() * 9000)}`
         const { data: updatedTicket, error: updateError } = await supabase
             .from("queue_items")
@@ -406,15 +416,18 @@ export async function reportTicketNameAction(
                 name_flagged: true,
             })
             .eq("id", ticketId)
-            .eq("merchant_id", merchantId)
+            .eq("merchant_id", user.id) // ownership enforced server-side
             .select("id, customer_name, name_flagged")
             .single()
 
-        if (updateError) throw updateError
+        if (updateError) {
+            console.error("[reportTicketNameAction] update failed:", updateError)
+            return { error: "Impossible de signaler ce prénom. Veuillez réessayer." }
+        }
         return { data: updatedTicket }
     } catch (err: unknown) {
-        console.error("Failed to report name:", err)
-        return { error: "Failed to report name. Please try again." }
+        console.error("[reportTicketNameAction] unexpected error:", err)
+        return { error: "Une erreur inattendue s'est produite." }
     }
 }
 

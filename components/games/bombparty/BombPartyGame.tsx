@@ -107,7 +107,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, ticketId, myNam
                 clearTimer()
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [playerNum],
     )
 
@@ -201,7 +200,6 @@ export function BombPartyGame({ merchantId, roomCode, playerNum, ticketId, myNam
             }
         }, 1000)
         return () => clearTimer()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [started, gameOver, broadcast, isHost, activePlayer])
 
     const submitWord = useCallback(() => {

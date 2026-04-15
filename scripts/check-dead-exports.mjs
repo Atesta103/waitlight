@@ -37,9 +37,13 @@ for (const dir of SCAN_DIRS) {
     allFiles.push(...(await walk(path.join(ROOT, dir))))
 }
 
-// Exclude __tests__ and *.test.ts files
+// Exclude test files and Storybook story files (they export meta/decorators, not app symbols)
 const sourceFiles = allFiles.filter(
-    (f) => !f.includes("__tests__") && !f.endsWith(".test.ts") && !f.endsWith(".test.tsx")
+    (f) =>
+        !f.includes("__tests__") &&
+        !f.endsWith(".test.ts") &&
+        !f.endsWith(".test.tsx") &&
+        !f.includes(".stories.")
 )
 
 // ─── Parse exports ────────────────────────────────────────────────────────────

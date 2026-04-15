@@ -1,3 +1,13 @@
 node scripts/check-schema-migration.mjs
 node scripts/check-spec-completion.mjs
-npx lint-staged
+
+# Run lint-staged silently on success — only show output if it fails.
+# This prevents lint-staged's "Backing up original state..." from appearing
+# as the error headline in VS Code's git notification popup.
+lint_output=$(npx lint-staged 2>&1)
+lint_exit=$?
+
+if [ $lint_exit -ne 0 ]; then
+  echo "$lint_output" >&2
+  exit 1
+fi

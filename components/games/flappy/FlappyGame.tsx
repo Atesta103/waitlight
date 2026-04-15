@@ -180,6 +180,7 @@ export function FlappyGame() {
         // Move pipes
         s.pipes = s.pipes.filter((p) => p.x > -PIPE_W - 10)
         for (const pipe of s.pipes) {
+            // eslint-disable-next-line react-hooks/immutability
             pipe.x -= PIPE_SPEED
 
             if (!pipe.passed && pipe.x + PIPE_W < BIRD_X - BIRD_R) {
@@ -289,7 +290,7 @@ export function FlappyGame() {
                 )}
             </div>
 
-            <p className="text-text-secondary text-sm">Tape l'écran ou espace pour voler</p>
+            <p className="text-text-secondary text-sm">Tape l&apos;écran ou espace pour voler</p>
         </div>
     )
 }

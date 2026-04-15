@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import { z } from "zod"
 import { WaitClient } from "./WaitClient"
 
 type WaitPageProps = {
@@ -23,6 +24,11 @@ type MerchantRow = {
  */
 export default async function WaitPage({ params }: WaitPageProps) {
     const { slug, ticketId } = await params
+
+    // Validate that the ID is an UUID before making DB queries
+    if (!z.string().uuid().safeParse(ticketId).success) {
+        notFound()
+    }
 
     const supabase = await createClient()
 

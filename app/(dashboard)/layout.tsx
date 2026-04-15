@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { isActiveStatus } from "@/lib/subscription-status"
-import { DashboardProviders } from "./providers"
+import { QueryProvider } from "@/components/providers/QueryProvider"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
 import { LayoutDashboard, BarChart2 } from "lucide-react"
@@ -63,7 +63,7 @@ export default async function DashboardLayout({
     }
 
     return (
-        <DashboardProviders>
+        <QueryProvider>
             <div className="min-h-screen bg-surface-base">
                 <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
                     <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
@@ -157,6 +157,6 @@ export default async function DashboardLayout({
                     {children}
                 </main>
             </div>
-        </DashboardProviders>
+        </QueryProvider>
     )
 }

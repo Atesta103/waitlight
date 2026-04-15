@@ -161,13 +161,20 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
             state.applesEaten += 1
             state.food = randomFood(newSnake)
             setScore(state.score)
-            // Restart with new speed
+            // Restart with new speed — use the stable ref so setInterval always calls latest step
             if (intervalRef.current) clearInterval(intervalRef.current)
-            intervalRef.current = setInterval(step, getSpeed(state.applesEaten))
+            intervalRef.current = setInterval(() => stepStableRef.current?.(), getSpeed(state.applesEaten))
         }
 
         draw()
     }, [draw])
+
+    // Stable ref that always points to the latest step without triggering re-renders
+    const stepStableRef = useRef<(() => void) | null>(null)
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/immutability
+        stepStableRef.current = step
+    }, [step])
 
     const startGame = useCallback(() => {
         stateRef.current = getInitialState()
@@ -175,8 +182,8 @@ export function SnakeGame({ onBack: _onBack }: SnakeGameProps) {
         setScore(0)
         setStarted(true)
         if (intervalRef.current) clearInterval(intervalRef.current)
-        intervalRef.current = setInterval(step, getSpeed(0))
-    }, [step])
+        intervalRef.current = setInterval(() => stepStableRef.current?.(), getSpeed(0))
+    }, [])
 
     const handleRestart = useCallback(() => {
         startGame()

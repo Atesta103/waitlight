@@ -28,21 +28,16 @@
 
 ## API & Edge Functions
 
-### Rate Limiting
+### Rate Limiting & Protections Anti-Abus
 
-Applied on every Edge Function that mutates the DB:
+Le rate-limiting en mémoire Node.js ne fonctionne pas correctement sur des environnements Serverless. La protection s'appuie donc sur des mécanismes robustes en base de données et des cryptogrammes :
 
-- Max **5 queue joins per IP per minute** for `createTicket`.
-- Max **20 requests per IP per minute** for read operations.
-- Implementation: track counts in Supabase `kv` or use Upstash Redis via `@upstash/ratelimit`.
-- On limit exceeded: return `429` with `Retry-After` header. Never expose the rate limit algorithm in the response body.
+- **Rejoindre la file (`joinQueueAction`)** : Protégé nativement par la validation stricte d'un **QR Token à usage unique**. Les bots ne peuvent pas spammer la requête sans générer de nouveaux QR tokens physiques. En dernier recours, le trigger Postgres `check_merchant_capacity` bloque les insertions si la file d'attente est pleine (anti-DDOS applicatif).
+- **Génération algorithmique de QR (`generateQrTokenAction`)** : Protégé par un comptage côté base (`COUNT` des tokens récents), limité à **10 générations / minute / marchand**.
+- **Changement de slug (`updateMerchantIdentityAction`)** : Max **1 changement par heure / marchand**, géré par la colonne `slug_last_changed_at` (TIMESTAMPTZ) et validé côté serveur.
+- **Signalement de noms (`reportTicketNameAction`)** : Le rate-limiting strict par IP n'est pas applicable en Server Action, mais l'action est **protégée par un ownership check** (`auth.uid() = merchant_id`) empêchant un marchand de corrompre les files d'un autre (Cross-Tenant Modification impossible).
 
-#### Slug change rate limit
-
-- Max **1 slug change per hour** per merchant, enforced in `updateMerchantIdentityAction`.
-- Implementation: `merchants.slug_last_changed_at` column (TIMESTAMPTZ) set to `NOW()` on every slug change. The Server Action checks `Date.now() - slug_last_changed_at < 1h` before writing.
-- When the limit is hit, the action returns a user-friendly error with the number of minutes remaining — no `429` is surfaced to the browser (Server Action, not HTTP).
-- Purpose: prevents automated slug enumeration via rapid rename attempts.
+*Note : À l'avenir, si une véritable limitation par IP sur des routes non-authentifiées devient nécessaire (par exemple pour l'onboarding public), l'usage de Upstash Redis (Vercel KV) est recommandé au lieu d'in-memory.*
 
 ### Input Validation (defense-in-depth)
 
@@ -50,9 +45,10 @@ Three-layer validation for every mutation:
 
 1. **Client-side** (Zod): immediate UX feedback.
 2. **Edge Function / Server Action** (Zod): authoritative validation before DB call.
-3. **Postgres trigger** (SQL `CHECK` / trigger): last resort, cannot be bypassed.
+3. **Postgres & Auth** (RLS / Ownership check / SQL `CHECK`): last resort, cannot be bypassed.
 
-If layers 1 and 2 agree, layer 3 should never fire. If it does → Sentry alert (indicates a bypass attempt).
+If layers 1 and 2 agree, layer 3 should never fire. Sentry alert should be triggered if it does.
+*Note: Dev mode bypass tokens (e.g., `dev_test_mode`) are strictly forbidden as they leak logic to the client.*
 
 ---
 
@@ -88,6 +84,16 @@ No query reaches the DB without passing an RLS policy. **Anon key + RLS = zero t
 - The `get_position` RPC uses `SECURITY DEFINER` and returns only an integer — no ticket data from other customers.
 - Web Push credentials (`endpoint`, `p256dh`, `auth`) are only accessible server-side via the admin client.
 - QR token nonces are high-entropy and ephemeral — they carry no sensitive data, only an opaque reference.
+
+### Usage de `service_role` (admin client)
+
+Le client `adminSupabase` bypass entièrement les règles de RLS dictées ci-dessus.
+Son utilisation est **strictement réservée** aux cas suivants, uniquement côté serveur :
+1. **Webhooks externes** (ex. Stripe `app/api/webhooks/stripe/route.ts`) où le callback nécessite de mettre à jour le profil marchand sans session.
+2. **Tâches d'administration système** nécessitant de modifier des colonnes restreintes (ex: mise à jour des `subscriptions` après un paiement, ou `togglePaywallBypass` d'un marchand sous couvert de `requireAdmin()`).
+3. Il est d'usage *acceptable* d'interagir avec `service_role` à l'intérieur d'un Server Action SI ET SEULEMENT SI :
+   - L'action valide drastiquement l'identité de l'appelant via l'allowlist `ADMIN_EMAILS`.
+   - L'action ne renvoie jamais de données internes au client.
 
 ---
 
@@ -152,15 +158,15 @@ const securityHeaders = [
         key: "Content-Security-Policy",
         value: [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'", // required by Next.js — tighten in prod
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval required for dev mode / Next.js app router client code
             "style-src 'self' 'unsafe-inline'",
-            `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL} wss://*.supabase.co`,
+            `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || '*'} wss://*.supabase.co https://*.supabase.co`,
             "img-src 'self' data: blob:",
-            "font-src 'self'",
+            "font-src 'self' data:",
             "frame-ancestors 'none'",
         ].join("; "),
     },
-]
+];
 ```
 
 ---

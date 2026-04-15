@@ -3,15 +3,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState, type ReactNode } from "react"
 
-type DashboardProvidersProps = {
+type QueryProviderProps = {
     children: ReactNode
 }
 
 /**
- * Client-side providers for the dashboard.
+ * Client-side providers for the app.
  * Creates a QueryClient per session to avoid shared state between users.
  */
-export function DashboardProviders({ children }: DashboardProvidersProps) {
+export function QueryProvider({ children }: QueryProviderProps) {
     const [queryClient] = useState(
         () =>
             new QueryClient({
