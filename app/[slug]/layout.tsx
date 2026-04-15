@@ -49,7 +49,7 @@ export default async function SlugLayout({ children, params }: SlugLayoutProps) 
                     '--radius-md': borderRadius,
                     '--radius-lg': borderRadius,
                     '--radius-xl': borderRadius,
-                    '--radius-2xl": borderRadius,
+                    '--radius-2xl': borderRadius,
                 } as React.CSSProperties}
             >
                 {/* Base Color Tint */}
