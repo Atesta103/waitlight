@@ -46,10 +46,10 @@ export function HeaderQueueControl({
             router.push("/dashboard/qr-display")
         },
         onSettled: () => {
-            // Invalidate the query to ensure we're synced with the server
-            // Note: Since this query uses a static initialData fallback without an active fetch function right now, 
-            // the state will remain optimistically correct for this window.
-            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
+            // Note: We deliberately do not invalidateQueries here because the queryFn
+            // resolves to the static initialIsOpen prop. Invalidating would immediately
+            // revert the optimistic update to the initial prop value instead of fetching
+            // the actual server state. The UI will stay optimistically correct.
         }
     })
 

@@ -66,8 +66,10 @@ export function QueueSection({
             queryClient.setQueryData(["queue-status", merchantId], !newIsOpen)
         },
         onSettled: () => {
-            // Invalidate the query to ensure we're synced with the server
-            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
+            // Note: We deliberately do not invalidateQueries here because the queryFn
+            // resolves to the static initialIsOpen prop. Invalidating would immediately
+            // revert the optimistic update to the initial prop value instead of fetching
+            // the actual server state. The UI will stay optimistically correct.
         },
     })
 
