@@ -45,6 +45,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const supabaseRef = useRef(createClient())
 
     // ── TanStack Query ────────────────────────────────────────────────────────
+    // TANSTACK: Fetches ticket details. Tracks loading state and handles caching automatically.
     const {
         data: ticket,
         isError: ticketNotFound,
@@ -75,6 +76,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         },
     })
 
+    // TANSTACK: Fetches customer position in queue.
     const { data: position } = useQuery({
         queryKey: ["position", ticketId],
         queryFn: async () => {
@@ -85,7 +87,8 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             if (error || data === null) throw new Error("Erreur ou position introuvable")
             return data
         },
-        enabled: !!ticket && ticket.status === "waiting", // Only fetch position if waiting
+        // TANSTACK: Conditional fetching. This query won't run at all unless enabled is true.
+        enabled: !!ticket && ticket.status === "waiting",
         staleTime: 5000,
     })
 
@@ -103,7 +106,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                     filter: `merchant_id=eq.${merchant.id}`,
                 },
                 () => {
-                    // Invalidate both queries to trigger smooth refetch
+                    // TANSTACK: When Supabase realtime pushes an event, we invalidate active queries.
+                    // Instead of mutating state manually, we just tell TanStack it's stale, 
+                    // and it fetches fresh data securely in the background.
                     queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] })
                     queryClient.invalidateQueries({ queryKey: ["position", ticketId] })
                 },

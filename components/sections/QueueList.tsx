@@ -44,6 +44,8 @@ function QueueList({
     const audioRef = useRef<AudioContext | null>(null)
 
     // ── TanStack Query ────────────────────────────────────────────────────────
+    // TANSTACK: useQuery manages data fetching, caching, and loading states.
+    // 'queryKey' is a unique identifier array for this specific data.
     const { data: items = [], isLoading } = useQuery({
         queryKey: ["queue", merchantId],
         queryFn: async () => {
@@ -57,14 +59,21 @@ function QueueList({
 
     // ── Mutations with optimistic updates ─────────────────────────────────────
     // Defined before keyboard shortcut callback to avoid reference-before-init.
+    
+    // TANSTACK: useMutation manages server actions and side-effects.
     const callMutation = useMutation({
         mutationFn: (id: string) => callTicketAction({ id }),
         onMutate: async (id) => {
+            // TANSTACK: 1. Cancel background refetches to prevent them overwriting our update
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
+            
+            // TANSTACK: 2. Snapshot the current cache to use as a fallback on error
             const prev = queryClient.getQueryData<QueueItem[]>([
                 "queue",
                 merchantId,
             ])
+            
+            // TANSTACK: 3. Optimistically update the cache to make the UI feel instant
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
                 (old = []) =>
@@ -81,11 +90,14 @@ function QueueList({
             return { prev }
         },
         onError: (_err, _id, context) => {
+            // TANSTACK: If mutation fails, rollback to the snapshot
             if (context?.prev) {
                 queryClient.setQueryData(["queue", merchantId], context.prev)
             }
         },
         onSettled: () => {
+            // TANSTACK: 'invalidateQueries' marks data as stale, triggering a background refetch
+            // to ensure UI strictly matches the real server state.
             queryClient.invalidateQueries({ queryKey: ["queue", merchantId] })
         },
     })
@@ -204,6 +216,8 @@ function QueueList({
                     filter: `merchant_id=eq.${merchantId}`,
                 },
                 () => {
+                    // TANSTACK: Invalidate queries when database changes via realtime.
+                    // This forces useQuery to background refresh and update all components using this queryKey.
                     queryClient.invalidateQueries({
                         queryKey: ["queue", merchantId],
                     })

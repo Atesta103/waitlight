@@ -344,6 +344,8 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
     const PRESETS = useMemo(() => buildPresets(), [])
     const activeRange = PRESETS[presetIdx].range
 
+    // TANSTACK: 'presetIdx' is part of the queryKey array. TanStack Query automatically 
+    // triggers a new request whenever this dependency changes.
     const { data: rows = [], isLoading, isError } = useQuery({
         queryKey: ["analytics", merchantId, presetIdx],
         queryFn: async () => {

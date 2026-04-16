@@ -23,7 +23,8 @@ export function HeaderQueueControl({
     const router = useRouter()
     const queryClient = useQueryClient()
 
-    // Sync is_open status with other components (like QueueSection)
+    // TANSTACK: Reads the global "queue-status" state shared with QueueSection.
+    // It instantly reflects mutations made anywhere else in the app.
     const { data: isOpen } = useQuery({
         queryKey: ["queue-status", merchantId],
         queryFn: () => Promise.resolve(initialIsOpen), // Fallback, usually updated by mutations
@@ -31,14 +32,15 @@ export function HeaderQueueControl({
         staleTime: Infinity,
     })
 
+    // TANSTACK: Trigger server updates and handle optimistic UI rendering.
     const toggleMutation = useMutation({
         mutationFn: () => toggleQueueOpenAction({ is_open: true }),
         onMutate: () => {
-            // Optimistic update
+            // TANSTACK: Instantly updates the UI while the server request is in flight
             queryClient.setQueryData(["queue-status", merchantId], true)
         },
         onError: () => {
-            // Rollback on error
+            // TANSTACK: Rollback on error
             queryClient.setQueryData(["queue-status", merchantId], false)
         },
         onSuccess: () => {

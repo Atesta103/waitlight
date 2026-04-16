@@ -32,15 +32,17 @@ export function QueueSection({
     initialItems,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
-    // Use TanStack Query as a global state store across components to sync the queue status, without an actual HTTP fetcher
+    // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux) 
+    // to share 'isOpen' across components without an actual HTTP request.
     const { data: isOpen = initialIsOpen } = useQuery({
         queryKey: ["queue-status", merchantId],
-        queryFn: () => Promise.resolve(initialIsOpen), // Just provide a default if not already in cache
+        queryFn: () => Promise.resolve(initialIsOpen), // Fallback if not in cache
         initialData: initialIsOpen,
-        staleTime: Infinity,
+        staleTime: Infinity, // Data never goes stale, preventing auto-refetches
     })
 
-    // Live count from the queue cache (updated by QueueList's Realtime sub)
+    // TANSTACK: Fetches actual queue data. The cache key ["queue", merchantId] 
+    // allows other components to read/update this exact data.
     const { data: queueItems = initialItems } = useQuery({
         queryKey: ["queue", merchantId],
         queryFn: async () => {
@@ -54,13 +56,17 @@ export function QueueSection({
 
     const waitingCount = queueItems.filter((i) => i.status === "waiting").length
 
-    // Toggle open/close with optimistic update
+    // TANSTACK: useMutation handles data modification (POST/PUT/DELETE).
+    // We use it to trigger server actions and track loading/error states.
     const toggleMutation = useMutation({
         mutationFn: (newIsOpen: boolean) =>
             toggleQueueOpenAction({ is_open: newIsOpen }),
+        // TANSTACK: onMutate runs BEFORE the server request finishes.
+        // We do an "optimistic update" to instantly change the UI.
         onMutate: (newIsOpen) => {
             queryClient.setQueryData(["queue-status", merchantId], newIsOpen)
         },
+        // TANSTACK: If server request fails, rollback to the previous state.
         onError: (_err, newIsOpen) => {
             // Roll back on error
             queryClient.setQueryData(["queue-status", merchantId], !newIsOpen)
