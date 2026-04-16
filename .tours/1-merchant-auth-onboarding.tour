@@ -1,0 +1,43 @@
+{
+  "title": "1 - Merchant Auth and Onboarding",
+  "description": "Follow how a merchant authenticates, passes route protection, and creates the first business profile.",
+  "nextTour": "2 - Live Queue Management",
+  "steps": [
+    {
+      "title": "Auth actions validate first",
+      "file": "lib/actions/auth.ts",
+      "pattern": "LoginSchema\\.safeParse",
+      "description": "Authentication starts with strict Zod validation before any Supabase call, so invalid input is rejected early."
+    },
+    {
+      "title": "OAuth and email callback",
+      "file": "app/auth/callback/route.ts",
+      "pattern": "exchangeCodeForSession\\(code\\)",
+      "description": "After OAuth or magic-link flows, the callback exchanges the code for a session cookie and redirects to the next page."
+    },
+    {
+      "title": "Server-side route protection",
+      "file": "proxy.ts",
+      "pattern": "const isProtectedPage\\s*=",
+      "description": "The proxy guards protected areas and redirects unauthenticated users to login before pages render."
+    },
+    {
+      "title": "Onboarding server gate",
+      "file": "app/onboarding/page.tsx",
+      "pattern": "if \\(!user\\) redirect\\(\"/login\"\\)",
+      "description": "The onboarding page is a server component that requires a valid session and checks whether setup already exists."
+    },
+    {
+      "title": "Create merchant and settings",
+      "file": "lib/actions/onboarding.ts",
+      "pattern": "export async function createMerchantAction",
+      "description": "The onboarding action creates merchant and settings records with validation and safe error handling."
+    },
+    {
+      "title": "Post-onboarding billing step",
+      "file": "lib/actions/onboarding.ts",
+      "pattern": "redirect\\(\"/subscribe\"\\)",
+      "description": "After successful setup, the flow redirects to subscription before dashboard access."
+    }
+  ]
+}

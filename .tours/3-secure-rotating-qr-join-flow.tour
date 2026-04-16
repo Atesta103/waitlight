@@ -1,0 +1,43 @@
+{
+  "title": "3 - Secure Rotating QR Join Flow",
+  "description": "Walk through token rotation, token generation security, and protected queue join validation.",
+  "nextTour": "4 - Customer Wait Tracking Experience",
+  "steps": [
+    {
+      "title": "Kiosk QR display page",
+      "file": "app/(dashboard)/dashboard/qr-display/page.tsx",
+      "pattern": "<QRCodeDisplay slug=\\{merchant\\.slug\\}",
+      "description": "Merchants open the QR display page to present a rotating code customers can scan on-site."
+    },
+    {
+      "title": "Token embedded in URL",
+      "file": "components/composed/QRCodeDisplay.tsx",
+      "pattern": "const qrValue = token \\? `\\$\\{url\\}\\?t=\\$\\{token\\}` : url",
+      "description": "The QR value includes a short-lived token as a query parameter, not a static join link."
+    },
+    {
+      "title": "Automatic rotation interval",
+      "file": "components/composed/QRCodeDisplay.tsx",
+      "pattern": "setInterval\\(\\(\\) => \\{\\s*fetchToken\\(\\)",
+      "description": "A timer refreshes the token on a fixed interval so old QR snapshots quickly become unusable."
+    },
+    {
+      "title": "HMAC-signed nonce generation",
+      "file": "lib/actions/qr.ts",
+      "pattern": "crypto\\.subtle\\.sign\\(\"HMAC\"",
+      "description": "The server action signs token material with HMAC to generate high-entropy one-time nonces."
+    },
+    {
+      "title": "Token generation rate limit",
+      "file": "lib/actions/qr.ts",
+      "pattern": "QR_MAX_TOKENS_PER_MINUTE",
+      "description": "Generation is rate-limited per merchant to reduce abuse and protect backend resources."
+    },
+    {
+      "title": "Join uses token validation RPC",
+      "file": "lib/actions/queue.ts",
+      "pattern": "validate_qr_token",
+      "description": "When customers join, the server validates and consumes the token through an RPC before creating a ticket."
+    }
+  ]
+}
