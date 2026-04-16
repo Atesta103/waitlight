@@ -18,6 +18,16 @@ import { EmptyState } from "@/components/composed/EmptyState"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { getAnalyticsAction, type AnalyticsRow, type DateRangeInput } from "@/lib/actions/analytics"
 import { fadeIn } from "@/lib/utils/motion"
+import {
+    DAY_LABELS,
+    DAY_LABELS_FULL,
+    HOURS,
+    buildRushCurveData,
+    buildCsvContent,
+    computeTotalTickets,
+    computeAvgWait,
+    computeBusiestSlot,
+} from "@/lib/utils/analytics"
 
 // ─── Date range presets ───────────────────────────────────────────────────────
 
@@ -49,18 +59,6 @@ function buildPresets(): RangePreset[] {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
-const DAY_LABELS_FULL = [
-    "Dimanche",
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
-]
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
 
 // Brand primary colour reused for chart fills
 const COLOR_PRIMARY = "var(--color-brand-primary)"
@@ -228,23 +226,11 @@ type RushCurveProps = {
 }
 
 function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
-    const dayRows = useMemo(() => {
-        const byHour = new Map<number, AnalyticsRow>()
-        for (const r of rows.filter((r) => r.day_of_week === selectedDay)) {
-            byHour.set(r.hour, r)
-        }
-        // Fill missing hours with 0 so the curve is unbroken
-        return HOURS.map((h) => {
-            const r = byHour.get(h)
-            return {
-                hour: h,
-                label: `${DAY_LABELS_FULL[selectedDay]} ${h}h`,
-                ticket_count: r?.ticket_count ?? 0,
-                avg_wait_minutes: r?.avg_wait_minutes ?? null,
-                day_of_week: selectedDay,
-            }
-        })
-    }, [rows, selectedDay])
+    // Fill missing hours with 0 so the curve is unbroken
+    const dayRows = useMemo(
+        () => buildRushCurveData(rows, selectedDay),
+        [rows, selectedDay],
+    )
 
     return (
         <div>
@@ -318,14 +304,7 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
 function exportCsv(rows: AnalyticsRow[]) {
     // \uFEFF is the UTF-8 BOM, required for Excel to recognize UTF-8 accents automatically.
     // Using semicolon separator is standard for French locales in Excel.
-    const header = "jour_semaine;heure;tickets;attente_moy_min\n"
-    const body = rows
-        .map(
-            (r) =>
-                `${DAY_LABELS_FULL[r.day_of_week]};${r.hour};${r.ticket_count};${r.avg_wait_minutes ?? ""}`,
-        )
-        .join("\n")
-    const blob = new Blob(["\uFEFF" + header + body], { type: "text/csv;charset=utf-8;" })
+    const blob = new Blob([buildCsvContent(rows)], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
@@ -544,28 +523,9 @@ function AnalyticsSummary({
     rows: AnalyticsRow[]
     maxCount: number
 }) {
-    const totalTickets = useMemo(
-        () => rows.reduce((acc, r) => acc + r.ticket_count, 0),
-        [rows],
-    )
-
-    const avgWait = useMemo(() => {
-        const withWait = rows.filter((r) => r.avg_wait_minutes != null)
-        if (withWait.length === 0) return null
-        const total = withWait.reduce(
-            (acc, r) => acc + (r.avg_wait_minutes ?? 0),
-            0,
-        )
-        return Math.round(total / withWait.length)
-    }, [rows])
-
-    const busiestSlot = useMemo(() => {
-        if (rows.length === 0) return null
-        const peak = rows.reduce((a, b) =>
-            a.ticket_count >= b.ticket_count ? a : b,
-        )
-        return `${DAY_LABELS_FULL[peak.day_of_week]} ${peak.hour}h`
-    }, [rows])
+    const totalTickets = useMemo(() => computeTotalTickets(rows), [rows])
+    const avgWait = useMemo(() => computeAvgWait(rows), [rows])
+    const busiestSlot = useMemo(() => computeBusiestSlot(rows), [rows])
 
     const stats = [
         {
