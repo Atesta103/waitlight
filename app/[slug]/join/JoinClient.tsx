@@ -13,6 +13,7 @@ type Merchant = {
     name: string
     slug: string
     is_open: boolean
+    logo_url: string | null
 }
 
 type Settings = {
@@ -131,13 +132,24 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
         <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary/10">
-                    <Store
-                        size={28}
-                        className="text-brand-primary"
-                        aria-hidden="true"
-                    />
-                </div>
+                {merchant.logo_url ? (
+                    <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={merchant.logo_url}
+                            alt={`Logo de ${merchant.name}`}
+                            className="h-16 w-16 rounded-2xl object-cover shadow-sm bg-surface-base"
+                        />
+                    </>
+                ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary/10">
+                        <Store
+                            size={28}
+                            className="text-brand-primary"
+                            aria-hidden="true"
+                        />
+                    </div>
+                )}
                 <div className="flex flex-col gap-1.5">
                     <h1 className="text-xl font-bold text-text-primary">
                         {merchant.name}

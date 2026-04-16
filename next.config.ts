@@ -20,7 +20,7 @@ const securityHeaders = [
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval required for dev mode / Next.js app router client code
             "style-src 'self' 'unsafe-inline'",
             `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "*"} wss://*.supabase.co https://*.supabase.co`,
-            "img-src 'self' data: blob:",
+            `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://*.supabase.co"}`,
             "font-src 'self' data:",
             "frame-ancestors 'none'",
         ].join("; "),
@@ -28,6 +28,14 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+    images: {
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "*.supabase.co",
+            },
+        ],
+    },
     allowedDevOrigins: [
         "10.15.4.159",
         "*.ngrok-free.dev",
