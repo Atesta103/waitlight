@@ -1,0 +1,37 @@
+{
+  "title": "2 - Live Queue Management",
+  "description": "See how the dashboard hydrates queue data, updates optimistically, and stays synchronized in realtime.",
+  "nextTour": "3 - Secure Rotating QR Join Flow",
+  "steps": [
+    {
+      "title": "Server-side initial queue fetch",
+      "file": "app/(dashboard)/dashboard/page.tsx",
+      "pattern": "const queueResult = await getQueueAction\\(\\)",
+      "description": "The dashboard server component fetches the initial queue and sends it to the client section for instant first render."
+    },
+    {
+      "title": "Query cache key by merchant",
+      "file": "components/sections/QueueList.tsx",
+      "pattern": "queryKey:\\s*\\[\"queue\",\\s*merchantId\\]",
+      "description": "Queue data is cached by merchant-specific query keys to keep state scoped and predictable."
+    },
+    {
+      "title": "Realtime channel is scoped",
+      "file": "components/sections/QueueList.tsx",
+      "pattern": "channel\\(`queue:\\$\\{merchantId\\}`\\)",
+      "description": "Realtime listens on a merchant-scoped channel, then invalidates the query when inserts or updates arrive."
+    },
+    {
+      "title": "Optimistic queue actions",
+      "file": "components/sections/QueueList.tsx",
+      "pattern": "const callMutation = useMutation",
+      "description": "Call, complete, and cancel actions update the UI optimistically and rollback if the server mutation fails."
+    },
+    {
+      "title": "Ownership enforced in mutations",
+      "file": "lib/actions/queue.ts",
+      "pattern": "\\.eq\\(\"merchant_id\",\\s*user\\.id\\)",
+      "description": "Server actions always bind updates to the authenticated merchant, adding an ownership check before writes."
+    }
+  ]
+}

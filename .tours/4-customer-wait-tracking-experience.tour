@@ -1,0 +1,37 @@
+{
+  "title": "4 - Customer Wait Tracking Experience",
+  "description": "Understand how ticket status, position, and live updates are delivered on the customer wait page.",
+  "nextTour": "5 - Subscription and Stripe Webhooks",
+  "steps": [
+    {
+      "title": "Ticket id is validated on server",
+      "file": "app/[slug]/wait/[ticketId]/page.tsx",
+      "pattern": "z\\.string\\(\\)\\.uuid\\(\\)\\.safeParse\\(ticketId\\)",
+      "description": "The wait route validates the ticket id format before querying, avoiding invalid database calls."
+    },
+    {
+      "title": "Ticket query state",
+      "file": "app/[slug]/wait/[ticketId]/WaitClient.tsx",
+      "pattern": "queryKey:\\s*\\[\"ticket\",\\s*ticketId\\]",
+      "description": "The client loads the ticket with TanStack Query to manage loading, errors, and cache refreshes."
+    },
+    {
+      "title": "Position via RPC",
+      "file": "app/[slug]/wait/[ticketId]/WaitClient.tsx",
+      "pattern": "rpc\\(\"get_position\"",
+      "description": "Queue position is computed with the get_position RPC, not by counting rows in the browser."
+    },
+    {
+      "title": "Merchant-scoped realtime updates",
+      "file": "app/[slug]/wait/[ticketId]/WaitClient.tsx",
+      "pattern": "filter:\\s*`merchant_id=eq\\.\\$\\{merchant\\.id\\}`",
+      "description": "Realtime updates are filtered by merchant id, then both ticket and position queries are invalidated."
+    },
+    {
+      "title": "Status-driven customer UI",
+      "file": "components/sections/CustomerWaitView.tsx",
+      "pattern": "status === \"called\"",
+      "description": "The wait screen renders different banners and actions depending on waiting, called, done, or cancelled status."
+    }
+  ]
+}
