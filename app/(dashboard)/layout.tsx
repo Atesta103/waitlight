@@ -10,7 +10,7 @@ import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
 import { LayoutDashboard, BarChart2 } from "lucide-react"
 
 type DashboardLayoutProps = {
-    children: ReactNode
+  children: ReactNode
 }
 
 /**
@@ -19,174 +19,172 @@ type DashboardLayoutProps = {
  * Wraps children with TanStack Query QueryClientProvider.
  */
 export default async function DashboardLayout({
-    children,
+  children,
 }: DashboardLayoutProps) {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect("/login")
-    }
+  if (!user) {
+    redirect("/login")
+  }
 
-    // Check merchant profile exists — redirect to onboarding if not.
-    const { data: merchant, error } = await supabase
-        .from("merchants")
-        .select("id, name, slug, is_open, bypass_paywall, brand_color, font_family, border_radius")
-        .eq("id", user!.id)
-        .maybeSingle()
-
-    if (error) {
-        console.error("Layout merchant fetch error:", error)
-        // Throwing here breaks an otherwise silent infinite redirect loop
-        // with /onboarding if columns are missing (e.g. bypass_paywall)
-        throw new Error("Failed to load merchant profile: " + error.message)
-    }
-
-    if (!merchant) {
-        redirect("/onboarding")
-    }
-
-    // Subscription gate — must have an active or trialing subscription, OR bypass flag.
-    if (!merchant.bypass_paywall) {
-        const { data: subscriptionRaw } = await supabase
-            .from("subscriptions")
-            .select("status")
-            .eq("merchant_id", user.id)
-            .maybeSingle()
-
-        const subscription = subscriptionRaw as { status: string } | null
-
-        if (!subscription || !isActiveStatus(subscription.status)) {
-            redirect("/subscribe")
-        }
-    }
-
-    const defaultColor = "#4F46E5"
-    let brandColor = defaultColor
-    let contrastColor = "#FFFFFF"
-
-    if (merchant.brand_color && isValidHexCode(merchant.brand_color)) {
-        brandColor = merchant.brand_color
-        contrastColor = getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
-    }
-    
-    const fontFamily = merchant.font_family || "Inter"
-    const borderRadius = merchant.border_radius || "0.5rem"
-
-    return (
-        <QueryProvider>
-            <div 
-                id="dashboard-root"
-                className="min-h-screen bg-surface-base"
-                style={{
-                    fontFamily: `var(--font-brand)`,
-                    "--color-brand-primary": brandColor,
-                    "--color-brand-primary-hover": brandColor,
-                    "--color-border-focus": brandColor,
-                    "--color-text-on-primary": contrastColor,
-                    "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
-                    "--radius-brand": borderRadius,
-                    "--radius-sm": borderRadius,
-                    "--radius-md": borderRadius,
-                    "--radius-lg": borderRadius,
-                    "--radius-xl": borderRadius,
-                    "--radius-2xl": borderRadius,
-                } as React.CSSProperties}
-            >
-                <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
-                    <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
-                        <div className="flex items-center gap-2 md:hidden">
-                            <nav
-                                aria-label="Navigation du tableau de bord"
-                                className="flex items-center gap-1"
-                            >
-                                <Link
-                                    href="/dashboard"
-                                    className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                    aria-label="File d'attente"
-                                >
-                                    <LayoutDashboard size={18} aria-hidden="true" />
-                                </Link>
-                                <Link
-                                    href="/analytics"
-                                    className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                    aria-label="Analytiques"
-                                >
-                                    <BarChart2 size={18} aria-hidden="true" />
-                                </Link>
-                            </nav>
-
-                            <div className="min-w-0 flex-1">
-                                <HeaderQueueControl
-                                    initialIsOpen={merchant.is_open}
-                                    merchantSlug={merchant.slug}
-                                    merchantId={merchant.id}
-                                    mode="mobile"
-                                />
-                            </div>
-
-                            <div className="shrink-0">
-                                <UserMenu
-                                    name={merchant.name}
-                                    dropdownSide="top"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="hidden items-center gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
-                            {/* Left — nav */}
-                            <nav aria-label="Navigation du tableau de bord">
-                                <ul className="m-0 flex list-none items-center gap-0.5 p-0">
-                                    <li>
-                                        <Link
-                                            href="/dashboard"
-                                            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                        >
-                                            <LayoutDashboard
-                                                size={16}
-                                                aria-hidden="true"
-                                            />
-                                            <span className="hidden sm:inline">
-                                                File d&apos;attente
-                                            </span>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            href="/analytics"
-                                            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                                        >
-                                            <BarChart2
-                                                size={16}
-                                                aria-hidden="true"
-                                            />
-                                            <span className="hidden sm:inline">
-                                                Analytiques
-                                            </span>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </nav>
-
-                            <HeaderQueueControl
-                                initialIsOpen={merchant.is_open}
-                                merchantSlug={merchant.slug}
-                                merchantId={merchant.id}
-                            />
-
-                            {/* Right — user menu */}
-                            <div className="flex justify-end">
-                                <UserMenu name={merchant.name} />
-                            </div>
-                        </div>
-                    </div>
-                </header>
-                <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8">
-                    {children}
-                </main>
-            </div>
-        </QueryProvider>
+  // Check merchant profile exists — redirect to onboarding if not.
+  const { data: merchant, error } = await supabase
+    .from("merchants")
+    .select(
+      "id, name, slug, logo_url, is_open, bypass_paywall, brand_color, font_family, border_radius",
     )
+    .eq("id", user!.id)
+    .maybeSingle()
+
+  if (error) {
+    console.error("Layout merchant fetch error:", error)
+    // Throwing here breaks an otherwise silent infinite redirect loop
+    // with /onboarding if columns are missing (e.g. bypass_paywall)
+    throw new Error("Failed to load merchant profile: " + error.message)
+  }
+
+  if (!merchant) {
+    redirect("/onboarding")
+  }
+
+  // Subscription gate — must have an active or trialing subscription, OR bypass flag.
+  if (!merchant.bypass_paywall) {
+    const { data: subscriptionRaw } = await supabase
+      .from("subscriptions")
+      .select("status")
+      .eq("merchant_id", user.id)
+      .maybeSingle()
+
+    const subscription = subscriptionRaw as { status: string } | null
+
+    if (!subscription || !isActiveStatus(subscription.status)) {
+      redirect("/subscribe")
+    }
+  }
+
+  const defaultColor = "#4F46E5"
+  let brandColor = defaultColor
+  let contrastColor = "#FFFFFF"
+
+  if (merchant.brand_color && isValidHexCode(merchant.brand_color)) {
+    brandColor = merchant.brand_color
+    contrastColor =
+      getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
+  }
+
+  const fontFamily = merchant.font_family || "Inter"
+  const borderRadius = merchant.border_radius || "0.5rem"
+
+  return (
+    <QueryProvider>
+      <div
+        id="dashboard-root"
+        className="min-h-screen bg-surface-base"
+        style={
+          {
+            fontFamily: `var(--font-brand)`,
+            "--color-brand-primary": brandColor,
+            "--color-brand-primary-hover": brandColor,
+            "--color-border-focus": brandColor,
+            "--color-text-on-primary": contrastColor,
+            "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
+            "--radius-brand": borderRadius,
+            "--radius-sm": borderRadius,
+            "--radius-md": borderRadius,
+            "--radius-lg": borderRadius,
+            "--radius-xl": borderRadius,
+            "--radius-2xl": borderRadius,
+          } as React.CSSProperties
+        }
+      >
+        <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+          <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
+            <div className="flex items-center gap-2 md:hidden">
+              <nav
+                aria-label="Navigation du tableau de bord"
+                className="flex items-center gap-1"
+              >
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                  aria-label="File d'attente"
+                >
+                  <LayoutDashboard size={18} aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/analytics"
+                  className="inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                  aria-label="Analytiques"
+                >
+                  <BarChart2 size={18} aria-hidden="true" />
+                </Link>
+              </nav>
+
+              <div className="min-w-0 flex-1">
+                <HeaderQueueControl
+                  initialIsOpen={merchant.is_open}
+                  merchantSlug={merchant.slug}
+                  merchantId={merchant.id}
+                  mode="mobile"
+                />
+              </div>
+
+              <div className="shrink-0">
+                <UserMenu
+                  name={merchant.name}
+                  imageUrl={merchant.logo_url}
+                  dropdownSide="top"
+                />
+              </div>
+            </div>
+
+            <div className="hidden items-center gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
+              {/* Left — nav */}
+              <nav aria-label="Navigation du tableau de bord">
+                <ul className="m-0 flex list-none items-center gap-0.5 p-0">
+                  <li>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                    >
+                      <LayoutDashboard size={16} aria-hidden="true" />
+                      <span className="hidden sm:inline">
+                        File d&apos;attente
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/analytics"
+                      className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-base hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                    >
+                      <BarChart2 size={16} aria-hidden="true" />
+                      <span className="hidden sm:inline">Analytiques</span>
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+
+              <HeaderQueueControl
+                initialIsOpen={merchant.is_open}
+                merchantSlug={merchant.slug}
+                merchantId={merchant.id}
+              />
+
+              {/* Right — user menu */}
+              <div className="flex justify-end">
+                <UserMenu name={merchant.name} imageUrl={merchant.logo_url} />
+              </div>
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8">
+          {children}
+        </main>
+      </div>
+    </QueryProvider>
+  )
 }
