@@ -1,8 +1,59 @@
 import Link from "next/link"
 import { ArrowRight, CheckCircle, Clock, BellRing, ChevronUp } from "lucide-react"
 
+export function MerchantDashboardMockup() {
+    return (
+        <div className="w-[320px] sm:w-[380px] lg:w-[460px] rounded-[1.3rem] border border-[#E5E7EB] bg-white p-3 shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)]">
+            <div className="rounded-[1rem] border border-[#E5E7EB] bg-[#F8F9FA] p-3">
+                <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+                    <div>
+                        <p className="text-[10px] uppercase tracking-wider text-[#6B7280]">Dashboard marchand</p>
+                        <p className="text-sm font-bold text-[#111827]">Le Bistrot du Coin</p>
+                    </div>
+                    <span className="rounded-full bg-[#DCFCE7] px-2 py-1 text-[10px] font-semibold text-[#15803D]">
+                        Ouvert
+                    </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-white p-2.5 border border-[#E5E7EB]">
+                        <p className="text-[10px] text-[#6B7280]">En attente</p>
+                        <p className="mt-1 text-lg font-black text-[#111827]">18</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-2.5 border border-[#E5E7EB]">
+                        <p className="text-[10px] text-[#6B7280]">Temps moyen</p>
+                        <p className="mt-1 text-lg font-black text-[#111827]">07m</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-2.5 border border-[#E5E7EB]">
+                        <p className="text-[10px] text-[#6B7280]">Servis aujourd&apos;hui</p>
+                        <p className="mt-1 text-lg font-black text-[#111827]">126</p>
+                    </div>
+                </div>
+
+                <div className="mt-3 rounded-lg bg-white p-2.5 border border-[#E5E7EB]">
+                    <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-semibold text-[#111827]">Affluence par heure</p>
+                        <p className="text-[10px] text-[#6366F1] font-semibold">Pic: 12h-14h</p>
+                    </div>
+                    <div className="mt-3 flex items-end gap-1.5 h-16">
+                        {[12, 26, 35, 52, 58, 46, 33, 20].map((value, index) => (
+                            <div key={index} className="flex-1 rounded-t bg-[#6366F1]/85" style={{ height: `${value}%` }} aria-hidden="true" />
+                        ))}
+                    </div>
+                    <div className="mt-1 flex justify-between text-[9px] text-[#6B7280]">
+                        <span>10h</span>
+                        <span>12h</span>
+                        <span>14h</span>
+                        <span>16h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 /** Faithful phone mockup of the real /[slug]/wait/[ticketId] customer page */
-function PhoneMockup() {
+export function PhoneMockup({ showNotification = true }: { showNotification?: boolean } = {}) {
     return (
         <div className="relative">
             {/* Phone frame */}
@@ -104,17 +155,111 @@ function PhoneMockup() {
                     </div>
                 </div>
 
-                {/* Floating notification bubble */}
-                <div className="absolute -right-6 top-24 bg-white rounded-2xl shadow-lg border border-[#E5E7EB] px-3 py-2 flex items-start gap-2 w-44">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-[#6366F1] flex items-center justify-center mt-0.5">
-                        <BellRing size={12} className="text-white" aria-hidden="true" />
+                {/* Floating notification bubble — left side so it doesn't obscure the dashboard */}
+                {showNotification && (
+                    <div className="absolute -left-2 top-20 bg-white rounded-2xl shadow-lg border border-[#E5E7EB] px-2.5 py-1.5 flex items-start gap-1.5 w-36 z-10">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-md bg-[#6366F1] flex items-center justify-center mt-0.5">
+                            <BellRing size={10} className="text-white" aria-hidden="true" />
+                        </div>
+                        <div>
+                            <div className="text-[8px] font-bold text-[#111827]">C&apos;est votre tour !</div>
+                            <div className="text-[7px] text-[#6B7280]">Le Bistrot du Coin</div>
+                        </div>
                     </div>
-                    <div>
-                        <div className="text-[9px] font-bold text-[#111827]">C&apos;est votre tour !</div>
-                        <div className="text-[8px] text-[#6B7280]">Le Bistrot du Coin</div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+/** The raw UI of the customer view without the phone frame, for compact layout */
+export function ClientWidgetMockup({ showNotification = true }: { showNotification?: boolean } = {}) {
+    return (
+        <div className="relative w-[320px] sm:w-[380px] bg-white rounded-[1.3rem] shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)] border border-[#E5E7EB] overflow-hidden">
+            {/* App header */}
+            <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
+                <div className="text-[10px] font-bold text-[#111827] uppercase tracking-widest text-center">Le Bistrot du Coin</div>
+            </div>
+
+            {/* Content area */}
+            <div className="flex flex-col gap-3 px-4 py-4 bg-[#F8F9FA]">
+                {/* Ticket header */}
+                <div className="bg-white rounded-2xl px-3 py-3 shadow-sm border border-[#E5E7EB] text-center">
+                    <div className="text-[10px] text-[#6B7280] uppercase tracking-widest mb-1">Votre numéro</div>
+                    <div className="text-4xl font-black text-[#111827] leading-none">42</div>
+                    <div className="text-[10px] text-[#6B7280] mt-1 font-medium">Thomas D.</div>
+                </div>
+
+                {/* Queue position row */}
+                <div className="bg-white rounded-2xl px-3 py-3 shadow-sm border border-[#E5E7EB]">
+                    <div className="flex items-center gap-4">
+                        {/* Rail dots */}
+                        <div className="flex flex-col items-center gap-1.5">
+                            {[0, 1, 2].map((i) => (
+                                <span key={i} className="block w-2 h-2 rounded-full bg-[#D1D5DB]" aria-hidden="true" />
+                            ))}
+                            <span className="relative block w-4 h-4 rounded-full bg-[#6366F1]" aria-hidden="true">
+                                <span className="absolute inset-0 rounded-full bg-[#6366F1]/40 animate-ping" />
+                            </span>
+                            {[0, 1].map((i) => (
+                                <span key={i} className="block w-1.5 h-1.5 rounded-full bg-[#E5E7EB]" aria-hidden="true" />
+                            ))}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex flex-col gap-1">
+                            <div className="text-3xl font-black text-[#111827] leading-none">3</div>
+                            <div className="text-[10px] text-[#6B7280] font-medium">3 personnes devant vous</div>
+                            
+                            <div className="flex items-center gap-1.5 mt-1">
+                                {/* Time pill */}
+                                <div className="flex items-center gap-1 bg-[#F3F4F6] rounded-md px-2 py-1 w-fit">
+                                    <Clock size={10} className="text-[#6B7280]" aria-hidden="true" />
+                                    <span className="text-[9px] text-[#6B7280] font-bold">~8 min</span>
+                                </div>
+                                {/* ETA pill */}
+                                <div className="flex items-center gap-1 bg-[#EEF2FF] rounded-md px-2 py-1 w-fit">
+                                    <span className="text-[9px] text-[#6366F1] font-bold">Votre tour vers 14:32</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* "Advance" badge */}
+                <div className="flex items-center gap-1.5 bg-[#D1FAE5] rounded-full px-3 py-1.5 w-fit self-center my-1 shadow-sm border border-[#A7F3D0]">
+                    <ChevronUp size={12} className="text-[#10B981]" aria-hidden="true" />
+                    <span className="text-[9px] font-bold text-[#10B981] uppercase tracking-wide">vous avancez !</span>
+                </div>
+
+                {/* Mini games teaser */}
+                <div className="bg-white rounded-2xl px-3 py-3 shadow-sm border border-[#E5E7EB]">
+                    <div className="text-[10px] font-bold text-[#111827] mb-2 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#6366F1]" aria-hidden="true" />
+                        Patientez en jouant
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="bg-[#EEF2FF] rounded-lg px-3 py-1.5 text-[9px] text-[#6366F1] font-bold">Snake</div>
+                        <div className="bg-[#EEF2FF] rounded-lg px-3 py-1.5 text-[9px] text-[#6366F1] font-bold">2048</div>
                     </div>
                 </div>
             </div>
+
+            {/* Notification overlay */}
+            {showNotification && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-[#E5E7EB] text-center w-full max-w-[280px]">
+                        <div className="w-14 h-14 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner shadow-white/20">
+                            <BellRing size={28} className="text-white" />
+                        </div>
+                        <h3 className="text-lg font-black text-[#111827] mb-1">C&apos;est votre tour !</h3>
+                        <p className="text-xs text-[#6B7280] mb-5">Veuillez vous présenter au comptoir.</p>
+                        <button className="w-full bg-[#111827] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-[#374151] transition-colors">
+                            J&apos;arrive
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -169,7 +314,7 @@ export function HeroSection({ id }: { id?: string }) {
                         {/* Sub-headline */}
                         <p className="text-base md:text-lg text-[#374151] leading-relaxed max-w-md">
                             Vos clients scannent un QR Code, patientent librement et reçoivent
-                            une alerte dès que c&apos;est leur tour.
+                            un rappel dès que c&apos;est leur tour.
                             <br />
                             <strong className="text-[#111827]">Zéro installation. Zéro bipeur.</strong>
                         </p>
@@ -212,9 +357,16 @@ export function HeroSection({ id }: { id?: string }) {
                         </ul>
                     </div>
 
-                    {/* ── Right: phone mockup ── */}
+                    {/* ── Right: phone + dashboard mockups ── */}
                     <div className="flex justify-center lg:justify-end">
-                        <PhoneMockup />
+                        <div className="relative w-full max-w-[500px] min-h-[520px] sm:min-h-[560px]">
+                            <div className="absolute right-0 top-8">
+                                <MerchantDashboardMockup />
+                            </div>
+                            <div className="absolute left-0 bottom-0 sm:left-2">
+                                <PhoneMockup />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

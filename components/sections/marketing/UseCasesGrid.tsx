@@ -1,52 +1,99 @@
+import Image from "next/image"
 import { Utensils, Stethoscope, ShoppingBag, FerrisWheel } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 type UseCase = {
-    Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: string }>
+    Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
+    id: string
     sector: string
     title: string
+    subtitle: string
     problem: string
     solution: string
-    color: string
-    bgColor: string
+    valueProp: string
+    imageSrc: string
+    bullets: string[]
+    iconClass: string
+    iconBgClass: string
+    badgeClass: string
 }
 
 const USE_CASES: UseCase[] = [
     {
         Icon: Utensils,
+        id: "restaurants",
         sector: "Restauration",
-        title: "Food trucks, bistrots & fast food",
+        title: "Food trucks, bistrots et restauration rapide",
+        subtitle: "Fluidifier le rush du midi sans casser le rythme de service.",
         problem: "Des clients amassés devant le comptoir, des bipeurs coûteux qui se perdent.",
-        solution: "Le client passe commande, scanne, et s'assied. Son téléphone vibre quand son plat chaud est prêt.",
-        color: "#F59E0B",
-        bgColor: "#FFFBEB",
+        solution: "Le client passe commande, scanne, puis reçoit un rappel navigateur quand son plat est prêt.",
+        valueProp: "Vous réduisez l'encombrement du comptoir et gardez une file lisible même aux pics.",
+        imageSrc: "/marketing/usecase-restaurant.png",
+        bullets: [
+            "Scan en 2 secondes apres la commande",
+            "Rappel discret quand le ticket arrive en tete",
+            "Equipe concentree sur la production, pas sur l'appel manuel",
+        ],
+        iconClass: "text-[#D97706]",
+        iconBgClass: "bg-[#FFFBEB]",
+        badgeClass: "text-[#D97706]",
     },
     {
         Icon: Stethoscope,
+        id: "health",
         sector: "Santé",
-        title: "Médecins, cliniques & urgences",
+        title: "Medecins, cliniques et centres de soins",
+        subtitle: "Rendre l'attente plus sereine pour les patients et l'accueil.",
         problem: "Salles d'attente bondées, anxiogènes et propices à la propagation de virus.",
-        solution: "Le patient s'enregistre, scanne et patiente dans sa voiture. Il reçoit une alerte quand le médecin est prêt.",
-        color: "#10B981",
-        bgColor: "#ECFDF5",
+        solution: "Le patient s'enregistre, suit sa position et recoit un rappel quand le praticien est pret.",
+        valueProp: "Vous lissez les flux d'arrivee et reduisez la sensation d'attente subie.",
+        imageSrc: "/marketing/usecase-health.png",
+        bullets: [
+            "Moins de densite dans les zones d'attente",
+            "Information claire sur l'avancement de la file",
+            "Experience plus calme des heures de pointe",
+        ],
+        iconClass: "text-[#059669]",
+        iconBgClass: "bg-[#ECFDF5]",
+        badgeClass: "text-[#059669]",
     },
     {
         Icon: ShoppingBag,
+        id: "retail-sav",
         sector: "Retail & Administrations",
-        title: "SAV, préfectures & boutiques",
+        title: "SAV, boutiques et points de service",
+        subtitle: "Eviter l'abandon de file et garder les clients actifs pendant l'attente.",
         problem: "Plus de 45 minutes d'attente debout. Perte d'opportunités d'achat.",
         solution: "Ticket digital → shopping libre → notification dès qu'un conseiller est disponible.",
-        color: "#6366F1",
-        bgColor: "#EEF2FF",
+        valueProp: "Vous captez plus de passages finalises et limitez la frustration en magasin.",
+        imageSrc: "/marketing/usecase-retail.png",
+        bullets: [
+            "Retour en file au bon moment sans refaire la queue",
+            "Visibilite des pics par tranche horaire",
+            "Meilleur taux de prise en charge au comptoir SAV",
+        ],
+        iconClass: "text-[#4F46E5]",
+        iconBgClass: "bg-[#EEF2FF]",
+        badgeClass: "text-[#4F46E5]",
     },
     {
         Icon: FerrisWheel,
+        id: "event",
         sector: "Événementiel & Loisirs",
         title: "Parcs d'attractions & festivals",
+        subtitle: "Maintenir des flux fluides sur site meme en forte affluence.",
         problem: "Files interminables pour les attractions phares ou les food-trucks du festival.",
         solution: "File virtuelle + mini-jeux intégrés (Snake, 2048) pour transformer l'attente en moment ludique.",
-        color: "#EC4899",
-        bgColor: "#FDF2F8",
+        valueProp: "Vous augmentez le confort visiteur tout en preservant la circulation globale.",
+        imageSrc: "/marketing/usecase-event.png",
+        bullets: [
+            "Files virtuelles sur plusieurs stands en parallele",
+            "Rappels envoyes au bon timing pour limiter les attroupements",
+            "Attente percue plus courte grace a une meilleure information",
+        ],
+        iconClass: "text-[#DB2777]",
+        iconBgClass: "bg-[#FDF2F8]",
+        badgeClass: "text-[#DB2777]",
     },
 ]
 
@@ -80,60 +127,76 @@ export function UseCasesGrid({ id }: { id?: string }) {
                     </p>
                 </div>
 
-                {/* Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {USE_CASES.map((uc) => (
-                        <div
-                            key={uc.sector}
-                            className="rounded-3xl border border-[#E5E7EB] bg-white p-8 flex flex-col gap-5"
+                <div className="space-y-8">
+                    {USE_CASES.map((uc, index) => (
+                        <article
+                            key={uc.id}
+                            id={uc.id}
+                            className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8"
                         >
-                            {/* Icon + sector label */}
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                                    style={{ backgroundColor: uc.bgColor }}
-                                >
-                                    <uc.Icon size={22} style={{ color: uc.color }} aria-hidden="true" />
+                            <div
+                                className={cn(
+                                    "grid gap-6 lg:gap-10",
+                                    index % 2 === 0 ? "lg:grid-cols-[1fr_1.05fr]" : "lg:grid-cols-[1.05fr_1fr]",
+                                )}
+                            >
+                                <div className={cn(index % 2 !== 0 && "lg:order-2")}>
+                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
+                                        <Image
+                                            src={uc.imageSrc}
+                                            alt={`Illustration humaine pour ${uc.sector}`}
+                                            width={720}
+                                            height={420}
+                                            className="h-auto w-full"
+                                        />
+                                    </div>
                                 </div>
-                                <span
-                                    className="text-xs font-bold uppercase tracking-wider"
-                                    style={{ color: uc.color }}
-                                >
-                                    {uc.sector}
-                                </span>
-                            </div>
 
-                            {/* Title */}
-                            <h3 className="text-lg font-black text-[#111827] tracking-tight leading-snug">
-                                {uc.title}
-                            </h3>
+                                <div className={cn("flex flex-col", index % 2 !== 0 && "lg:order-1")}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", uc.iconBgClass)}>
+                                            <uc.Icon size={22} className={uc.iconClass} aria-hidden={true} />
+                                        </div>
+                                        <span className={cn("text-xs font-bold uppercase tracking-wider", uc.badgeClass)}>
+                                            {uc.sector}
+                                        </span>
+                                    </div>
 
-                            {/* Problem / Solution */}
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-start gap-2.5">
-                                    <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-[#FEE2E2] flex items-center justify-center">
-                                        <svg className="w-3 h-3 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </span>
-                                    <p className="text-sm text-[#374151] leading-relaxed">
-                                        <span className="font-semibold text-[#111827]">Problème : </span>
-                                        {uc.problem}
+                                    <h3 className="mt-4 text-2xl font-black text-[#111827] tracking-tight leading-snug">
+                                        {uc.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm text-[#374151] leading-relaxed">{uc.subtitle}</p>
+
+                                    <div className="mt-5 rounded-xl bg-[#F8F9FA] p-4">
+                                        <p className="text-sm text-[#374151] leading-relaxed">
+                                            <span className="font-semibold text-[#111827]">Problème : </span>
+                                            {uc.problem}
+                                        </p>
+                                        <p className="mt-2 text-sm text-[#374151] leading-relaxed">
+                                            <span className="font-semibold text-[#111827]">Solution Wait-Light : </span>
+                                            {uc.solution}
+                                        </p>
+                                    </div>
+
+                                    <ul className="mt-4 space-y-2">
+                                        {uc.bullets.map((bullet) => (
+                                            <li key={bullet} className="flex items-start gap-2.5 text-sm text-[#374151]">
+                                                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-[#EEF2FF] flex items-center justify-center">
+                                                    <svg className="w-3 h-3 text-[#4F46E5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </span>
+                                                {bullet}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <p className="mt-4 rounded-xl bg-[#EEF2FF] px-4 py-3 text-sm font-medium text-[#4338CA]">
+                                        {uc.valueProp}
                                     </p>
                                 </div>
-                                <div className="flex items-start gap-2.5">
-                                    <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-[#D1FAE5] flex items-center justify-center">
-                                        <svg className="w-3 h-3 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </span>
-                                    <p className="text-sm text-[#374151] leading-relaxed">
-                                        <span className="font-semibold text-[#111827]">Solution : </span>
-                                        {uc.solution}
-                                    </p>
-                                </div>
                             </div>
-                        </div>
+                        </article>
                     ))}
                 </div>
             </div>

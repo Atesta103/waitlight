@@ -1,9 +1,10 @@
+import Link from "next/link"
 import { cn } from "@/lib/utils/cn"
 import { QrCode, Timer, Bell, ArrowRight } from "lucide-react"
 
 type Step = {
     number: string
-    Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: string }>
+    Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
     title: string
     description: string
 }
@@ -25,7 +26,7 @@ const STEPS: Step[] = [
         number: "03",
         Icon: Bell,
         title: "Récupération",
-        description: "Son téléphone vibre dès que c'est son tour. Il revient récupérer commande ou passer à son rendez-vous.",
+        description: "Son navigateur envoie un rappel quand c'est son tour. Il revient récupérer sa commande ou passer à son rendez-vous.",
     },
 ]
 
@@ -85,7 +86,7 @@ export function StepsHowItWorks({ id }: { id?: string }) {
 
                                 {/* Icon circle */}
                                 <div className="relative z-10 flex-shrink-0 w-24 h-24 rounded-full bg-[#EEF2FF] border-2 border-[#C7D2FE] flex items-center justify-center mb-6">
-                                    <step.Icon size={32} className="text-[#4F46E5]" aria-hidden="true" />
+                                    <step.Icon size={32} className="text-[#4F46E5]" aria-hidden={true} />
                                     {/* Step number badge */}
                                     <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#6366F1] text-white text-xs font-black flex items-center justify-center">
                                         {idx + 1}
@@ -105,7 +106,7 @@ export function StepsHowItWorks({ id }: { id?: string }) {
 
                 {/* CTA below steps */}
                 <div className="mt-16 text-center">
-                    <a
+                    <Link
                         href="/login"
                         className="
                             inline-flex items-center justify-center gap-2
@@ -119,7 +120,7 @@ export function StepsHowItWorks({ id }: { id?: string }) {
                     >
                         Commencer maintenant — c&apos;est gratuit
                         <ArrowRight size={16} aria-hidden="true" />
-                    </a>
+                    </Link>
                 </div>
             </div>
         </section>

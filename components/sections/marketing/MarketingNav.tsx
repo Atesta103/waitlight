@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { ChevronRight, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 const NAV_LINKS = [
@@ -17,6 +18,11 @@ const NAV_LINKS = [
  */
 export function MarketingNav() {
     const [scrolled, setScrolled] = useState(false)
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+    const closeMenu = () => {
+        setIsMenuOpen(false)
+    }
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 16)
@@ -45,29 +51,81 @@ export function MarketingNav() {
                     Wait-Light
                 </Link>
 
-                {/* Centre links */}
-                <ul className="hidden md:flex items-center gap-8">
-                    {NAV_LINKS.map((link) => (
-                        <li key={link.href}>
-                            <a
-                                href={link.href}
-                                className="text-sm font-medium text-[#374151] hover:text-[#111827] transition-colors duration-150"
-                            >
-                                {link.label}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-
-                {/* Right CTA — single button */}
-                <Link
-                    href="/login"
-                    id="nav-cta"
-                    className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#6366F1] text-white text-sm font-semibold hover:bg-[#4F46E5] transition-colors duration-150"
+                <button
+                    type="button"
+                    aria-label="Ouvrir le menu"
+                    aria-expanded={isMenuOpen}
+                    onClick={() => setIsMenuOpen((prev) => !prev)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#D1D5DB] bg-white/75 text-[#111827] transition-colors hover:bg-white"
                 >
-                    Se connecter
-                </Link>
+                    {isMenuOpen ? <X size={17} aria-hidden="true" /> : <Menu size={17} aria-hidden="true" />}
+                </button>
             </nav>
+
+            {isMenuOpen ? (
+                <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+                    <button
+                        type="button"
+                        aria-label="Fermer le menu"
+                        className="absolute inset-0 bg-black/45"
+                        onClick={closeMenu}
+                    />
+
+                    <aside className="absolute right-0 top-0 h-full w-full max-w-sm border-l border-border-default bg-white p-6 shadow-xl">
+                        <div className="flex items-center justify-between">
+                            <p className="text-lg font-bold tracking-tight text-[#111827]">Wait-Light</p>
+                            <button
+                                type="button"
+                                aria-label="Fermer"
+                                onClick={closeMenu}
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D1D5DB] text-[#111827] hover:bg-[#F3F4F6]"
+                            >
+                                <X size={16} aria-hidden="true" />
+                            </button>
+                        </div>
+
+                        <nav className="mt-8 space-y-1">
+                            {NAV_LINKS.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={closeMenu}
+                                    className="flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium text-[#111827] transition-colors hover:bg-[#F3F4F6]"
+                                >
+                                    {link.label}
+                                    <ChevronRight size={15} aria-hidden="true" className="text-[#6B7280]" />
+                                </a>
+                            ))}
+                        </nav>
+
+                        <div className="mt-8 grid gap-3">
+                            <Link
+                                href="/login"
+                                onClick={closeMenu}
+                                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#6366F1] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#4F46E5]"
+                            >
+                                Se connecter
+                            </Link>
+                            <Link
+                                href="/register"
+                                onClick={closeMenu}
+                                className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D1D5DB] bg-white px-4 text-sm font-semibold text-[#111827] transition-colors hover:bg-[#F3F4F6]"
+                            >
+                                Demarrer
+                            </Link>
+                        </div>
+
+                        <div className="mt-6 border-t border-border-default pt-5">
+                            <a
+                                href="mailto:contact@waitlight.fr"
+                                className="text-sm font-medium text-[#374151] hover:text-[#111827]"
+                            >
+                                Contact support
+                            </a>
+                        </div>
+                    </aside>
+                </div>
+            ) : null}
         </header>
     )
 }

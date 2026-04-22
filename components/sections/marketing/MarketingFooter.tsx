@@ -15,7 +15,6 @@ const FOOTER_LINKS = {
         { label: "Mentions légales", href: "/legal/mentions" },
     ],
     company: [
-        { label: "À propos", href: "/about" },
         { label: "Contact", href: "mailto:contact@waitlight.fr" },
         { label: "Se connecter", href: "/login" },
     ],

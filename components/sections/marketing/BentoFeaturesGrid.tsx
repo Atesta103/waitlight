@@ -1,7 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { useReducedMotion, motion } from "framer-motion"
-import { Smartphone, Clock, QrCode } from "lucide-react"
+import { Smartphone, BellRing, TrendingUp, Users, Clock } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 type BentoCardProps = {
@@ -30,26 +31,26 @@ export function BentoCard({ className, children }: BentoCardProps) {
     )
 }
 
-/** QR Code SVG illustration */
+/** QR Code SVG illustration — larger, centered */
 function QrIllustration() {
     return (
-        <svg viewBox="0 0 80 80" className="w-16 h-16" aria-hidden="true">
-            <rect width="80" height="80" rx="12" fill="#6366f1" fillOpacity="0.08" />
-            <rect x="8" y="8" width="28" height="28" rx="4" fill="#6366f1" fillOpacity="0.2" />
-            <rect x="12" y="12" width="20" height="20" rx="2" fill="#6366f1" />
-            <rect x="44" y="8" width="28" height="28" rx="4" fill="#6366f1" fillOpacity="0.2" />
-            <rect x="48" y="12" width="20" height="20" rx="2" fill="#6366f1" />
-            <rect x="8" y="44" width="28" height="28" rx="4" fill="#6366f1" fillOpacity="0.2" />
-            <rect x="12" y="48" width="20" height="20" rx="2" fill="#6366f1" />
-            <rect x="44" y="44" width="10" height="10" rx="2" fill="#6366f1" />
-            <rect x="58" y="44" width="14" height="10" rx="2" fill="#6366f1" />
-            <rect x="44" y="58" width="14" height="14" rx="2" fill="#6366f1" />
-            <rect x="62" y="62" width="10" height="10" rx="2" fill="#6366f1" />
+        <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
+            <rect width="100" height="100" rx="14" fill="#6366f1" fillOpacity="0.08" />
+            <rect x="10" y="10" width="34" height="34" rx="5" fill="#6366f1" fillOpacity="0.2" />
+            <rect x="15" y="15" width="24" height="24" rx="3" fill="#6366f1" />
+            <rect x="56" y="10" width="34" height="34" rx="5" fill="#6366f1" fillOpacity="0.2" />
+            <rect x="61" y="15" width="24" height="24" rx="3" fill="#6366f1" />
+            <rect x="10" y="56" width="34" height="34" rx="5" fill="#6366f1" fillOpacity="0.2" />
+            <rect x="15" y="61" width="24" height="24" rx="3" fill="#6366f1" />
+            <rect x="56" y="56" width="12" height="12" rx="2" fill="#6366f1" />
+            <rect x="72" y="56" width="18" height="12" rx="2" fill="#6366f1" />
+            <rect x="56" y="72" width="18" height="18" rx="2" fill="#6366f1" />
+            <rect x="78" y="78" width="12" height="12" rx="2" fill="#6366f1" />
         </svg>
     )
 }
 
-/** Animated vibrating phone for the notification card */
+/** Animated phone for the notification card */
 function VibratingPhone() {
     const shouldReduceMotion = useReducedMotion()
 
@@ -59,73 +60,183 @@ function VibratingPhone() {
                 shouldReduceMotion
                     ? {}
                     : {
-                          rotate: [-3, 3, -3, 3, -2, 0],
+                          rotate: [-2, 2, -2, 2, -1, 0],
                           transition: { duration: 0.4, ease: "easeInOut" },
                       }
             }
             className="w-12 h-12 rounded-2xl bg-[#EEF2FF] flex items-center justify-center cursor-default"
-            aria-label="Téléphone en vibration"
+            aria-label="Téléphone de notification"
         >
             <Smartphone size={24} className="text-[#4F46E5]" aria-hidden="true" />
         </motion.div>
     )
 }
 
-/** Animated progress bar for the algorithm card */
-function AlgoProgressBar() {
-    const shouldReduceMotion = useReducedMotion()
-    const bars = [
-        { label: "Temps de service", pct: 73 },
-        { label: "Affluence", pct: 45 },
-        { label: "Position", pct: 91 },
-    ]
-
+/** Algo card — simplified, no confusing percentages */
+function AlgoSignals() {
     return (
-        <div className="space-y-2">
-            {bars.map(({ label, pct }, i) => (
-                <div key={label}>
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-[#374151] font-medium">{label}</span>
-                        <span className="font-semibold text-[#4F46E5]">{pct}%</span>
-                    </div>
-                    <div className="h-1.5 bg-[#E5E7EB] rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-[#6366F1] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${pct}%` }}
-                            whileHover={shouldReduceMotion ? {} : { width: ["0%", `${pct}%`] }}
-                            transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
-                            viewport={{ once: true }}
-                        />
-                    </div>
+        <div className="space-y-2.5">
+            <div className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
+                    <Clock size={16} className="text-[#4F46E5]" aria-hidden="true" />
                 </div>
-            ))}
+                <div>
+                    <p className="text-[11px] font-medium text-[#6B7280]">Cadence observée</p>
+                    <p className="text-sm font-semibold text-[#111827]">2 min 10 par client</p>
+                </div>
+            </div>
+
+            <div className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
+                    <TrendingUp size={16} className="text-[#4F46E5]" aria-hidden="true" />
+                </div>
+                <div>
+                    <p className="text-[11px] font-medium text-[#6B7280]">Pic prévu aujourd&apos;hui</p>
+                    <p className="text-sm font-semibold text-[#111827]">12h – 14h</p>
+                </div>
+            </div>
+
+            <div className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
+                    <Users size={16} className="text-[#4F46E5]" aria-hidden="true" />
+                </div>
+                <div>
+                    <p className="text-[11px] font-medium text-[#6B7280]">En file maintenant</p>
+                    <p className="text-sm font-semibold text-[#111827]">18 clients · ~37 min</p>
+                </div>
+            </div>
+
+            <p className="text-xs text-[#4F46E5] font-medium pt-0.5">
+                Estimation recalculée en continu selon votre file active.
+            </p>
         </div>
     )
 }
 
-/** Fake brand logos for white-label card */
+/** Live stats — richer dashboard with hourly + daily data */
+export function LiveStatsBoard() {
+    // Hourly data: 9h → 18h
+    const hourly = [
+        { h: "9h", pct: 18 },
+        { h: "10h", pct: 35 },
+        { h: "11h", pct: 55 },
+        { h: "12h", pct: 88 },
+        { h: "13h", pct: 100 },
+        { h: "14h", pct: 78 },
+        { h: "15h", pct: 52 },
+        { h: "16h", pct: 40 },
+        { h: "17h", pct: 30 },
+        { h: "18h", pct: 15 },
+    ]
+
+    const weekly = [
+        { day: "Lun", v: 247 },
+        { day: "Mar", v: 312 },
+        { day: "Mer", v: 289 },
+        { day: "Jeu", v: 356 },
+        { day: "Ven", v: 401 },
+    ]
+
+    return (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3 space-y-3">
+            {/* KPI row */}
+            <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-[#EEF2FF] px-2 py-1.5 text-center">
+                    <p className="text-[10px] text-[#6B7280]">Servis</p>
+                    <p className="text-sm font-black text-[#111827]">186</p>
+                </div>
+                <div className="rounded-lg bg-[#EEF2FF] px-2 py-1.5 text-center">
+                    <p className="text-[10px] text-[#6B7280]">Moy.</p>
+                    <p className="text-sm font-black text-[#111827]">6m40</p>
+                </div>
+                <div className="rounded-lg bg-[#DCFCE7] px-2 py-1.5 text-center">
+                    <p className="text-[10px] text-[#15803D]">Pic</p>
+                    <p className="text-sm font-black text-[#111827]">13h</p>
+                </div>
+            </div>
+
+            {/* Hourly chart */}
+            <div>
+                <p className="text-[10px] uppercase tracking-wider text-[#6B7280] mb-1.5">Trafic horaire (aujourd&apos;hui)</p>
+                <div className="flex items-end gap-1 h-14">
+                    {hourly.map((item) => (
+                        <div key={item.h} className="flex-1 flex flex-col items-center gap-0.5">
+                            <div
+                                className={cn(
+                                    "w-full rounded-t transition-all",
+                                    item.pct === 100
+                                        ? "bg-[#6366F1]"
+                                        : item.pct >= 70
+                                            ? "bg-[#6366F1]/70"
+                                            : "bg-[#6366F1]/40"
+                                )}
+                                style={{ height: `${item.pct}%` }}
+                                aria-hidden="true"
+                            />
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-between text-[8px] text-[#6B7280] mt-1">
+                    <span>9h</span>
+                    <span>11h</span>
+                    <span>13h</span>
+                    <span>15h</span>
+                    <span>18h</span>
+                </div>
+            </div>
+
+            {/* Weekly mini-table */}
+            <div>
+                <p className="text-[10px] uppercase tracking-wider text-[#6B7280] mb-1.5">Semaine en cours</p>
+                <div className="grid grid-cols-5 gap-1">
+                    {weekly.map((item) => (
+                        <div key={item.day} className="rounded-lg bg-[#F8F9FA] border border-[#E5E7EB] px-1 py-1.5 text-center">
+                            <p className="text-[9px] text-[#6B7280]">{item.day}</p>
+                            <p className="text-[11px] font-bold text-[#111827]">{item.v}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/** Visual logos for white-label card — real PNG images */
 function BrandLogos() {
     const brands = [
-        { name: "Le Bistrot", color: "#F59E0B", initial: "B" },
-        { name: "Clinique Nord", color: "#10B981", initial: "C" },
-        { name: "TechStore SAV", color: "#6366F1", initial: "T" },
+        {
+            name: "Bistrot Auguste",
+            subtitle: "Restauration",
+            imageSrc: "/marketing/brand-bistro.png",
+        },
+        {
+            name: "Clinique Bellevue",
+            subtitle: "Santé",
+            imageSrc: "/marketing/brand-clinic.png",
+        },
+        {
+            name: "Nova SAV",
+            subtitle: "Retail & SAV",
+            imageSrc: "/marketing/brand-sav.png",
+        },
     ]
 
     return (
         <div className="flex flex-col gap-2">
             {brands.map((brand) => (
                 <div key={brand.name} className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-[#E5E7EB]">
-                    <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                        style={{ backgroundColor: brand.color }}
-                        aria-hidden="true"
-                    >
-                        {brand.initial}
+                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#E5E7EB] flex-shrink-0">
+                        <Image
+                            src={brand.imageSrc}
+                            alt={`Logo ${brand.name}`}
+                            width={36}
+                            height={36}
+                            className="h-full w-full object-cover"
+                        />
                     </div>
                     <div>
                         <div className="text-sm font-semibold text-[#111827]">{brand.name}</div>
-                        <div className="text-xs text-[#6B7280]">Powered by Wait-Light</div>
+                        <div className="text-xs text-[#6B7280]">{brand.subtitle}</div>
                     </div>
                 </div>
             ))}
@@ -237,28 +348,30 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                     <br />dans leur poche.
                                 </h3>
                                 <p className="text-sm text-[#374151] mt-2 leading-relaxed">
-                                    Le client suit sa position en temps réel, joue en attendant et reçoit une alerte vibratoire dès son tour.
+                                    Le client suit sa position en temps réel, joue en attendant et reçoit un rappel dès son tour.
                                 </p>
                             </div>
                             <LargePhoneMockup />
                         </div>
                     </BentoCard>
 
-                    {/* Card 2 — Small: Vibration notification (col-span-5) */}
+                    {/* Card 2 — Small: Notification reminders (col-span-5) */}
                     <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between">
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Notifications</span>
-                            <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Vibrations &amp; Alertes</h3>
+                            <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Rappels &amp; alertes</h3>
                             <p className="text-sm text-[#374151] mt-2">
-                                Plus besoin de rester sur place. Le téléphone vibre quand c&apos;est le moment.
+                                Plus besoin de rester sur place. Un rappel navigateur est envoyé au bon moment.
                             </p>
                         </div>
                         <div className="flex items-center gap-4 mt-4">
                             <VibratingPhone />
                             <div className="flex flex-col gap-1.5">
-                                <div className="h-2 bg-[#6366F1]/20 rounded-full w-24" />
-                                <div className="h-2 bg-[#6366F1]/40 rounded-full w-16" />
-                                <div className="h-2 bg-[#6366F1] rounded-full w-20" />
+                                <div className="inline-flex items-center gap-1 rounded-full bg-[#EEF2FF] px-2 py-1 text-[10px] font-semibold text-[#4F46E5]">
+                                    <BellRing size={10} aria-hidden="true" />
+                                    Votre tour approche
+                                </div>
+                                <p className="text-[11px] text-[#6B7280]">Notification visuelle + sonore selon l&apos;appareil.</p>
                             </div>
                         </div>
                     </BentoCard>
@@ -267,29 +380,27 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                     <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between">
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Algorithme</span>
-                            <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Temps réel calculé</h3>
+                            <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Estimation intelligente</h3>
                             <p className="text-sm text-[#374151] mt-2">
-                                Notre algorithme prédit le temps d&apos;attente en analysant la cadence de service.
+                                Notre moteur apprend de votre cadence réelle et affine l&apos;heure d&apos;arrivée estimée en continu.
                             </p>
                         </div>
                         <div className="mt-4">
-                            <AlgoProgressBar />
+                            <AlgoSignals />
                         </div>
                     </BentoCard>
 
-                    {/* Card 4 — Small: QR Code (col-span-4) */}
-                    <BentoCard className="md:col-span-4 min-h-[200px] flex flex-col justify-between">
-                        <div>
+                    {/* Card 4 — Small: QR Code — centered, large */}
+                    <BentoCard className="md:col-span-4 min-h-[200px] flex flex-col items-center justify-center text-center">
+                        <div className="max-w-[240px]">
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Simplicité</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Zéro installation</h3>
                             <p className="text-sm text-[#374151] mt-2">
                                 Un QR Code suffit. Aucune app à télécharger pour vos clients.
                             </p>
                         </div>
-                        <div className="mt-4">
-                            <div className="w-14 h-14 rounded-2xl bg-[#EEF2FF] flex items-center justify-center">
-                                <QrCode size={28} className="text-[#4F46E5]" aria-hidden="true" />
-                            </div>
+                        <div className="mt-5 w-32 h-32 rounded-3xl bg-[#EEF2FF] flex items-center justify-center mx-auto p-4">
+                            <QrIllustration />
                         </div>
                     </BentoCard>
 
@@ -313,18 +424,11 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Analytics</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Stats en direct</h3>
                             <p className="text-sm text-[#374151] mt-2">
-                                Temps moyen, taux de passage, heures de pointe — tout en un coup d&apos;œil.
+                                Suivez votre file par heure, votre temps moyen et vos pics sur la même vue.
                             </p>
                         </div>
-                        <div className="mt-4 flex items-end gap-1.5 h-12">
-                            {[40, 65, 50, 80, 60, 90, 75].map((h, i) => (
-                                <div
-                                    key={i}
-                                    className="flex-1 bg-[#6366F1] rounded-t"
-                                    style={{ height: `${h}%`, opacity: 0.3 + (i / 6) * 0.7 }}
-                                    aria-hidden="true"
-                                />
-                            ))}
+                        <div className="mt-4">
+                            <LiveStatsBoard />
                         </div>
                     </BentoCard>
                 </div>

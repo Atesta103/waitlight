@@ -19,6 +19,8 @@ type QRCodeDisplayProps = {
     /** Pixel size of the QR code. Default 220. */
     size?: number
     className?: string
+    /** Si true, désactive les appels API et l'intervalle de rafraîchissement (pour les démos marketing) */
+    mockMode?: boolean
 }
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
@@ -27,6 +29,7 @@ function QRCodeDisplay({
     baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
     size = 220,
     className,
+    mockMode = false,
 }: QRCodeDisplayProps) {
     const [token, setToken] = useState<string | null>(null)
     const [fetchedAt, setFetchedAt] = useState<number | null>(null)
@@ -38,6 +41,8 @@ function QRCodeDisplay({
     const qrValue = token ? `${url}?t=${token}` : url
 
     const fetchToken = async () => {
+        if (mockMode) return
+
         setQrVisible(false)
         const result = await generateQrTokenAction()
 
@@ -55,13 +60,19 @@ function QRCodeDisplay({
 
     /* Rotate token every REFRESH_INTERVAL_MS */
     useEffect(() => {
+        if (mockMode) {
+            setQrVisible(true)
+            setFetchedAt(Date.now())
+            return
+        }
+
         fetchToken() // Initial fetch
 
         const tick = setInterval(() => {
             fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
-    }, [])
+    }, [mockMode])
 
     /* Precision timer — visual countdown based on rotation interval, not token TTL */
     useEffect(() => {

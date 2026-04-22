@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { MarketingNav } from "@/components/sections/marketing/MarketingNav"
 import { HeroSection } from "@/components/sections/marketing/HeroSection"
 import { BentoFeaturesGrid } from "@/components/sections/marketing/BentoFeaturesGrid"
-import { StepsHowItWorks } from "@/components/sections/marketing/StepsHowItWorks"
+import { FlowCarouselSection } from "@/components/sections/marketing/FlowCarouselSection"
 import { UseCasesGrid } from "@/components/sections/marketing/UseCasesGrid"
 import { PricingSection } from "@/components/sections/marketing/PricingSection"
 import { FaqSection } from "@/components/sections/marketing/FaqSection"
@@ -39,7 +39,7 @@ export default function HomePage() {
             <MarketingNav />
             <HeroSection id="hero" />
             <BentoFeaturesGrid id="fonctionnalites" />
-            <StepsHowItWorks id="comment-ca-marche" />
+            <FlowCarouselSection id="demo" />
             <UseCasesGrid id="secteurs" />
             <PricingSection id="tarifs" />
             <FaqSection id="faq" />

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 
 type FaqItem = {
@@ -23,7 +24,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Comment mes clients sont-ils notifiés quand c'est leur tour ?",
-        answer: "Dès que c'est leur tour, leur navigateur envoie une notification et le téléphone vibre. Ils peuvent donc s'éloigner du comptoir, faire autre chose, et revenir juste à temps.",
+        answer: "Des que c'est leur tour, leur navigateur envoie une notification. Ils peuvent donc s'eloigner du comptoir, faire autre chose, et revenir juste a temps.",
     },
     {
         question: "Puis-je personnaliser l'interface avec mon logo et mes couleurs ?",
@@ -99,15 +100,24 @@ export function FaqSection({ id }: { id?: string }) {
                                 </span>
                             </button>
 
-                            <div
-                                id={`faq-panel-${idx}`}
-                                role="region"
-                                aria-labelledby={`faq-btn-${idx}`}
-                                hidden={openIndex !== idx}
-                                className="px-6 pb-5 text-sm text-[#374151] leading-relaxed bg-white"
-                            >
-                                <p>{item.answer}</p>
-                            </div>
+                            <AnimatePresence initial={false}>
+                                {openIndex === idx ? (
+                                    <motion.div
+                                        id={`faq-panel-${idx}`}
+                                        role="region"
+                                        aria-labelledby={`faq-btn-${idx}`}
+                                        initial={{ height: 0, opacity: 0, y: -4 }}
+                                        animate={{ height: "auto", opacity: 1, y: 0 }}
+                                        exit={{ height: 0, opacity: 0, y: -4 }}
+                                        transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
+                                        className="overflow-hidden bg-white"
+                                    >
+                                        <div className="px-6 pb-5 text-sm text-[#374151] leading-relaxed">
+                                            <p>{item.answer}</p>
+                                        </div>
+                                    </motion.div>
+                                ) : null}
+                            </AnimatePresence>
                         </div>
                     ))}
                 </div>
