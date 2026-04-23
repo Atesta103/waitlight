@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 export const metadata: Metadata = {
     title: "Mentions Légales — Wait-Light",
@@ -124,9 +125,9 @@ export default function MentionsPage() {
                     <p>
                         Le traitement des données personnelles effectué dans le cadre du Service est détaillé dans
                         notre{" "}
-                        <a href="/legal/privacy" className="text-[#4F46E5] underline hover:text-[#4338CA]">
+                        <Link href="/legal/privacy" className="text-[#4F46E5] underline hover:text-[#4338CA]">
                             Politique de Confidentialité
-                        </a>
+                        </Link>
                         . Ce traitement est réalisé dans le respect du Règlement Général sur la Protection des
                         Données (RGPD) et de la loi Informatique et Libertés du 6 janvier 1978 modifiée.
                     </p>

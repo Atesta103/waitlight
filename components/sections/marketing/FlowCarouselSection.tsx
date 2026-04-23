@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Settings, QrCode, CheckCircle2, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 import { MerchantDashboardMockup, ClientWidgetMockup } from "@/components/sections/marketing/HeroSection"
-import { LiveStatsBoard } from "@/components/sections/marketing/BentoFeaturesGrid"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 // --- Mockups Components ---

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
@@ -31,7 +32,8 @@ export function MarketingNav() {
     }, [])
 
     return (
-        <header
+        <>
+            <header
             className={cn(
                 "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
                 scrolled
@@ -41,7 +43,16 @@ export function MarketingNav() {
         >
             <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight text-[#111827]">
+                <Link
+                    href="/"
+                    onClick={(e) => {
+                        if (window.location.pathname === "/") {
+                            e.preventDefault()
+                            window.scrollTo({ top: 0, behavior: "smooth" })
+                        }
+                    }}
+                    className="flex items-center gap-2 font-bold text-lg tracking-tight text-[#111827]"
+                >
                     <span
                         className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#6366F1] text-white text-sm font-black"
                         aria-hidden="true"
@@ -61,17 +72,28 @@ export function MarketingNav() {
                     {isMenuOpen ? <X size={17} aria-hidden="true" /> : <Menu size={17} aria-hidden="true" />}
                 </button>
             </nav>
+            </header>
 
-            {isMenuOpen ? (
-                <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
-                    <button
-                        type="button"
-                        aria-label="Fermer le menu"
-                        className="absolute inset-0 bg-black/45"
-                        onClick={closeMenu}
-                    />
+            <AnimatePresence>
+                {isMenuOpen && (
+                    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+                        <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            type="button"
+                            aria-label="Fermer le menu"
+                            className="absolute inset-0 bg-black/45 cursor-default block w-full h-full"
+                            onClick={closeMenu}
+                        />
 
-                    <aside className="absolute right-0 top-0 h-full w-full max-w-sm border-l border-border-default bg-white p-6 shadow-xl">
+                        <motion.aside
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            className="absolute right-0 top-0 h-full w-full max-w-sm border-l border-border-default bg-white p-6 shadow-xl"
+                        >
                         <div className="flex items-center justify-between">
                             <p className="text-lg font-bold tracking-tight text-[#111827]">Wait-Light</p>
                             <button
@@ -123,9 +145,10 @@ export function MarketingNav() {
                                 Contact support
                             </a>
                         </div>
-                    </aside>
+                    </motion.aside>
                 </div>
-            ) : null}
-        </header>
+                )}
+            </AnimatePresence>
+        </>
     )
 }
