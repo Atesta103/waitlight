@@ -11,11 +11,11 @@
  * 1. Refresh the Supabase session cookie so Server Components always see the latest auth state.
  * 2. Protect `(dashboard)` + `/onboarding` routes — redirect unauthenticated users to `/login`.
  * 3. Redirect authenticated users away from auth pages to `/dashboard`.
- * 4. Redirect `/` to either `/dashboard` (authed) or `/login` (unauthed).
+ * 4. Leave `/` publicly accessible (marketing landing page).
  *
  * | Route pattern | Authed | Unauthed |
  * |---|---|---|
- * | `/` | → `/dashboard` | → `/login` |
+ * | `/` | pass | pass |
  * | `/dashboard/**`, `/onboarding` | pass | → `/login?redirectTo={path}` |
  * | `/login`, `/register`, etc. | → `/dashboard` | pass |
  */
@@ -34,13 +34,6 @@ import { updateSession } from "@/lib/supabase/middleware"
 export async function proxy(request: NextRequest) {
     const { supabaseResponse, user } = await updateSession(request)
     const { pathname } = request.nextUrl
-
-    // Root redirect — send / to the right place immediately
-    if (pathname === "/") {
-        const target = request.nextUrl.clone()
-        target.pathname = user ? "/dashboard" : "/login"
-        return NextResponse.redirect(target)
-    }
 
     const isAuthPage =
         pathname.startsWith("/login") ||
