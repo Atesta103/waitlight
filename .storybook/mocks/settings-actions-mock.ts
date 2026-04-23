@@ -13,14 +13,19 @@ export const getMerchantSettingsAction = async () => ({
         settings: {
             max_capacity: 50,
             welcome_message: "Welcome",
+            done_message: "Thanks!",
+            wait_background_url: null,
             qr_regenerated_at: null,
             notifications_enabled: true,
             auto_close_enabled: false,
         },
+        banned_words: [],
     },
 });
 export const updateMerchantIdentityAction = async () => ({ data: { slug: "mock-shop" } });
 export const updateQueueSettingsAction = async () => ({ data: null });
+export const addBannedWordAction = async () => ({ data: { id: "mock-word-id", word: "mock" } });
+export const removeBannedWordAction = async () => ({ data: null });
 export const regenerateQRAction = async () => ({ data: { qr_regenerated_at: new Date().toISOString() } });
 export const deleteLogoAction = async () => ({ data: null });
 export const checkSlugAvailabilitySettingsAction = async () => true;

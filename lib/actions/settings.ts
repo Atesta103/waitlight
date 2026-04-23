@@ -11,8 +11,12 @@ import { createClient } from "@/lib/supabase/server"
 import {
     MerchantIdentitySchema,
     QueueSettingsSchema,
+    AddBannedWordSchema,
+    RemoveBannedWordSchema,
     type MerchantIdentityInput,
     type QueueSettingsInput,
+    type AddBannedWordInput,
+    type RemoveBannedWordInput,
 } from "@/lib/validators/settings"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,10 +50,16 @@ export type MerchantSettingsData = {
     settings: {
         max_capacity: number
         welcome_message: string | null
+        done_message: string | null
+        wait_background_url: string | null
         qr_regenerated_at: string | null
         notifications_enabled: boolean
         auto_close_enabled: boolean
     }
+    banned_words: Array<{
+        id: string
+        word: string
+    }>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -96,13 +106,23 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: settings, error: settingsError } = await supabase
         .from("settings")
         .select(
-            "max_capacity, welcome_message, qr_regenerated_at, notifications_enabled, auto_close_enabled",
+            "max_capacity, welcome_message, done_message, wait_background_url, qr_regenerated_at, notifications_enabled, auto_close_enabled",
         )
         .eq("merchant_id", user.id)
         .single()
 
     if (settingsError || !settings) {
         return { error: "Configuration introuvable." }
+    }
+
+    const { data: bannedWords, error: bannedWordsError } = await supabase
+        .from("banned_words")
+        .select("id, word")
+        .eq("merchant_id", user.id)
+        .order("word", { ascending: true })
+
+    if (bannedWordsError) {
+        return { error: "Impossible de charger les prénoms bannis." }
     }
 
     return {
@@ -125,10 +145,13 @@ export async function getMerchantSettingsAction(): Promise<
             settings: {
                 max_capacity: settings.max_capacity,
                 welcome_message: settings.welcome_message,
+                done_message: settings.done_message ?? null,
+                wait_background_url: settings.wait_background_url ?? null,
                 qr_regenerated_at: settings.qr_regenerated_at,
                 notifications_enabled: settings.notifications_enabled,
                 auto_close_enabled: settings.auto_close_enabled,
             },
+            banned_words: bannedWords ?? [],
         },
     }
 }
@@ -274,6 +297,8 @@ export async function updateQueueSettingsAction(
         .update({
             max_capacity: parsed.data.max_capacity,
             welcome_message: parsed.data.welcome_message ?? null,
+            done_message: parsed.data.done_message ?? null,
+            wait_background_url: parsed.data.wait_background_url ?? null,
             notifications_enabled: parsed.data.notifications_enabled,
             auto_close_enabled: parsed.data.auto_close_enabled,
         })
@@ -281,6 +306,77 @@ export async function updateQueueSettingsAction(
 
     if (error) {
         return { error: "Erreur lors de la sauvegarde. Veuillez réessayer." }
+    }
+
+    return { data: null }
+}
+
+export async function addBannedWordAction(
+    input: AddBannedWordInput,
+): Promise<{ data: { id: string; word: string } } | { error: string }> {
+    const parsed = AddBannedWordSchema.safeParse(input)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const normalizedWord = parsed.data.word.trim().toLowerCase()
+    const { data, error } = await supabase
+        .from("banned_words")
+        .insert({
+            merchant_id: user.id,
+            word: normalizedWord,
+        })
+        .select("id, word")
+        .single()
+
+    if (error) {
+        if (error.code === "23505") {
+            return { error: "Ce prénom est déjà dans la liste." }
+        }
+        return { error: "Impossible d'ajouter ce prénom banni." }
+    }
+
+    return { data }
+}
+
+export async function removeBannedWordAction(
+    input: RemoveBannedWordInput,
+): Promise<{ data: null } | { error: string }> {
+    const parsed = RemoveBannedWordSchema.safeParse(input)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { error } = await supabase
+        .from("banned_words")
+        .delete()
+        .eq("id", parsed.data.id)
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Impossible de supprimer ce prénom banni." }
     }
 
     return { data: null }

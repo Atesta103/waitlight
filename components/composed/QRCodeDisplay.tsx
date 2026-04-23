@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { QRCodeCanvas } from "qrcode.react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
@@ -8,6 +8,7 @@ import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { QR_ROTATION_INTERVAL_MS } from "@/lib/utils/qr-config"
 import { generateQrTokenAction } from "@/lib/actions/qr"
+import { createClient } from "@/lib/supabase/client"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
 const REFRESH_INTERVAL_MS = QR_ROTATION_INTERVAL_MS
@@ -36,11 +37,12 @@ function QRCodeDisplay({
     const [countdown, setCountdown] = useState(TOTAL_S)
     const [progress, setProgress] = useState(1) // 0 to 1 for smooth animation
     const [qrVisible, setQrVisible] = useState(false) // Wait for first token
+    const supabaseRef = useRef(createClient())
 
     const url = `${baseUrl}/${slug}/join`
     const qrValue = token ? `${url}?t=${token}` : url
 
-    const fetchToken = async () => {
+    const fetchToken = useCallback(async () => {
         if (mockMode) return
 
         setQrVisible(false)
@@ -56,7 +58,7 @@ function QRCodeDisplay({
             setProgress(1)
             setQrVisible(true)
         }, 300)
-    }
+    }, [mockMode])
 
     /* Rotate token every REFRESH_INTERVAL_MS */
     useEffect(() => {
@@ -69,10 +71,38 @@ function QRCodeDisplay({
         fetchToken() // Initial fetch
 
         const tick = setInterval(() => {
-            fetchToken()
+            void fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
-    }, [mockMode])
+    }, [fetchToken, mockMode])
+
+    useEffect(() => {
+        if (!token || mockMode) return
+
+        const supabase = supabaseRef.current
+        const channel = supabase
+            .channel(`qr-token-used:${token}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "qr_tokens",
+                    filter: `nonce=eq.${token}`,
+                },
+                (payload) => {
+                    const next = payload.new as { used?: boolean }
+                    if (next.used) {
+                        void fetchToken()
+                    }
+                },
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [token, mockMode, fetchToken])
 
     /* Precision timer — visual countdown based on rotation interval, not token TTL */
     useEffect(() => {

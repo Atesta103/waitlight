@@ -210,6 +210,11 @@ export function Connect4Game({ merchantId, roomCode, playerNum, ticketId, myName
 
     return (
         <div className="flex flex-col items-center gap-4 w-full">
+            {isMyTurn ? (
+                <div className="sticky top-2 z-20 w-full rounded-xl border border-brand-primary/40 bg-brand-primary px-4 py-2 text-center text-sm font-semibold text-text-inverse shadow-sm">
+                    C&apos;est ton tour — joue maintenant.
+                </div>
+            ) : null}
             {/* Status */}
             {winner === 0 && (
                 <div className="flex items-center gap-3 bg-surface-card border border-border-default rounded-xl px-4 py-2">

@@ -237,26 +237,32 @@ export type Database = {
       settings: {
         Row: {
           auto_close_enabled: boolean
+          done_message: string | null
           max_capacity: number
           merchant_id: string
           notifications_enabled: boolean
           qr_regenerated_at: string | null
+          wait_background_url: string | null
           welcome_message: string | null
         }
         Insert: {
           auto_close_enabled?: boolean
+          done_message?: string | null
           max_capacity?: number
           merchant_id: string
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
+          wait_background_url?: string | null
           welcome_message?: string | null
         }
         Update: {
           auto_close_enabled?: boolean
+          done_message?: string | null
           max_capacity?: number
           merchant_id?: string
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
+          wait_background_url?: string | null
           welcome_message?: string | null
         }
         Relationships: [

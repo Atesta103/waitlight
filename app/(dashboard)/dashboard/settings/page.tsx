@@ -52,8 +52,11 @@ export default async function SettingsPage() {
                     defaultPrepTimeMin: merchant.default_prep_time_min,
                     maxCapacity: settings.max_capacity,
                     welcomeMessage: settings.welcome_message ?? "",
+                    doneMessage: settings.done_message ?? "",
+                    waitBackgroundUrl: settings.wait_background_url,
                     notificationsEnabled: settings.notifications_enabled,
                     autoCloseEnabled: settings.auto_close_enabled,
+                    bannedWords: result.data.banned_words,
                     calculatedAvgPrepTime: merchant.calculated_avg_prep_time,
                     avgPrepComputedAt: merchant.avg_prep_computed_at,
                 }}

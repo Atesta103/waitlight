@@ -38,6 +38,12 @@ export default async function WaitPage({ params }: WaitPageProps) {
         .eq("slug", slug)
         .single()
 
+    const { data: settings } = await supabase
+        .from("settings")
+        .select("done_message, wait_background_url")
+        .eq("merchant_id", data?.id ?? "")
+        .maybeSingle()
+
     if (!data) {
         notFound()
     }
@@ -49,6 +55,8 @@ export default async function WaitPage({ params }: WaitPageProps) {
         <WaitClient
             merchant={merchant}
             ticketId={ticketId}
+            doneMessage={settings?.done_message ?? null}
+            waitBackgroundUrl={settings?.wait_background_url ?? null}
         />
     )
 }

@@ -72,9 +72,35 @@ export const QueueSettingsSchema = z.object({
         .max(500, "500 caractères maximum.")
         .nullable()
         .optional(),
+    done_message: z
+        .string()
+        .max(500, "500 caractères maximum.")
+        .nullable()
+        .optional(),
+    wait_background_url: z
+        .string()
+        .url("URL d'image de fond invalide.")
+        .nullable()
+        .optional(),
     notifications_enabled: z.boolean(),
     auto_close_enabled: z.boolean(),
 })
 
+export const BannedWordSchema = z
+    .string()
+    .trim()
+    .min(2, "Minimum 2 caractères.")
+    .max(50, "50 caractères maximum.")
+
+export const AddBannedWordSchema = z.object({
+    word: BannedWordSchema,
+})
+
+export const RemoveBannedWordSchema = z.object({
+    id: z.string().uuid("Identifiant invalide."),
+})
+
 export type MerchantIdentityInput = z.infer<typeof MerchantIdentitySchema>
 export type QueueSettingsInput = z.infer<typeof QueueSettingsSchema>
+export type AddBannedWordInput = z.infer<typeof AddBannedWordSchema>
+export type RemoveBannedWordInput = z.infer<typeof RemoveBannedWordSchema>

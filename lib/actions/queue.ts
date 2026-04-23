@@ -301,13 +301,7 @@ export async function joinQueueAction(
     const { customerName, token, slug } = parsed.data
     const supabase = await createClient()
 
-    // ── 0. Check for banned words ────────────────────────────────────────────
-    const nameCheck = await checkNameAction(customerName)
-    if (nameCheck.isBanned) {
-        return { error: "Ce prénom n'est pas autorisé." }
-    }
-
-    // ── 1. Look up merchant by slug ──────────────────────────────────────────
+    // ── 0. Look up merchant by slug ──────────────────────────────────────────
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
         .select("id, is_open")
@@ -320,6 +314,12 @@ export async function joinQueueAction(
 
     if (!merchant.is_open) {
         return { error: "La file d'attente est actuellement fermée." }
+    }
+
+    // ── 1. Check for banned words (scoped per merchant) ─────────────────────
+    const nameCheck = await checkNameAction(customerName, merchant.id)
+    if (nameCheck.isBanned) {
+        return { error: "Ce prénom n'est pas autorisé." }
     }
 
     // ── 2. Validate QR token ─────────────────────────────────────────────────
@@ -431,13 +431,18 @@ export async function reportTicketNameAction(
     }
 }
 
-export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
+export async function checkNameAction(
+    name: string,
+    merchantId: string,
+): Promise<{ isBanned: boolean }> {
     if (!name) return { isBanned: false }
     const supabase = await createClient()
+    const normalizedName = name.toLowerCase().trim()
     const { data } = await supabase
         .from("banned_words")
         .select("id")
-        .eq("word", name.toLowerCase())
+        .eq("merchant_id", merchantId)
+        .eq("word", normalizedName)
         .single()
     return { isBanned: !!data }
 }

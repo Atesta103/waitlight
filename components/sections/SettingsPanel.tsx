@@ -39,6 +39,8 @@ import {
 import {
     updateMerchantIdentityAction,
     updateQueueSettingsAction,
+    addBannedWordAction,
+    removeBannedWordAction,
     checkSlugAvailabilitySettingsAction,
     deleteLogoAction,
     resetAvgPrepTimeAction,
@@ -61,8 +63,14 @@ type SettingsData = {
     defaultPrepTimeMin: number
     maxCapacity: number
     welcomeMessage: string
+    doneMessage: string
+    waitBackgroundUrl: string | null
     notificationsEnabled: boolean
     autoCloseEnabled: boolean
+    bannedWords: Array<{
+        id: string
+        word: string
+    }>
     /** Auto-computed value from calculate_avg_prep(). null = manual mode. */
     calculatedAvgPrepTime: number | null
     /** ISO timestamp of the last cron run. null = never run yet. */
@@ -520,9 +528,15 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [queue, setQueue] = useState({
         maxCapacity: initialData.maxCapacity,
         welcomeMessage: initialData.welcomeMessage,
+        doneMessage: initialData.doneMessage,
+        waitBackgroundUrl: initialData.waitBackgroundUrl,
         notificationsEnabled: initialData.notificationsEnabled,
         autoCloseEnabled: initialData.autoCloseEnabled,
     })
+    const [bannedWords, setBannedWords] = useState(initialData.bannedWords)
+    const [newBannedWord, setNewBannedWord] = useState("")
+    const [bannedWordError, setBannedWordError] = useState<string | null>(null)
+    const [isBannedWordPending, startBannedWordTransition] = useTransition()
     const [queueChanged, setQueueChanged] = useState(false)
     const [queueError, setQueueError] = useState<string | null>(null)
     const [queueSuccess, setQueueSuccess] = useState(false)
@@ -533,6 +547,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [uploadError, setUploadError] = useState<string | null>(null)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const backgroundInputRef = useRef<HTMLInputElement>(null)
+    const [isBackgroundUploading, setIsBackgroundUploading] = useState(false)
+    const [backgroundUploadError, setBackgroundUploadError] = useState<string | null>(null)
 
     // ── Logo delete dialog ────────────────────────────────────────────────────
     const [showDeleteLogoDialog, setShowDeleteLogoDialog] = useState(false)
@@ -651,6 +668,183 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         setIsUploading(false)
     }
 
+    const createCroppedBackgroundFile = async (
+        file: File,
+    ): Promise<File | null> => {
+        const imageUrl = URL.createObjectURL(file)
+
+        try {
+            const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+                const img = new Image()
+                img.onload = () => resolve(img)
+                img.onerror = () => reject(new Error("Image invalide"))
+                img.src = imageUrl
+            })
+
+            const targetWidth = 1920
+            const targetHeight = 1080
+            const targetRatio = targetWidth / targetHeight
+            const sourceRatio = image.width / image.height
+
+            let sx = 0
+            let sy = 0
+            let sw = image.width
+            let sh = image.height
+
+            if (sourceRatio > targetRatio) {
+                sw = image.height * targetRatio
+                sx = (image.width - sw) / 2
+            } else {
+                sh = image.width / targetRatio
+                sy = (image.height - sh) / 2
+            }
+
+            const canvas = document.createElement("canvas")
+            canvas.width = targetWidth
+            canvas.height = targetHeight
+            const context = canvas.getContext("2d")
+            if (!context) return null
+
+            context.drawImage(
+                image,
+                sx,
+                sy,
+                sw,
+                sh,
+                0,
+                0,
+                targetWidth,
+                targetHeight,
+            )
+
+            const blob = await new Promise<Blob | null>((resolve) => {
+                canvas.toBlob((b) => resolve(b), "image/webp", 0.92)
+            })
+            if (!blob) return null
+
+            return new File([blob], "wait-background.webp", {
+                type: "image/webp",
+            })
+        } finally {
+            URL.revokeObjectURL(imageUrl)
+        }
+    }
+
+    const handleBackgroundChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
+        if (!allowedTypes.includes(file.type)) {
+            setBackgroundUploadError(
+                "Format non supporté. Utilisez JPG, PNG ou WebP.",
+            )
+            return
+        }
+        if (file.size > 2_097_152) {
+            setBackgroundUploadError("Fichier trop grand. Maximum 2 Mo.")
+            return
+        }
+
+        setBackgroundUploadError(null)
+        setIsBackgroundUploading(true)
+
+        const croppedFile = await createCroppedBackgroundFile(file)
+        if (!croppedFile) {
+            setBackgroundUploadError(
+                "Impossible de recadrer l'image. Veuillez réessayer.",
+            )
+            setIsBackgroundUploading(false)
+            return
+        }
+
+        const supabase = createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            setBackgroundUploadError("Session expirée.")
+            setIsBackgroundUploading(false)
+            return
+        }
+
+        const path = `${user.id}/wait-background.webp`
+        const { error: storageError } = await supabase.storage
+            .from("merchant-logos")
+            .upload(path, croppedFile, {
+                upsert: true,
+                contentType: "image/webp",
+            })
+
+        if (storageError) {
+            setBackgroundUploadError(
+                "Erreur lors de l'upload. Veuillez réessayer.",
+            )
+            setIsBackgroundUploading(false)
+            return
+        }
+
+        const { data: urlData } = supabase.storage
+            .from("merchant-logos")
+            .getPublicUrl(path)
+
+        updateQueue("waitBackgroundUrl", urlData.publicUrl)
+        setIsBackgroundUploading(false)
+    }
+
+    const handleDeleteBackground = async () => {
+        const supabase = createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            setBackgroundUploadError("Session expirée.")
+            return
+        }
+
+        const path = `${user.id}/wait-background.webp`
+        await supabase.storage.from("merchant-logos").remove([path])
+        updateQueue("waitBackgroundUrl", null)
+    }
+
+    const handleAddBannedWord = () => {
+        const value = newBannedWord.trim()
+        if (!value) return
+
+        setBannedWordError(null)
+        startBannedWordTransition(async () => {
+            const result = await addBannedWordAction({ word: value })
+            if ("error" in result) {
+                setBannedWordError(result.error)
+                return
+            }
+            setBannedWords((prev) =>
+                [...prev, result.data].sort((a, b) =>
+                    a.word.localeCompare(b.word, "fr"),
+                ),
+            )
+            setNewBannedWord("")
+            setQueueChanged(true)
+        })
+    }
+
+    const handleRemoveBannedWord = (id: string) => {
+        setBannedWordError(null)
+        startBannedWordTransition(async () => {
+            const result = await removeBannedWordAction({ id })
+            if ("error" in result) {
+                setBannedWordError(result.error)
+                return
+            }
+            setBannedWords((prev) => prev.filter((item) => item.id !== id))
+            setQueueChanged(true)
+        })
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Suppression de Logo
     // ─────────────────────────────────────────────────────────────────────────
@@ -751,6 +945,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             const result = await updateQueueSettingsAction({
                 max_capacity: queue.maxCapacity,
                 welcome_message: queue.welcomeMessage || null,
+                done_message: queue.doneMessage || null,
+                wait_background_url: queue.waitBackgroundUrl,
                 notifications_enabled: queue.notificationsEnabled,
                 auto_close_enabled: queue.autoCloseEnabled,
             })
@@ -767,9 +963,15 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         setQueue({
             maxCapacity: initialData.maxCapacity,
             welcomeMessage: initialData.welcomeMessage,
+            doneMessage: initialData.doneMessage,
+            waitBackgroundUrl: initialData.waitBackgroundUrl,
             notificationsEnabled: initialData.notificationsEnabled,
             autoCloseEnabled: initialData.autoCloseEnabled,
         })
+        setBannedWords(initialData.bannedWords)
+        setNewBannedWord("")
+        setBannedWordError(null)
+        setBackgroundUploadError(null)
         setQueueChanged(false)
         setQueueError(null)
         setQueueSuccess(false)
@@ -1096,6 +1298,146 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             }
                                             hint="Affiché sur la page client après le scan du QR code."
                                         />
+                                        <Textarea
+                                            label="Message de fin"
+                                            value={queue.doneMessage}
+                                            onChange={(e) =>
+                                                updateQueue(
+                                                    "doneMessage",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            hint="Affiché au client lorsque son ticket est terminé."
+                                        />
+                                        <div className="rounded-xl border border-border-default bg-surface-base p-4">
+                                            <div className="flex flex-col gap-3">
+                                                <div>
+                                                    <p className="text-sm font-medium text-text-primary">
+                                                        Image de fond (vue d&apos;attente)
+                                                    </p>
+                                                    <p className="mt-0.5 text-xs text-text-secondary">
+                                                        Recommandé desktop : 1920×1080 · mobile : 1080×1920.
+                                                        L&apos;image est recadrée automatiquement au format paysage.
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            backgroundInputRef.current?.click()
+                                                        }
+                                                        disabled={isBackgroundUploading}
+                                                    >
+                                                        <Upload size={13} aria-hidden="true" />
+                                                        {queue.waitBackgroundUrl
+                                                            ? "Changer l'image"
+                                                            : "Importer une image"}
+                                                    </Button>
+                                                    {queue.waitBackgroundUrl ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={handleDeleteBackground}
+                                                            disabled={isBackgroundUploading}
+                                                            className="text-feedback-error hover:bg-feedback-error/10"
+                                                        >
+                                                            <Trash2 size={13} aria-hidden="true" />
+                                                            Supprimer
+                                                        </Button>
+                                                    ) : null}
+                                                </div>
+                                                {queue.waitBackgroundUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={queue.waitBackgroundUrl}
+                                                        alt="Aperçu du fond d'attente"
+                                                        className="h-28 w-full rounded-lg border border-border-default object-cover"
+                                                    />
+                                                ) : null}
+                                                {backgroundUploadError ? (
+                                                    <p className="text-xs text-feedback-error">
+                                                        {backgroundUploadError}
+                                                    </p>
+                                                ) : null}
+                                                <input
+                                                    ref={backgroundInputRef}
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/webp"
+                                                    className="sr-only"
+                                                    onChange={handleBackgroundChange}
+                                                    aria-label="Choisir une image de fond"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="rounded-xl border border-border-default bg-surface-base p-4">
+                                            <p className="text-sm font-medium text-text-primary">
+                                                Prénoms bannis
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-text-secondary">
+                                                Cette liste s&apos;applique uniquement à votre commerce.
+                                            </p>
+                                            <div className="mt-3 flex items-center gap-2">
+                                                <Input
+                                                    label="Ajouter un prénom banni"
+                                                    className="w-full"
+                                                    value={newBannedWord}
+                                                    onChange={(e) => {
+                                                        setNewBannedWord(
+                                                            e.target.value,
+                                                        )
+                                                        setBannedWordError(null)
+                                                    }}
+                                                />
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={handleAddBannedWord}
+                                                    disabled={
+                                                        isBannedWordPending ||
+                                                        newBannedWord.trim()
+                                                            .length === 0
+                                                    }
+                                                >
+                                                    Ajouter
+                                                </Button>
+                                            </div>
+                                            {bannedWordError ? (
+                                                <p className="mt-2 text-xs text-feedback-error">
+                                                    {bannedWordError}
+                                                </p>
+                                            ) : null}
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {bannedWords.length === 0 ? (
+                                                    <span className="text-xs text-text-secondary">
+                                                        Aucun prénom banni.
+                                                    </span>
+                                                ) : (
+                                                    bannedWords.map((item) => (
+                                                        <span
+                                                            key={item.id}
+                                                            className="inline-flex items-center gap-1 rounded-full border border-border-default bg-surface-card px-2.5 py-1 text-xs text-text-primary"
+                                                        >
+                                                            {item.word}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleRemoveBannedWord(
+                                                                        item.id,
+                                                                    )
+                                                                }
+                                                                className="rounded-full p-0.5 text-text-secondary hover:bg-surface-base hover:text-text-primary"
+                                                                aria-label={`Supprimer ${item.word}`}
+                                                            >
+                                                                <Trash2
+                                                                    size={11}
+                                                                />
+                                                            </button>
+                                                        </span>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>

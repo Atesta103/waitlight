@@ -162,7 +162,13 @@ function QueueList({
                 ["queue", merchantId],
                 (old) =>
                     old?.map((t) =>
-                        t.id === id ? { ...t, customer_name: "Guest-..." } : t,
+                        t.id === id
+                            ? {
+                                  ...t,
+                                  customer_name: "Nom en cours de modération…",
+                                  name_flagged: true,
+                              }
+                            : t,
                     ) ?? [],
             )
             return { prev }
@@ -347,6 +353,7 @@ function QueueList({
                                 <TicketCard
                                     id={item.id}
                                     customerName={item.customer_name}
+                                    nameFlagged={item.name_flagged}
                                     status={item.status}
                                     position={item.displayPosition}
                                     joinedAt={item.joined_at}

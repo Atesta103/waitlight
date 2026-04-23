@@ -33,11 +33,18 @@ type TicketData = {
 type WaitClientProps = {
     merchant: Merchant
     ticketId: string
+    doneMessage: string | null
+    waitBackgroundUrl: string | null
 }
 
 const STORAGE_KEY_PREFIX = "waitlight_ticket_"
 
-function WaitClient({ merchant, ticketId }: WaitClientProps) {
+function WaitClient({
+    merchant,
+    ticketId,
+    doneMessage,
+    waitBackgroundUrl,
+}: WaitClientProps) {
     const queryClient = useQueryClient()
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
@@ -191,6 +198,8 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 customerName={ticket.customer_name}
                 slug={merchant.slug}
                 ticketId={ticketId}
+                doneMessage={doneMessage}
+                backgroundImageUrl={waitBackgroundUrl}
             />
 
             <Dialog 

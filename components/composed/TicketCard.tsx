@@ -12,6 +12,7 @@ type TicketStatus = "waiting" | "called" | "done" | "cancelled"
 type TicketCardProps = {
     id: string
     customerName: string
+    nameFlagged?: boolean
     status: TicketStatus
     position?: number
     joinedAt: string
@@ -25,6 +26,7 @@ type TicketCardProps = {
 function TicketCard({
     id,
     customerName,
+    nameFlagged = false,
     status,
     position,
     joinedAt,
@@ -131,7 +133,7 @@ function TicketCard({
                                 variant: "destructive" as const,
                                 onClick: () => onCancel(id),
                             }] : []),
-                            ...(onReportName && !customerName.startsWith("Guest-") ? [{
+                            ...(onReportName && !nameFlagged ? [{
                                 label: "Signaler le prénom",
                                 icon: <ShieldAlert size={16} />,
                                 onClick: () => onReportName(id, customerName),

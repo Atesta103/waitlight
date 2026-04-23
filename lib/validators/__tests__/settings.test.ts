@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest"
-import { MerchantIdentitySchema, QueueSettingsSchema } from "../settings"
+import {
+    MerchantIdentitySchema,
+    QueueSettingsSchema,
+    AddBannedWordSchema,
+    RemoveBannedWordSchema,
+} from "../settings"
 
 // ---------------------------------------------------------------------------
 // MerchantIdentitySchema
@@ -104,6 +109,8 @@ describe("QueueSettingsSchema", () => {
     const valid = {
         max_capacity: 50,
         welcome_message: "Bienvenue ! Scannez pour rejoindre la file.",
+        done_message: "Merci pour votre visite !",
+        wait_background_url: "https://cdn.example.com/backgrounds/bg.webp",
         notifications_enabled: true,
         auto_close_enabled: false,
     }
@@ -116,6 +123,22 @@ describe("QueueSettingsSchema", () => {
         const result = QueueSettingsSchema.safeParse({
             ...valid,
             welcome_message: null,
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it("accepts a null done_message", () => {
+        const result = QueueSettingsSchema.safeParse({
+            ...valid,
+            done_message: null,
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it("accepts a null wait_background_url", () => {
+        const result = QueueSettingsSchema.safeParse({
+            ...valid,
+            wait_background_url: null,
         })
         expect(result.success).toBe(true)
     })
@@ -153,6 +176,22 @@ describe("QueueSettingsSchema", () => {
         expect(result.success).toBe(false)
     })
 
+    it("rejects a done_message longer than 500 characters", () => {
+        const result = QueueSettingsSchema.safeParse({
+            ...valid,
+            done_message: "x".repeat(501),
+        })
+        expect(result.success).toBe(false)
+    })
+
+    it("rejects an invalid wait_background_url", () => {
+        const result = QueueSettingsSchema.safeParse({
+            ...valid,
+            wait_background_url: "not-a-url",
+        })
+        expect(result.success).toBe(false)
+    })
+
     it("rejects non-integer max_capacity", () => {
         const result = QueueSettingsSchema.safeParse({
             ...valid,
@@ -165,6 +204,36 @@ describe("QueueSettingsSchema", () => {
         const result = QueueSettingsSchema.safeParse({
             ...valid,
             notifications_enabled: "true",
+        })
+        expect(result.success).toBe(false)
+    })
+})
+
+describe("Banned word schemas", () => {
+    it("accepts a valid banned word payload", () => {
+        const result = AddBannedWordSchema.safeParse({
+            word: "dupont",
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it("rejects a banned word shorter than 2 chars", () => {
+        const result = AddBannedWordSchema.safeParse({
+            word: "a",
+        })
+        expect(result.success).toBe(false)
+    })
+
+    it("accepts a valid banned word removal payload", () => {
+        const result = RemoveBannedWordSchema.safeParse({
+            id: "5f90396a-3de4-4d8f-b204-95cf4a726f4f",
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it("rejects an invalid banned word id", () => {
+        const result = RemoveBannedWordSchema.safeParse({
+            id: "invalid-id",
         })
         expect(result.success).toBe(false)
     })

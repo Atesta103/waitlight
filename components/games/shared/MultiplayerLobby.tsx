@@ -36,12 +36,14 @@ export function MultiplayerLobby({
 }: MultiplayerLobbyProps) {
     const [view, setView] = useState<"list" | "waiting">("list")
     const [rooms, setRooms] = useState<Room[]>([])
-    const [_myRoomCode, setMyRoomCode] = useState("")
+    const [myRoomCode, setMyRoomCode] = useState("")
     const [joiningCode, setJoiningCode] = useState<string | null>(null)
 
     const discoveryRef = useRef<RealtimeChannel | null>(null)
     const gameRef = useRef<RealtimeChannel | null>(null)
     const supabaseRef = useRef(createClient())
+    const discoveryReadyRef = useRef(false)
+    const pendingRoomCodeRef = useRef<string | null>(null)
 
     // ── Discovery channel — lists all open rooms ──────────────────────────────
     useEffect(() => {
@@ -66,11 +68,21 @@ export function MultiplayerLobby({
             .on("presence", { event: "sync" }, syncRooms)
             .on("presence", { event: "join" }, syncRooms)
             .on("presence", { event: "leave" }, syncRooms)
-            .subscribe()
+            .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    discoveryReadyRef.current = true
+                    syncRooms()
+                    if (pendingRoomCodeRef.current) {
+                        void channel.track({ roomCode: pendingRoomCodeRef.current })
+                        pendingRoomCodeRef.current = null
+                    }
+                }
+            })
 
         discoveryRef.current = channel
 
         return () => {
+            discoveryReadyRef.current = false
             supabase.removeChannel(channel)
         }
     }, [merchantId, gameType, ticketId])
@@ -84,7 +96,11 @@ export function MultiplayerLobby({
         const supabase = supabaseRef.current
 
         // Announce on discovery channel
-        await discoveryRef.current?.track({ roomCode: code })
+        if (discoveryReadyRef.current && discoveryRef.current) {
+            await discoveryRef.current.track({ roomCode: code })
+        } else {
+            pendingRoomCodeRef.current = code
+        }
 
         // Open the game channel and wait for a second player via broadcast
         const gameChannel = supabase.channel(`${gameType}:${merchantId}:${code}`)
@@ -159,6 +175,9 @@ export function MultiplayerLobby({
                     <div className="flex flex-col items-center gap-3 bg-surface-card border border-border-default rounded-2xl px-8 py-6 w-full">
                         <p className="text-xs text-text-secondary uppercase tracking-wider">
                             Votre partie est ouverte
+                        </p>
+                        <p className="rounded-md border border-border-default bg-surface-base px-2.5 py-1 font-mono text-xs text-text-primary">
+                            Room {myRoomCode}
                         </p>
                         <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse" />
