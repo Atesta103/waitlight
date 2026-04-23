@@ -211,6 +211,8 @@ function QRCodeDisplay({
                                 value={qrValue}
                                 size={size}
                                 marginSize={0}
+                                bgColor="#FFFFFF"
+                                fgColor="#000000"
                                 aria-label="QR Code pour rejoindre la file d'attente"
                                 style={{
                                     display: "block",

@@ -160,7 +160,7 @@ export function LiveStatsBoard() {
                 <p className="text-[10px] uppercase tracking-wider text-[#6B7280] mb-1.5">Trafic horaire (aujourd&apos;hui)</p>
                 <div className="flex items-end gap-1 h-14">
                     {hourly.map((item) => (
-                        <div key={item.h} className="flex-1 flex flex-col items-center gap-0.5">
+                        <div key={item.h} className="flex-1 flex flex-col items-center justify-end h-full gap-0.5">
                             <div
                                 className={cn(
                                     "w-full rounded-t transition-all",
@@ -337,8 +337,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-auto">
                     {/* Card 1 — Large: Phone mockup (col-span-7) */}
                     <BentoCard
-                        className="md:col-span-7 md:row-span-2 min-h-[420px] flex flex-col"
-                       
+                        className="md:col-span-7 md:row-span-2 md:min-h-[420px] flex flex-col"
                     >
                         <div className="flex-1 flex flex-col">
                             <div className="mb-2">
@@ -351,7 +350,10 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                     Le client suit sa position en temps réel, joue en attendant et reçoit un rappel dès son tour.
                                 </p>
                             </div>
-                            <LargePhoneMockup />
+                            {/* Phone mockup hidden on mobile */}
+                            <div className="hidden md:block flex-1">
+                                <LargePhoneMockup />
+                            </div>
                         </div>
                     </BentoCard>
 
@@ -391,7 +393,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                     </BentoCard>
 
                     {/* Card 4 — Small: QR Code — centered, large */}
-                    <BentoCard className="md:col-span-4 min-h-[200px] flex flex-col items-center justify-center text-center">
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col items-center text-center">
                         <div className="max-w-[240px]">
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Simplicité</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Zéro installation</h3>
@@ -399,13 +401,15 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                 Un QR Code suffit. Aucune app à télécharger pour vos clients.
                             </p>
                         </div>
-                        <div className="mt-5 w-32 h-32 rounded-3xl bg-[#EEF2FF] flex items-center justify-center mx-auto p-4">
-                            <QrIllustration />
+                        <div className="mt-4 w-full flex items-center justify-center">
+                            <div className="w-24 h-24 md:w-36 md:h-36 rounded-2xl bg-[#EEF2FF] flex items-center justify-center p-3">
+                                <QrIllustration />
+                            </div>
                         </div>
                     </BentoCard>
 
                     {/* Card 5 — Small: White label (col-span-4) */}
-                    <BentoCard className="md:col-span-4 min-h-[200px] flex flex-col justify-between">
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between">
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Personnalisation</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Marque blanche</h3>
@@ -413,13 +417,14 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                 Votre logo, votre couleur. Vos clients ne voient que vous.
                             </p>
                         </div>
-                        <div className="mt-4">
+                        {/* Brand logos hidden on mobile to save space */}
+                        <div className="hidden sm:block mt-4">
                             <BrandLogos />
                         </div>
                     </BentoCard>
 
                     {/* Card 6 — Small: Stats (col-span-4) */}
-                    <BentoCard className="md:col-span-4 min-h-[200px] flex flex-col justify-between">
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between">
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Analytics</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Stats en direct</h3>
@@ -427,7 +432,8 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                 Suivez votre file par heure, votre temps moyen et vos pics sur la même vue.
                             </p>
                         </div>
-                        <div className="mt-4">
+                        {/* Stats board hidden on mobile to save space */}
+                        <div className="hidden sm:block mt-4">
                             <LiveStatsBoard />
                         </div>
                     </BentoCard>

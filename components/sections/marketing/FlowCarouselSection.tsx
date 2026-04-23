@@ -11,7 +11,7 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 function SetupMockup() {
     return (
-        <div className="w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
+        <div className="scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
             <div className="bg-[#F8F9FA] px-5 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-bold text-[#111827]">Paramètres de la file</h3>
@@ -84,9 +84,10 @@ function WaitMockup() {
 
 function CallMockup() {
     return (
-        <div className="w-full max-w-[380px] rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
-                <div>
+        <div className="scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px]">
+            <div className="w-full rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
+                    <div>
                     <h3 className="text-sm font-bold text-[#111827]">File active</h3>
                     <p className="text-[10px] text-[#6B7280]">18 personnes en attente</p>
                 </div>
@@ -116,6 +117,7 @@ function CallMockup() {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     )
 }
@@ -244,9 +246,9 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                         {/* Left: Text Content */}
-                        <div className="flex flex-col h-full justify-center">
+                        <div className="flex flex-col h-full justify-center order-2 lg:order-1">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentStep}
@@ -290,8 +292,8 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             </div>
                         </div>
 
-                        {/* Right: Mockup Carousel */}
-                        <div className="relative h-[450px] flex items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden">
+                        {/* Right: Mockup Carousel — hidden on mobile */}
+                        <div className="hidden lg:flex relative w-full h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2">
                             {/* Decorative background circle */}
                             <div className="absolute w-[300px] h-[300px] rounded-full bg-white/40 blur-3xl" />
                             
