@@ -61,9 +61,10 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
+    const [calledReminderAcknowledged, setCalledReminderAcknowledged] = useState(false)
     const [hasNotifiedApproaching, setHasNotifiedApproaching] = useState(false)
-    const [hasNotifiedCalled, setHasNotifiedCalled] = useState(false)
     const supabaseRef = useRef(createClient())
+    const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
     // ── TanStack Query ────────────────────────────────────────────────────────
     // TANSTACK: Fetches ticket details. Tracks loading state and handles caching automatically.
@@ -176,7 +177,16 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     useEffect(() => {
         if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
 
-        const triggerNotification = () => {
+        if (calledReminderTimerRef.current) {
+            clearInterval(calledReminderTimerRef.current)
+            calledReminderTimerRef.current = null
+        }
+
+        if (ticket.status !== "called" || calledReminderAcknowledged) {
+            return
+        }
+
+        const triggerReminder = () => {
             const prefs = merchant.settings
 
             if (prefs.notification_channels.sound) {
@@ -205,12 +215,28 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             }
         }
 
-        // Called notification
-        if (ticket.status === "called" && !hasNotifiedCalled) {
-            setHasNotifiedCalled(true)
-            triggerNotification()
-            return
+        triggerReminder()
+        calledReminderTimerRef.current = setInterval(triggerReminder, 2500)
+
+        return () => {
+            if (calledReminderTimerRef.current) {
+                clearInterval(calledReminderTimerRef.current)
+                calledReminderTimerRef.current = null
+            }
         }
+    }, [
+        ticket?.status,
+        ticket?.customer_name,
+        calledReminderAcknowledged,
+        merchant.settings.notification_channels.sound,
+        merchant.settings.notification_channels.vibrate,
+        merchant.settings.notification_channels.push,
+        merchant.settings.notification_sound,
+    ])
+
+    // Approaching notification
+    useEffect(() => {
+        if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
 
         // Approaching notification
         if (
@@ -231,10 +257,45 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
             if (isApproaching) {
                 setHasNotifiedApproaching(true)
-                triggerNotification()
+                const prefs = merchant.settings
+
+                if (prefs.notification_channels.sound) {
+                    playSound(prefs.notification_sound)
+                }
+
+                if (prefs.notification_channels.vibrate) {
+                    if ("vibrate" in navigator) {
+                        navigator.vibrate([250, 80, 250, 80, 500])
+                    } else {
+                        playHapticBuzz()
+                    }
+                }
+
+                if (
+                    prefs.notification_channels.push &&
+                    typeof window !== "undefined" &&
+                    "Notification" in window &&
+                    Notification.permission === "granted"
+                ) {
+                    new Notification("Vous approchez du comptoir", {
+                        body: `${ticket.customer_name}, votre tour approche.`,
+                        icon: "/favicon.svg",
+                        tag: "waitlight-approaching",
+                    })
+                }
             }
         }
-    }, [ticket, position, estimatedWaitMinutes, hasNotifiedApproaching, hasNotifiedCalled, merchant.settings])
+    }, [
+        ticket?.status,
+        ticket?.customer_name,
+        position,
+        estimatedWaitMinutes,
+        hasNotifiedApproaching,
+        merchant.settings.notification_channels.sound,
+        merchant.settings.notification_channels.vibrate,
+        merchant.settings.notification_channels.push,
+        merchant.settings.notification_sound,
+    ])
 
 
     if (ticketNotFound) {
@@ -281,6 +342,23 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 thankYouMessage={merchant.settings.thank_you_message}
                 backgroundUrl={merchant.background_url}
             />
+
+            {ticket.status === "called" && !calledReminderAcknowledged && (
+                <Dialog open onClose={() => setCalledReminderAcknowledged(true)}>
+                    <DialogHeader>C&apos;est votre tour</DialogHeader>
+                    <DialogContent>
+                        <p className="text-sm text-text-secondary">
+                            Les rappels vont se répéter toutes les quelques secondes jusqu&apos;à ce
+                            que vous confirmiez avoir compris qu&apos;il faut aller chercher votre commande.
+                        </p>
+                    </DialogContent>
+                    <DialogFooter>
+                        <Button onClick={() => setCalledReminderAcknowledged(true)}>
+                            J&apos;ai compris, j&apos;y vais
+                        </Button>
+                    </DialogFooter>
+                </Dialog>
+            )}
 
             <Dialog 
                 open={showModerationWarning} 
