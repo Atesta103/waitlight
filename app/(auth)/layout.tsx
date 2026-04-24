@@ -1,4 +1,6 @@
 import type { ReactNode } from "react"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
 type AuthLayoutProps = {
     children: ReactNode
@@ -20,6 +22,17 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                 }}
             />
 
+            {/* Back link */}
+            <div className="absolute top-6 left-6 z-10">
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#374151] hover:text-[#111827] transition-colors"
+                >
+                    <ArrowLeft size={15} aria-hidden="true" />
+                    Retour
+                </Link>
+            </div>
+
             {/* Header / Brand */}
             <div className="relative z-10 mb-8 flex flex-col items-center text-center">
                 <h1 className="mb-2 text-4xl font-bold tracking-tight text-brand-primary md:text-5xl">
@@ -37,3 +50,4 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         </div>
     )
 }
+

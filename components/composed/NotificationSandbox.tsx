@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useRef, useCallback, useId, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -18,13 +18,6 @@ import { Toast, type ToastVariant } from "@/components/ui/Toast"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
 
-/* ─── Platform detection ─── */
-function isIos(): boolean {
-    if (typeof navigator === "undefined") return false
-    return (
-        /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window)
-    )
-}
 
 /* ─── Web Audio context factory ─── */
 function makeCtx() {
@@ -344,7 +337,11 @@ function NotificationSandbox({
         NotificationPermission | "unsupported"
     >("default")
     const [vibrateFlash, setVibrateFlash] = useState(false)
-    const [onIos, setOnIos] = useState(false)
+    // Lazy initializer: runs once on mount (client only), avoids synchronous setState in effect
+    const [onIos] = useState(() => {
+        if (typeof navigator === "undefined") return false
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window)
+    })
 
     // Merchant channel preferences
     const [merchantChannels, setMerchantChannels] = useState<MerchantChannels>({
@@ -367,18 +364,20 @@ function NotificationSandbox({
 
     // Init platform + auto-request push permission on mount
     useEffect(() => {
-        setOnIos(isIos())
-        if (!("Notification" in window)) {
-            setPushPermission("unsupported")
-        } else {
-            const perm = Notification.permission
-            setPushPermission(perm)
-            if (perm === "default") {
-                Notification.requestPermission().then((result) => {
-                    setPushPermission(result)
-                })
+        // Defer all setState calls to avoid synchronous setState inside effect
+        setTimeout(() => {
+            if (!("Notification" in window)) {
+                setPushPermission("unsupported")
+            } else {
+                const perm = Notification.permission
+                setPushPermission(perm)
+                if (perm === "default") {
+                    Notification.requestPermission().then((result) => {
+                        setPushPermission(result)
+                    })
+                }
             }
-        }
+        }, 0)
     }, [])
 
     const removeToast = useCallback((id: string) => {

@@ -36,14 +36,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         : undefined
 
     return (
-        <>
-            <LoginForm
-                action={loginAction}
-                socialAction={oauthSignInAction}
-                enabledProviders={["google"]}
-                successMessage={successMessage}
-                initialError={initialError}
-            />
-        </>
+        <LoginForm
+            action={loginAction}
+            socialAction={oauthSignInAction}
+            enabledProviders={["google"]}
+            successMessage={successMessage}
+            initialError={initialError}
+        />
     )
 }
+

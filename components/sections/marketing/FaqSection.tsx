@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 
@@ -125,9 +126,9 @@ export function FaqSection({ id }: { id?: string }) {
                 {/* Contact nudge */}
                 <p className="mt-8 text-center text-sm text-[#374151]">
                     Une autre question ?{" "}
-                    <a href="mailto:contact@waitlight.fr" className="text-[#4F46E5] font-medium hover:underline">
-                        Écrivez-nous
-                    </a>
+                    <Link href="/contact" className="text-[#4F46E5] font-medium hover:underline">
+                        Contactez-nous
+                    </Link>
                 </p>
             </div>
         </section>

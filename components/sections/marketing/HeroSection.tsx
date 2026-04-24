@@ -358,12 +358,12 @@ export function HeroSection({ id }: { id?: string }) {
                     </div>
 
                     {/* ── Right: phone + dashboard mockups ── */}
-                    <div className="flex justify-center lg:justify-end">
-                        <div className="relative w-full max-w-[500px] min-h-[520px] sm:min-h-[560px]">
-                            <div className="absolute right-0 top-8">
+                    <div className="hidden lg:flex lg:justify-end">
+                        <div className="relative w-full max-w-[500px] min-h-[480px] sm:min-h-[560px]">
+                            <div className="hidden sm:block absolute right-0 top-8 z-0">
                                 <MerchantDashboardMockup />
                             </div>
-                            <div className="absolute left-0 bottom-0 sm:left-2">
+                            <div className="absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-0 bottom-0 sm:left-2 z-10 scale-90 sm:scale-100 origin-bottom">
                                 <PhoneMockup />
                             </div>
                         </div>

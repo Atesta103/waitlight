@@ -51,12 +51,13 @@ function SlugInput({
             return () => { cancelled = true; clearTimeout(t) }
         }
 
-        setStatus("checking")
+        // Defer setState to avoid synchronous call inside effect body
         const timer = setTimeout(async () => {
             if (cancelled) return
+            setStatus("checking")
             const available = await checkAvailability(value)
             if (!cancelled) setStatus(available ? "available" : "taken")
-        }, 500)
+        }, 0)
 
         return () => { cancelled = true; clearTimeout(timer) }
     }, [value, checkAvailability])

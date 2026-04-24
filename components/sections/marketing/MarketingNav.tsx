@@ -138,12 +138,13 @@ export function MarketingNav() {
                         </div>
 
                         <div className="mt-6 border-t border-border-default pt-5">
-                            <a
-                                href="mailto:contact@waitlight.fr"
+                            <Link
+                                href="/contact"
+                                onClick={closeMenu}
                                 className="text-sm font-medium text-[#374151] hover:text-[#111827]"
                             >
-                                Contact support
-                            </a>
+                                Contact & support
+                            </Link>
                         </div>
                     </motion.aside>
                 </div>

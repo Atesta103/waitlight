@@ -49,9 +49,9 @@ export function CallToActionFooter({ id }: CallToActionFooterProps) {
                         <Link href="/login" className="transition-colors hover:text-text-primary">
                             Connexion
                         </Link>
-                        <a href="mailto:contact@waitlight.fr" className="transition-colors hover:text-text-primary">
+                        <Link href="/contact" className="transition-colors hover:text-text-primary">
                             Contact
-                        </a>
+                        </Link>
                     </div>
                 </footer>
             </div>
