@@ -37,7 +37,7 @@ export function GameLobby({ ticketId, slug }: GameLobbyProps) {
             </div>
 
             {/* Game grid */}
-            <main className="flex-1 p-4">
+            <main className="flex-1 px-4 pb-28 pt-4">
                 <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
                     {GAMES.map((game) => (
                         <button

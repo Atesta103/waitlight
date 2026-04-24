@@ -14,6 +14,11 @@ type ToastItem = {
     description?: string
 }
 
+type TicketData = {
+    status: "waiting" | "called" | "done" | "cancelled"
+    customer_name: string
+}
+
 type GamesQueueWatcherProps = {
     merchantId: string
     ticketId: string
@@ -44,17 +49,17 @@ export function GamesQueueWatcher({
         setToasts((prev) => prev.filter((t) => t.id !== id))
     }, [])
 
-    const { data: ticket } = useQuery({
+    const { data: ticket } = useQuery<TicketData>({
         queryKey: ["ticket", ticketId],
         queryFn: async () => {
             const supabase = supabaseRef.current
             const { data, error } = await supabase
                 .from("queue_items")
-                .select("status")
+                .select("status, customer_name")
                 .eq("id", ticketId)
                 .single()
             if (error || !data) throw new Error("Ticket introuvable")
-            return data
+            return data as TicketData
         },
     })
 
@@ -68,6 +73,8 @@ export function GamesQueueWatcher({
         },
         enabled: !!ticket && ticket.status !== "done" && ticket.status !== "cancelled",
     })
+
+    const displayCustomerName = ticket?.customer_name?.trim() || customerName?.trim() || "Votre commande"
 
     // Realtime subscription
     useEffect(() => {
@@ -102,7 +109,7 @@ export function GamesQueueWatcher({
                 ticket.status === "called" && 
                 prevStatusRef.current !== "called"
             ) {
-                addToast("called", "C'est votre tour !", `${customerName}, présentez-vous au comptoir.`)
+                addToast("called", "C'est votre tour !", `${displayCustomerName}, présentez-vous au comptoir.`)
                 
                 if ("vibrate" in navigator) {
                     navigator.vibrate([250, 80, 250, 80, 500])
@@ -110,7 +117,7 @@ export function GamesQueueWatcher({
             }
             prevStatusRef.current = ticket.status
         }
-    }, [ticket?.status, customerName, addToast])
+    }, [ticket?.status, displayCustomerName, addToast])
 
     // Detect position change
     useEffect(() => {
@@ -129,7 +136,7 @@ export function GamesQueueWatcher({
 
     return (
         <>
-            <div className="sticky top-3 z-30 px-4 pt-3">
+            <div className="pointer-events-none fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[110] mx-auto w-full max-w-md">
                 <QueueStatusStrip
                     position={position ?? null}
                     status={ticket?.status as "waiting" | "called" | "done" | "cancelled" | undefined}
