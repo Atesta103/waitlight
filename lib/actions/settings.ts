@@ -8,6 +8,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { adminSupabase } from "@/lib/supabase/admin"
 import {
     MerchantIdentitySchema,
     QueueSettingsSchema,
@@ -482,13 +483,14 @@ export async function getBannedWordsAction(): Promise<
         return { error: "Session expirée. Veuillez vous reconnecter." }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
         .from("banned_words")
         .select("id, word, created_at")
         .eq("merchant_id", user.id)
         .order("created_at", { ascending: false })
 
     if (error) {
+        console.error("[getBannedWordsAction] DB error:", error);
         return { error: "Impossible de charger les mots bannis." }
     }
 
@@ -515,7 +517,7 @@ export async function addBannedWordAction(
         return { error: "Session expirée. Veuillez vous reconnecter." }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
         .from("banned_words")
         .insert({
             word: word.toLowerCase().trim(),
@@ -525,10 +527,18 @@ export async function addBannedWordAction(
         .single()
 
     if (error) {
+        // Always log server-side so we can diagnose — code appears in npm run dev output
+        console.error("[addBannedWordAction] Supabase error:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+        })
+
         if (error.code === "23505") {
             return { error: "Ce mot est déjà dans la liste." }
         }
-        return { error: "Impossible d'ajouter ce mot." }
+        return { error: `Erreur ${error.code ?? "inconnue"} : ${error.message ?? "Impossible d'ajouter ce mot."}` }
     }
 
     return { data }
@@ -549,7 +559,7 @@ export async function removeBannedWordAction(
         return { error: "Session expirée. Veuillez vous reconnecter." }
     }
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
         .from("banned_words")
         .delete()
         .eq("id", wordId)

@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="min-h-screen bg-[#F8F9FA] text-[#111827]">
+        <div className="light min-h-screen bg-[#F8F9FA] text-[#111827]">
             {/* Minimal top bar */}
             <header className="border-b border-[#E5E7EB] bg-white">
                 <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">

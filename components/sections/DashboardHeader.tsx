@@ -88,7 +88,7 @@ function DashboardHeader({
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <Button size="sm" variant="secondary" className="gap-2">
+                                <Button size="sm" className="gap-2">
                                     <QrCode size={14} aria-hidden="true" />
                                     <span className="hidden sm:inline">Afficher le QR code</span>
                                     <span className="sm:hidden">QR code</span>

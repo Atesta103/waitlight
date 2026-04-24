@@ -13,7 +13,7 @@ type AuthLayoutProps = {
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
     return (
-        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-surface-base px-4 py-8">
+        <div className="light relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-surface-base px-4 py-8">
             {/* Center Glow Background */}
             <div
                 className="pointer-events-none absolute inset-0 z-0 opacity-20"
