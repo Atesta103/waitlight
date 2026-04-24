@@ -44,14 +44,14 @@ function buildEmptyWeekly(): Record<string, WeeklyScheduleDay> {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-type ScheduleEditorProps = {
+export type ScheduleEditorProps = {
     initialSchedule: ScheduleData | null
     className?: string
     showSaveButton?: boolean
     onDirtyChange?: (isDirty: boolean) => void
 }
 
-type ScheduleEditorHandle = {
+export type ScheduleEditorHandle = {
     save: () => Promise<void>
 }
 
@@ -362,6 +362,6 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
             ) : null}
         </div>
     )
-}
+})
 
-export { ScheduleEditor, type ScheduleEditorProps, type ScheduleEditorHandle }
+export { ScheduleEditor }

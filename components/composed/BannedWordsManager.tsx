@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
@@ -29,20 +29,26 @@ function BannedWordsManager({ className }: BannedWordsManagerProps) {
     const [isAdding, setIsAdding] = useState(false)
     const [removingIds, setRemovingIds] = useState<Set<string>>(new Set())
 
-    const loadWords = useCallback(async () => {
-        setIsLoading(true)
-        const result = await getBannedWordsAction()
-        if ("data" in result) {
-            setWords(result.data)
-        } else {
-            setError(result.error)
-        }
-        setIsLoading(false)
-    }, [])
-
     useEffect(() => {
-        loadWords()
-    }, [loadWords])
+        let active = true
+
+        void (async () => {
+            const result = await getBannedWordsAction()
+            if (!active) return
+
+            if ("data" in result) {
+                setWords(result.data)
+            } else {
+                setError(result.error)
+            }
+
+            setIsLoading(false)
+        })()
+
+        return () => {
+            active = false
+        }
+    }, [])
 
     async function handleAdd() {
         const trimmed = newWord.trim()

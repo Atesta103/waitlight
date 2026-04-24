@@ -67,7 +67,7 @@ const CHANNEL_DEFS = [
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-type NotificationPreferencesEditorProps = {
+export type NotificationPreferencesEditorProps = {
     initialChannels: NotificationChannels
     initialSound: string
     initialApproachingPosition: {
@@ -83,7 +83,7 @@ type NotificationPreferencesEditorProps = {
     onDirtyChange?: (isDirty: boolean) => void
 }
 
-type NotificationPreferencesEditorHandle = {
+export type NotificationPreferencesEditorHandle = {
     save: () => Promise<void>
 }
 
@@ -371,6 +371,6 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
             ) : null}
         </div>
     )
-}
+})
 
-export { NotificationPreferencesEditor, type NotificationPreferencesEditorProps, type NotificationPreferencesEditorHandle }
+export { NotificationPreferencesEditor }

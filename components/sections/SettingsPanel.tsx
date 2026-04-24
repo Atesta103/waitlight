@@ -20,14 +20,12 @@ import { SlugInput } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
 import { duration, ease } from "@/lib/utils/motion"
 import {
-    Save,
     Bell,
     User,
     Clock,
     Upload,
     Trash2,
     AlertTriangle,
-    CheckCircle2,
     ImagePlus,
     BellRing,
     Layers,
@@ -116,13 +114,6 @@ function SectionBlock({
     description,
     children,
     badge,
-}: {
-    id: string
-    icon: React.ElementType
-    title: string
-    description?: string
-    children: React.ReactNode
-    badge?: React.ReactNode
 }) {
     return (
         <section
@@ -226,96 +217,6 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AnimatedSaveBar — slides up / down with AnimatePresence
-// ─────────────────────────────────────────────────────────────────────────────
-
-function AnimatedSaveBar({
-    show,
-    onSave,
-    onCancel,
-    isLoading,
-    label,
-    error,
-    success,
-    successMessage,
-}: {
-    show: boolean
-    onSave: () => void
-    onCancel: () => void
-    isLoading: boolean
-    label: string
-    error: string | null
-    success: boolean
-    successMessage: string
-}) {
-    const shouldReduce = useReducedMotion()
-    const transition = shouldReduce
-        ? { duration: 0 }
-        : { duration: duration.default, ease: ease.default }
-
-    return (
-        <AnimatePresence>
-            {show || error || success ? (
-                <motion.div
-                    key="savebar"
-                    initial={shouldReduce ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={transition}
-                    className="mt-3 overflow-hidden rounded-xl border border-border-default bg-surface-card shadow-sm"
-                >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <div className="flex items-center gap-3">
-                            {show ? (
-                                <>
-                                    <Button
-                                        variant="primary"
-                                        size="sm"
-                                        onClick={onSave}
-                                        isLoading={isLoading}
-                                    >
-                                        <Save size={14} aria-hidden="true" />
-                                        {label}
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={onCancel}
-                                        disabled={isLoading}
-                                    >
-                                        Annuler
-                                    </Button>
-                                </>
-                            ) : null}
-                        </div>
-
-                        <div aria-live="polite" aria-atomic="true">
-                            {error ? (
-                                <p
-                                    role="alert"
-                                    className="text-sm text-feedback-error"
-                                >
-                                    {error}
-                                </p>
-                            ) : success && !show ? (
-                                <p className="flex items-center gap-1.5 text-sm text-feedback-success">
-                                    <CheckCircle2
-                                        size={14}
-                                        aria-hidden="true"
-                                    />
-                                    {successMessage}
-                                </p>
-                            ) : null}
-                        </div>
-                    </div>
-                </motion.div>
-            ) : null}
-        </AnimatePresence>
-    )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // UploadZone — large drag-and-drop logo area
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -533,8 +434,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         defaultPrepTimeMin: initialData.defaultPrepTimeMin,
     })
     const [identityChanged, setIdentityChanged] = useState(false)
-    const [identityError, setIdentityError] = useState<string | null>(null)
-    const [identitySuccess, setIdentitySuccess] = useState(false)
+    const [, setIdentityError] = useState<string | null>(null)
+    const [, setIdentitySuccess] = useState(false)
     const [isIdentityPending, startIdentityTransition] = useTransition()
 
     // ── Queue ─────────────────────────────────────────────────────────────────
@@ -546,8 +447,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         autoCloseEnabled: initialData.autoCloseEnabled,
     })
     const [queueChanged, setQueueChanged] = useState(false)
-    const [queueError, setQueueError] = useState<string | null>(null)
-    const [queueSuccess, setQueueSuccess] = useState(false)
+    const [, setQueueError] = useState<string | null>(null)
+    const [, setQueueSuccess] = useState(false)
     const [isQueuePending, startQueueTransition] = useTransition()
 
     const [scheduleDirty, setScheduleDirty] = useState(false)
@@ -1178,7 +1079,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 <CardContent>
                                     <div className="mb-4 flex flex-col gap-1">
                                         <p className="text-sm font-medium text-text-primary">
-                                            Heures d'ouverture et fermetures exceptionnelles
+                                            Heures d&apos;ouverture et fermetures exceptionnelles
                                         </p>
                                         <p className="text-sm text-text-secondary">
                                             L&apos;éditeur ci-dessous gère les plages hebdomadaires et les jours spéciaux dans une seule vue.

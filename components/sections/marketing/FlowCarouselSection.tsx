@@ -335,7 +335,8 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     /** progress 0→1 of the current bar fill (for CSS animation reset) */
     const [progress, setProgress] = useState(0)
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-    const startRef = useRef(Date.now())
+    const tickRef = useRef(0)
+    const totalTicks = AUTO_PLAY_INTERVAL_MS / 50
 
     const FLOW_STEPS = TARGET_CONTENT[targetId]
 
@@ -343,7 +344,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
         setDirection(dir ?? (index > currentStep ? 1 : -1))
         setCurrentStep(index)
         setProgress(0)
-        startRef.current = Date.now()
+        tickRef.current = 0
     }, [currentStep])
 
     const paginate = useCallback((newDirection: number) => {
@@ -353,18 +354,18 @@ export function FlowCarouselSection({ id }: { id?: string }) {
             if (next >= FLOW_STEPS.length) next = 0
             setDirection(newDirection)
             setProgress(0)
-            startRef.current = Date.now()
+            tickRef.current = 0
             return next
         })
     }, [FLOW_STEPS.length])
 
     // Auto-play: tick every 50ms to update the progress bar smoothly
     useEffect(() => {
-        startRef.current = Date.now()
+        tickRef.current = 0
 
         timerRef.current = setInterval(() => {
-            const elapsed = Date.now() - startRef.current
-            const p = Math.min(elapsed / AUTO_PLAY_INTERVAL_MS, 1)
+            tickRef.current += 1
+            const p = Math.min(tickRef.current / totalTicks, 1)
             setProgress(p)
 
             if (p >= 1) {
@@ -373,7 +374,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                     const next = (prev + 1) % FLOW_STEPS.length
                     setDirection(1)
                     setProgress(0)
-                    startRef.current = Date.now()
+                    tickRef.current = 0
                     return next
                 })
             }
@@ -382,14 +383,14 @@ export function FlowCarouselSection({ id }: { id?: string }) {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current)
         }
-    }, [FLOW_STEPS.length, targetId])
+    }, [FLOW_STEPS.length, totalTicks, targetId])
 
     const handleTargetChange = (newTarget: keyof typeof TARGET_CONTENT) => {
         setTargetId(newTarget)
         setCurrentStep(0)
         setDirection(1)
         setProgress(0)
-        startRef.current = Date.now()
+        tickRef.current = 0
     }
 
     // When user manually navigates, reset the timer

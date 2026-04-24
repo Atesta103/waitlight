@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, Fragment } from "react"
+import { useState, useCallback, useMemo, Fragment } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useReducedMotion, motion } from "framer-motion"
 import {
@@ -317,16 +317,11 @@ function exportCsv(rows: AnalyticsRow[]) {
 
 export function AnalyticsDashboard({ merchantId, initialData }: Props) {
     const prefersReduced = useReducedMotion()
-    const [selectedDay, setSelectedDay] = useState<number | null>(null)
-    const [presetIdx, setPresetIdx] = useState(3)     // default: all time
-    const [isClientReady, setIsClientReady] = useState(false)
-
-    useEffect(() => {
-        // Use the current client day without rendering a mismatching default on the server.
+    const [selectedDay, setSelectedDay] = useState(() => {
         const jsDay = new Date().getDay()
-        setSelectedDay(jsDay === 0 ? 6 : jsDay - 1)
-        setIsClientReady(true)
-    }, [])
+        return jsDay === 0 ? 6 : jsDay - 1
+    })
+    const [presetIdx, setPresetIdx] = useState(3)     // default: all time
 
     const PRESETS = useMemo(() => buildPresets(), [])
     const activeRange = PRESETS[presetIdx].range
@@ -480,10 +475,10 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                     </div>
                 </div>
 
-                {!isClientReady || isLoading ? (
+                {isLoading ? (
                     <Skeleton className="h-[220px] rounded-lg" />
                 ) : rows.length > 0 ? (
-                    <RushCurve rows={rows} selectedDay={selectedDay ?? 0} maxCount={maxCount} />
+                    <RushCurve rows={rows} selectedDay={selectedDay} maxCount={maxCount} />
                 ) : (
                     <div className="h-[220px] flex items-center justify-center text-sm text-text-secondary">
                         Aucune donnée
