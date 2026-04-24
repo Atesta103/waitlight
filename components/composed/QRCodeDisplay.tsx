@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { QRCodeCanvas } from "qrcode.react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
@@ -40,10 +40,11 @@ function QRCodeDisplay({
     const url = `${baseUrl}/${slug}/join`
     const qrValue = token ? `${url}?t=${token}` : url
 
-    const fetchToken = async () => {
+    const fetchToken = useCallback(async () => {
         if (mockMode) return
 
-        setQrVisible(false)
+        // Defer setState to avoid synchronous setState in effect body
+        setTimeout(() => setQrVisible(false), 0)
         const result = await generateQrTokenAction()
 
         // Wait for skeleton animation
@@ -56,14 +57,17 @@ function QRCodeDisplay({
             setProgress(1)
             setQrVisible(true)
         }, 300)
-    }
+    }, [mockMode])
 
     /* Rotate token every REFRESH_INTERVAL_MS */
     useEffect(() => {
         if (mockMode) {
-            setQrVisible(true)
-            setFetchedAt(Date.now())
-            return
+            // Defer to avoid synchronous setState inside effect
+            const t = setTimeout(() => {
+                setQrVisible(true)
+                setFetchedAt(Date.now())
+            }, 0)
+            return () => clearTimeout(t)
         }
 
         fetchToken() // Initial fetch
@@ -72,7 +76,7 @@ function QRCodeDisplay({
             fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
-    }, [mockMode])
+    }, [mockMode, fetchToken])
 
     /* Precision timer — visual countdown based on rotation interval, not token TTL */
     useEffect(() => {

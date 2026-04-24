@@ -51,6 +51,7 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
         } catch {
             // Invalid JSON in localStorage — ignore
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: marks storage check as done after localStorage read (client-only path, no redirect)
         setCheckedStorage(true)
     }, [merchant.slug, router])
 

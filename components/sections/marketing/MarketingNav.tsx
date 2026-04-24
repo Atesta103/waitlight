@@ -138,13 +138,13 @@ export function MarketingNav() {
                         </div>
 
                         <div className="mt-6 border-t border-border-default pt-5">
-                            <a
+                            <Link
                                 href="/contact"
                                 onClick={closeMenu}
                                 className="text-sm font-medium text-[#374151] hover:text-[#111827]"
                             >
                                 Contact & support
-                            </a>
+                            </Link>
                         </div>
                     </motion.aside>
                 </div>
