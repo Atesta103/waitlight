@@ -136,8 +136,9 @@ export function GamesQueueWatcher({
 
     return (
         <>
-            <div className="pointer-events-none fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[110] mx-auto w-full max-w-md">
+            <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex justify-center px-4">
                 <QueueStatusStrip
+                    className="pointer-events-auto w-full max-w-md shadow-xl"
                     position={position ?? null}
                     status={ticket?.status as "waiting" | "called" | "done" | "cancelled" | undefined}
                 />

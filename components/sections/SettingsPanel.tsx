@@ -953,31 +953,32 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                         { value: "food_cutlery", label: "Fourchette & Couteau" },
                                                     ]}
                                                 />
-                                                {/* Mini preview */}
-                                                <div 
-                                                    className="relative rounded-xl overflow-hidden bg-surface-base border border-border-default flex-1 min-h-[72px]"
-                                                    style={{ fontFamily: `var(--font-${(identity.font_family?.toLowerCase().replace(' ', '-') || 'inter')})` }}
-                                                >
-                                                    <div className="absolute inset-0 rounded-xl bg-surface-base" />
-                                                    <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundColor: identity.brand_color ?? '#4F46E5' }} />
-                                                    {identity.theme_pattern === "dots" && <div className="absolute inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />}
-                                                    {identity.theme_pattern === "grid" && <div className="absolute inset-0 z-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />}
-                                                    {identity.theme_pattern === "glow" && <div className="absolute inset-0 z-0 opacity-[0.12]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />}
-                                                    {identity.theme_pattern?.startsWith("food_") && (
-                                                        <svg className="absolute inset-0 z-0 w-full h-full opacity-[0.05] text-text-primary" aria-hidden="true">
-                                                            <defs><pattern id="preview-motif-mini" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                                                                {identity.theme_pattern === "food_burger" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" /></g>}
-                                                                {identity.theme_pattern === "food_coffee" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" /></g>}
-                                                            </pattern></defs>
-                                                            <rect x="0" y="0" width="100%" height="100%" fill="url(#preview-motif-mini)" />
-                                                        </svg>
-                                                    )}
-                                                    <div className="absolute bottom-1.5 left-0 right-0 flex justify-center">
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: identity.brand_color ?? '#4F46E5', color: '#fff', opacity: 0.9 }}>
-                                                            Aperçu
-                                                        </span>
+                                                {identity.theme_pattern !== "none" && (
+                                                    <div 
+                                                        className="relative flex-1 min-h-[72px] overflow-hidden rounded-xl border border-border-default bg-surface-base"
+                                                        style={{ fontFamily: `var(--font-${(identity.font_family?.toLowerCase().replace(' ', '-') || 'inter')})` }}
+                                                    >
+                                                        <div className="absolute inset-0 rounded-xl bg-surface-base" />
+                                                        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundColor: identity.brand_color ?? '#4F46E5' }} />
+                                                        {identity.theme_pattern === "dots" && <div className="absolute inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />}
+                                                        {identity.theme_pattern === "grid" && <div className="absolute inset-0 z-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />}
+                                                        {identity.theme_pattern === "glow" && <div className="absolute inset-0 z-0 opacity-[0.12]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />}
+                                                        {identity.theme_pattern?.startsWith("food_") && (
+                                                            <svg className="absolute inset-0 z-0 h-full w-full text-text-primary opacity-[0.05]" aria-hidden="true">
+                                                                <defs><pattern id="preview-motif-mini" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                                                                    {identity.theme_pattern === "food_burger" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" /></g>}
+                                                                    {identity.theme_pattern === "food_coffee" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" /></g>}
+                                                                </pattern></defs>
+                                                                <rect x="0" y="0" width="100%" height="100%" fill="url(#preview-motif-mini)" />
+                                                            </svg>
+                                                        )}
+                                                        <div className="absolute bottom-1.5 left-0 right-0 flex justify-center">
+                                                            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ backgroundColor: identity.brand_color ?? '#4F46E5', color: '#fff', opacity: 0.9 }}>
+                                                                Aperçu
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
