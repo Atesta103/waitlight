@@ -9,6 +9,14 @@ import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
 import type { ConnectionState } from "@/components/composed/ConnectionStatus"
+import { playHapticBuzz, playSound, type SoundChoice } from "@/lib/utils/notifications"
+
+type NotificationChannels = {
+    sound: boolean
+    vibrate: boolean
+    toast: boolean
+    push: boolean
+}
 
 type Merchant = {
     id: string
@@ -19,13 +27,13 @@ type Merchant = {
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
     settings: {
-        notification_channels: Record<string, boolean>
-        notification_sound: string
+        notification_channels: NotificationChannels
+        notification_sound: SoundChoice
         approaching_position_enabled: boolean
         approaching_position_threshold: number
         approaching_time_enabled: boolean
         approaching_time_threshold_min: number
-            thank_you_title: string | null
+        thank_you_title: string | null
         thank_you_message: string | null
     }
 }
@@ -168,20 +176,33 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     useEffect(() => {
         if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
 
-        // Wait to make sure notifications logic works in the client, but for now we just import the sound
-        const triggerNotification = async () => {
-            const { playSound, playHapticBuzz } = await import("@/lib/utils/notifications")
+        const triggerNotification = () => {
             const prefs = merchant.settings
-            
+
             if (prefs.notification_channels.sound) {
                 playSound(prefs.notification_sound)
             }
+
             if (prefs.notification_channels.vibrate) {
-                playHapticBuzz()
+                if ("vibrate" in navigator) {
+                    navigator.vibrate([250, 80, 250, 80, 500])
+                } else {
+                    playHapticBuzz()
+                }
             }
-            
-            // In a real PWA we'd trigger a native push or a toast.
-            // For now, we rely on the CustomerWaitView displaying the status change.
+
+            if (
+                prefs.notification_channels.push &&
+                typeof window !== "undefined" &&
+                "Notification" in window &&
+                Notification.permission === "granted"
+            ) {
+                new Notification("C'est votre tour !", {
+                    body: `${ticket.customer_name}, présentez-vous au comptoir.`,
+                    icon: "/favicon.svg",
+                    tag: "waitlight-turn",
+                })
+            }
         }
 
         // Called notification

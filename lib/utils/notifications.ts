@@ -32,6 +32,9 @@ export function playSound(choice: SoundChoice | string) {
     if (choice === "none" || !choice) return
     const ctx = makeCtx()
     if (!ctx) return
+    if (ctx.state === "suspended") {
+        void ctx.resume().catch(() => undefined)
+    }
     const now = ctx.currentTime
 
     type Note = {
