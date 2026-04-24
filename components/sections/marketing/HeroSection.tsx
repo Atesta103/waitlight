@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, CheckCircle, Clock, BellRing, ChevronUp } from "lucide-react"
+import { useMediaQuery } from "@/lib/hooks/use-media-query"
 
 export function MerchantDashboardMockup() {
     return (
@@ -274,6 +277,8 @@ const TRUST_ITEMS = [
  * Hero section — split layout: text left, phone right.
  */
 export function HeroSection({ id }: { id?: string }) {
+    const isDesktop = useMediaQuery("(min-width: 1024px)") // lg breakpoint
+
     return (
         <section
             id={id}
@@ -360,12 +365,16 @@ export function HeroSection({ id }: { id?: string }) {
                     {/* ── Right: phone + dashboard mockups ── */}
                     <div className="hidden lg:flex lg:justify-end">
                         <div className="relative w-full max-w-[500px] min-h-[480px] sm:min-h-[560px]">
-                            <div className="hidden sm:block absolute right-0 top-8 z-0">
-                                <MerchantDashboardMockup />
-                            </div>
-                            <div className="absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-0 bottom-0 sm:left-2 z-10 scale-90 sm:scale-100 origin-bottom">
-                                <PhoneMockup />
-                            </div>
+                            {isDesktop && (
+                                <>
+                                    <div className="hidden sm:block absolute right-0 top-8 z-0">
+                                        <MerchantDashboardMockup />
+                                    </div>
+                                    <div className="absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-0 bottom-0 sm:left-2 z-10 scale-90 sm:scale-100 origin-bottom">
+                                        <PhoneMockup />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
