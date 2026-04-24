@@ -4,7 +4,6 @@ import Image from "next/image"
 import { useReducedMotion, motion } from "framer-motion"
 import { Smartphone, BellRing, TrendingUp, Users, Clock } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
-import { useMediaQuery } from "@/lib/hooks/use-media-query"
 
 type BentoCardProps = {
     className?: string
@@ -312,9 +311,6 @@ function LargePhoneMockup() {
  * 6-card glass grid showcasing Wait-Light capabilities.
  */
 export function BentoFeaturesGrid({ id }: { id?: string }) {
-    const isDesktop = useMediaQuery("(min-width: 768px)") // md breakpoint
-    const isTablet = useMediaQuery("(min-width: 640px)")  // sm breakpoint
-
     return (
         <section
             id={id}
@@ -356,7 +352,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                             </div>
                             {/* Phone mockup hidden on mobile */}
                             <div className="hidden md:block flex-1">
-                                {isDesktop && <LargePhoneMockup />}
+                                <LargePhoneMockup />
                             </div>
                         </div>
                     </BentoCard>
@@ -423,7 +419,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         </div>
                         {/* Brand logos hidden on mobile to save space */}
                         <div className="hidden sm:block mt-4">
-                            {isTablet && <BrandLogos />}
+                            <BrandLogos />
                         </div>
                     </BentoCard>
 
@@ -438,7 +434,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         </div>
                         {/* Stats board hidden on mobile to save space */}
                         <div className="hidden sm:block mt-4">
-                            {isTablet && <LiveStatsBoard />}
+                            <LiveStatsBoard />
                         </div>
                     </BentoCard>
                 </div>
