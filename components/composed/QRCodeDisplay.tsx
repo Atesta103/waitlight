@@ -136,16 +136,18 @@ function QRCodeDisplay({
     return (
         <div
             className={cn(
-                "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
+                mockMode
+                    ? "w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white shadow-md"
+                    : "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
                 className,
             )}
         >
             {/* ── Header ──────────────────────────────────────────────────── */}
             <div className="flex flex-col items-center gap-0.5 border-b border-border-default px-6 py-4">
-                <p className="text-center text-sm font-semibold text-text-primary">
+                <p className={cn("text-center text-sm font-semibold", mockMode ? "text-[#111827]" : "text-text-primary")}>
                     Scannez pour rejoindre la file d&apos;attente
                 </p>
-                <p className="text-xs text-text-secondary">{slug}</p>
+                <p className={cn("text-xs", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>{slug}</p>
             </div>
 
             {/* ── QR zone ─────────────────────────────────────────────────── */}
@@ -158,7 +160,7 @@ function QRCodeDisplay({
                     >
                         {countdown}s
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-text-secondary">
+                    <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
                         Prochain code
                     </span>
                 </div>
@@ -179,12 +181,7 @@ function QRCodeDisplay({
                             xmlns="http://www.w3.org/2000/svg"
                         >
                             {/* Background track - subtle but visible */}
-                            <path
-                                d={d}
-                                stroke="currentColor"
-                                strokeWidth={strokeWidth}
-                                className="text-text-secondary/10"
-                            />
+                            <path d={d} stroke="currentColor" strokeWidth={strokeWidth} className={mockMode ? "text-[#D1D5DB]" : "text-text-secondary/10"} />
                             {/* Animated path */}
                             <motion.path
                                 d={d}
@@ -234,7 +231,7 @@ function QRCodeDisplay({
                 </div>
 
                 {/* ── Footer hint ─────────────────────────────────────────── */}
-                <div className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-text-secondary">
+                <div className={cn("flex items-center gap-1.5 whitespace-nowrap text-sm font-medium", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
                     <Camera size={14} aria-hidden="true" className="shrink-0" />
                     <span>Flashez ce code avec votre appareil photo</span>
                 </div>

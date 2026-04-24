@@ -12,6 +12,9 @@
 -- Remove old conflicting INSERT policy (created in initial migration)
 DROP POLICY IF EXISTS "Merchants can insert banned words" ON public.banned_words;
 
+-- Recreate the replacement policy only after removing any previous copy.
+DROP POLICY IF EXISTS "Merchants can insert their own banned words" ON public.banned_words;
+
 -- New INSERT policy: merchant must be authenticated and must own the row
 CREATE POLICY "Merchants can insert their own banned words"
     ON public.banned_words

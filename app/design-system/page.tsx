@@ -1232,6 +1232,7 @@ export default function DesignSystemPage() {
                                     maxCapacity: 20,
                                     welcomeMessage:
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
+                                    thankYouTitle: "Merci de votre visite !",
                                     thankYouMessage: "",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,

@@ -12,6 +12,7 @@ import { adminSupabase } from "@/lib/supabase/admin"
 import {
     MerchantIdentitySchema,
     QueueSettingsSchema,
+    ThankYouTitleSchema,
     type MerchantIdentityInput,
     type QueueSettingsInput,
 } from "@/lib/validators/settings"
@@ -72,6 +73,7 @@ export type MerchantSettingsData = {
     settings: {
         max_capacity: number
         welcome_message: string | null
+        thank_you_title: string | null
         thank_you_message: string | null
         qr_regenerated_at: string | null
         notifications_enabled: boolean
@@ -130,7 +132,7 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: settings, error: settingsError } = await supabase
         .from("settings")
         .select(
-            "max_capacity, welcome_message, thank_you_message, qr_regenerated_at, notifications_enabled, auto_close_enabled, schedule, notification_channels, notification_sound, approaching_position_enabled, approaching_position_threshold, approaching_time_enabled, approaching_time_threshold_min",
+            "max_capacity, welcome_message, thank_you_title, thank_you_message, qr_regenerated_at, notifications_enabled, auto_close_enabled, schedule, notification_channels, notification_sound, approaching_position_enabled, approaching_position_threshold, approaching_time_enabled, approaching_time_threshold_min",
         )
         .eq("merchant_id", user.id)
         .single()
@@ -160,6 +162,7 @@ export async function getMerchantSettingsAction(): Promise<
             settings: {
                 max_capacity: settings.max_capacity,
                 welcome_message: settings.welcome_message,
+                thank_you_title: settings.thank_you_title ?? null,
                 thank_you_message: settings.thank_you_message ?? null,
                 qr_regenerated_at: settings.qr_regenerated_at,
                 notifications_enabled: settings.notifications_enabled,
@@ -627,6 +630,42 @@ export async function updateThankYouMessageAction(
     const { error } = await supabase
         .from("settings")
         .update({ thank_you_message: trimmed })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde." }
+    }
+
+    return { data: null }
+}
+
+/**
+ * Update the custom title shown on the completed-ticket banner.
+ */
+export async function updateThankYouTitleAction(
+    title: string | null,
+): Promise<{ data: null } | { error: string }> {
+    const parsed = ThankYouTitleSchema.safeParse(title)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const trimmed = parsed.data?.trim() || null
+
+    const { error } = await supabase
+        .from("settings")
+        .update({ thank_you_title: trimmed })
         .eq("merchant_id", user.id)
 
     if (error) {

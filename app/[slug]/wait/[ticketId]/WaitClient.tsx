@@ -25,6 +25,7 @@ type Merchant = {
         approaching_position_threshold: number
         approaching_time_enabled: boolean
         approaching_time_threshold_min: number
+            thank_you_title: string | null
         thank_you_message: string | null
     }
 }
@@ -255,6 +256,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 customerName={ticket.customer_name}
                 slug={merchant.slug}
                 ticketId={ticketId}
+                thankYouTitle={merchant.settings.thank_you_title}
                 thankYouMessage={merchant.settings.thank_you_message}
                 backgroundUrl={merchant.background_url}
             />

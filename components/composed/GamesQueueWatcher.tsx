@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence } from "framer-motion"
 import { Toast, type ToastVariant } from "@/components/ui/Toast"
+import { QueueStatusStrip } from "@/components/composed/QueueStatusStrip"
 
 type ToastItem = {
     id: string
@@ -65,7 +66,7 @@ export function GamesQueueWatcher({
             if (error || data === null) throw new Error("Erreur ou position introuvable")
             return data as number
         },
-        enabled: !!ticket && ticket.status === "waiting",
+        enabled: !!ticket && ticket.status !== "done" && ticket.status !== "cancelled",
     })
 
     // Realtime subscription
@@ -127,20 +128,29 @@ export function GamesQueueWatcher({
     }, [position, ticket?.status, addToast])
 
     return (
-        <div className="pointer-events-none fixed left-4 right-4 top-4 z-[100] flex flex-col items-center gap-2 md:left-auto md:right-4 md:items-end">
-            <AnimatePresence mode="sync">
-                {toasts.map((t) => (
-                    <div key={t.id} className="pointer-events-auto">
-                        <Toast
-                            variant={t.variant}
-                            title={t.title}
-                            description={t.description}
-                            duration={5000}
-                            onClose={() => removeToast(t.id)}
-                        />
-                    </div>
-                ))}
-            </AnimatePresence>
-        </div>
+        <>
+            <div className="sticky top-3 z-30 px-4 pt-3">
+                <QueueStatusStrip
+                    position={position ?? null}
+                    status={ticket?.status as "waiting" | "called" | "done" | "cancelled" | undefined}
+                />
+            </div>
+
+            <div className="pointer-events-none fixed left-4 right-4 top-4 z-[100] flex flex-col items-center gap-2 md:left-auto md:right-4 md:items-end">
+                <AnimatePresence mode="sync">
+                    {toasts.map((t) => (
+                        <div key={t.id} className="pointer-events-auto">
+                            <Toast
+                                variant={t.variant}
+                                title={t.title}
+                                description={t.description}
+                                duration={5000}
+                                onClose={() => removeToast(t.id)}
+                            />
+                        </div>
+                    ))}
+                </AnimatePresence>
+            </div>
+        </>
     )
 }

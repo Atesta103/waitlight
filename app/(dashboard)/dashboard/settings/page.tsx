@@ -52,6 +52,7 @@ export default async function SettingsPage() {
                     defaultPrepTimeMin: merchant.default_prep_time_min,
                     maxCapacity: settings.max_capacity,
                     welcomeMessage: settings.welcome_message ?? "",
+                    thankYouTitle: settings.thank_you_title ?? "",
                     thankYouMessage: settings.thank_you_message ?? "",
                     notificationsEnabled: settings.notifications_enabled,
                     autoCloseEnabled: settings.auto_close_enabled,
