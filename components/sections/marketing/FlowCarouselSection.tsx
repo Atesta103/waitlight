@@ -139,63 +139,205 @@ function StatsMockup() {
     )
 }
 
-// --- Steps Data ---
-
-const FLOW_STEPS = [
-    {
-        id: "setup",
-        title: "1. Le marchand configure",
-        description: "En quelques clics, personnalisez votre espace avec vos couleurs et votre logo, et imprimez votre QR Code.",
-        Mockup: SetupMockup,
-        side: "merchant"
-    },
-    {
-        id: "scan",
-        title: "2. Le client scanne",
-        description: "Pas d'application à télécharger. Un simple scan avec l'appareil photo du téléphone suffit pour rejoindre la file.",
-        Mockup: ScanMockup,
-        side: "client"
-    },
-    {
-        id: "wait",
-        title: "3. L'attente devient libre",
-        description: "Le client suit sa position en temps réel. Pour patienter, il peut jouer à des mini-jeux directement depuis son navigateur.",
-        Mockup: WaitMockup,
-        side: "client"
-    },
-    {
-        id: "call",
-        title: "4. Le marchand appelle",
-        description: "Depuis n'importe quel appareil (tablette, téléphone, PC), le commerçant appelle le client suivant d'un simple clic.",
-        Mockup: CallMockup,
-        side: "merchant"
-    },
-    {
-        id: "notify",
-        title: "5. Le client est notifié",
-        description: "Le téléphone du client s'allume et affiche une alerte bien visible. Il sait qu'il doit se présenter.",
-        Mockup: NotifyMockup,
-        side: "client"
-    },
-    {
-        id: "complete",
-        title: "6. Fin et statistiques",
-        description: "Une fois le client servi, le marchand retrouve des statistiques détaillées pour optimiser ses effectifs.",
-        Mockup: StatsMockup,
-        side: "merchant"
-    }
+const TARGETS = [
+    { id: "restauration", label: "Restauration" },
+    { id: "sante", label: "Santé" },
+    { id: "retail", label: "Retail & SAV" },
+    { id: "event", label: "Événementiel & Loisirs" },
 ]
+
+const TARGET_CONTENT = {
+    restauration: [
+        {
+            id: "setup",
+            title: "1. Le restaurateur configure",
+            description: "En quelques clics, personnalisez l'interface à l'image de votre établissement, et imprimez votre QR Code.",
+            Mockup: SetupMockup,
+            side: "merchant"
+        },
+        {
+            id: "scan",
+            title: "2. Le client scanne",
+            description: "Pas d'application à télécharger ni de bipeur. Le client scanne le QR code au comptoir après sa commande.",
+            Mockup: ScanMockup,
+            side: "client"
+        },
+        {
+            id: "wait",
+            title: "3. Le client s'installe",
+            description: "Il suit la préparation de son plat en temps réel depuis sa table et peut patienter en jouant.",
+            Mockup: WaitMockup,
+            side: "client"
+        },
+        {
+            id: "call",
+            title: "4. La commande est prête",
+            description: "Depuis n'importe quel appareil, vous appelez le client d'un simple clic quand la commande est prête.",
+            Mockup: CallMockup,
+            side: "merchant"
+        },
+        {
+            id: "notify",
+            title: "5. Le client est notifié",
+            description: "Son téléphone s'allume avec une alerte visuelle et sonore : sa commande l'attend !",
+            Mockup: NotifyMockup,
+            side: "client"
+        },
+        {
+            id: "complete",
+            title: "6. Analyse du service",
+            description: "Retrouvez vos temps de préparation moyens et vos pics d'affluence pour optimiser les prochains rushs.",
+            Mockup: StatsMockup,
+            side: "merchant"
+        }
+    ],
+    sante: [
+        {
+            id: "setup",
+            title: "1. Le cabinet s'équipe",
+            description: "Personnalisez l'affichage avec le nom du praticien ou de la clinique.",
+            Mockup: SetupMockup,
+            side: "merchant"
+        },
+        {
+            id: "scan",
+            title: "2. Le patient s'enregistre",
+            description: "À son arrivée, le patient scanne le QR code affiché à l'accueil pour rejoindre la file d'attente virtuelle.",
+            Mockup: ScanMockup,
+            side: "client"
+        },
+        {
+            id: "wait",
+            title: "3. L'attente devient libre",
+            description: "Le patient n'est plus bloqué en salle d'attente. Il peut patienter dehors ou dans sa voiture sereinement.",
+            Mockup: WaitMockup,
+            side: "client"
+        },
+        {
+            id: "call",
+            title: "4. Le praticien est prêt",
+            description: "D'un clic sur son ordinateur, le médecin ou le secrétariat appelle le prochain patient.",
+            Mockup: CallMockup,
+            side: "merchant"
+        },
+        {
+            id: "notify",
+            title: "5. Le patient est prévenu",
+            description: "Il reçoit une notification discrète lui indiquant de se diriger vers la salle de consultation.",
+            Mockup: NotifyMockup,
+            side: "client"
+        },
+        {
+            id: "complete",
+            title: "6. Suivi de l'activité",
+            description: "Analysez le temps d'attente moyen de la journée pour mieux calibrer vos rendez-vous.",
+            Mockup: StatsMockup,
+            side: "merchant"
+        }
+    ],
+    retail: [
+        {
+            id: "setup",
+            title: "1. Le magasin configure",
+            description: "Adaptez la file virtuelle au rayon ou au point de retrait SAV.",
+            Mockup: SetupMockup,
+            side: "merchant"
+        },
+        {
+            id: "scan",
+            title: "2. Le client prend un ticket",
+            description: "Un simple scan du QR code remplace la borne de tickets classique.",
+            Mockup: ScanMockup,
+            side: "client"
+        },
+        {
+            id: "wait",
+            title: "3. Shopping continu",
+            description: "Le client continue ses achats dans le magasin tout en gardant un oeil sur sa position.",
+            Mockup: WaitMockup,
+            side: "client"
+        },
+        {
+            id: "call",
+            title: "4. Le conseiller appelle",
+            description: "Lorsqu'un conseiller se libère, il appelle le client suivant depuis sa tablette.",
+            Mockup: CallMockup,
+            side: "merchant"
+        },
+        {
+            id: "notify",
+            title: "5. Le client se présente",
+            description: "Une notification alerte le client qu'il est attendu au point de service.",
+            Mockup: NotifyMockup,
+            side: "client"
+        },
+        {
+            id: "complete",
+            title: "6. Statistiques SAV",
+            description: "Visualisez le volume de prise en charge et adaptez vos effectifs aux heures de pointe.",
+            Mockup: StatsMockup,
+            side: "merchant"
+        }
+    ],
+    event: [
+        {
+            id: "setup",
+            title: "1. L'organisateur configure",
+            description: "Créez une file pour une attraction, un food-truck ou une séance de dédicace.",
+            Mockup: SetupMockup,
+            side: "merchant"
+        },
+        {
+            id: "scan",
+            title: "2. Le visiteur scanne",
+            description: "Il s'insère dans la file virtuelle sans avoir à faire la queue physiquement pendant des heures.",
+            Mockup: ScanMockup,
+            side: "client"
+        },
+        {
+            id: "wait",
+            title: "3. Profiter de l'événement",
+            description: "Le visiteur profite d'autres activités ou joue aux mini-jeux intégrés en attendant son tour.",
+            Mockup: WaitMockup,
+            side: "client"
+        },
+        {
+            id: "call",
+            title: "4. Le staff appelle",
+            description: "Le régisseur appelle les visiteurs par petits groupes pour lisser le flux d'entrée.",
+            Mockup: CallMockup,
+            side: "merchant"
+        },
+        {
+            id: "notify",
+            title: "5. Alerte d'arrivée",
+            description: "Le visiteur est notifié pour rejoindre l'entrée dédiée au bon moment.",
+            Mockup: NotifyMockup,
+            side: "client"
+        },
+        {
+            id: "complete",
+            title: "6. Bilan d'affluence",
+            description: "Analysez la fréquentation heure par heure pour optimiser vos prochaines éditions.",
+            Mockup: StatsMockup,
+            side: "merchant"
+        }
+    ]
+} as const
 
 /** Duration (ms) each slide stays before auto-advancing */
 const AUTO_PLAY_INTERVAL_MS = 6000
 
 export function FlowCarouselSection({ id }: { id?: string }) {
+    const [targetId, setTargetId] = useState<keyof typeof TARGET_CONTENT>("restauration")
     const [currentStep, setCurrentStep] = useState(0)
     const [direction, setDirection] = useState(0)
     /** progress 0→1 of the current bar fill (for CSS animation reset) */
     const [progress, setProgress] = useState(0)
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const startRef = useRef(Date.now())
+
+    const FLOW_STEPS = TARGET_CONTENT[targetId]
 
     const goTo = useCallback((index: number, dir?: number) => {
         setDirection(dir ?? (index > currentStep ? 1 : -1))
@@ -214,7 +356,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
             startRef.current = Date.now()
             return next
         })
-    }, [])
+    }, [FLOW_STEPS.length])
 
     // Auto-play: tick every 50ms to update the progress bar smoothly
     useEffect(() => {
@@ -240,7 +382,15 @@ export function FlowCarouselSection({ id }: { id?: string }) {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current)
         }
-    }, [])
+    }, [FLOW_STEPS.length, targetId])
+
+    const handleTargetChange = (newTarget: keyof typeof TARGET_CONTENT) => {
+        setTargetId(newTarget)
+        setCurrentStep(0)
+        setDirection(1)
+        setProgress(0)
+        startRef.current = Date.now()
+    }
 
     // When user manually navigates, reset the timer
     const handleManualNav = useCallback((index: number) => {
@@ -256,7 +406,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     return (
         <section id={id} className="py-24 sm:py-32 bg-white relative overflow-hidden">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-16">
+                <div className="mx-auto max-w-2xl text-center mb-10">
                     <span className="text-[#6366F1] font-bold tracking-wider uppercase text-sm mb-4 block">Démonstration</span>
                     <h2 className="text-3xl font-black tracking-tight text-[#111827] sm:text-5xl">
                         Un parcours sans friction.
@@ -264,6 +414,26 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                     <p className="mt-6 text-lg leading-8 text-[#4B5563]">
                         Découvrez comment Wait-Light fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
                     </p>
+                </div>
+
+                {/* Target Tabs */}
+                <div className="flex justify-center mb-10">
+                    <div className="inline-flex items-center p-1 bg-[#EEF2FF] rounded-full overflow-x-auto max-w-full no-scrollbar">
+                        {TARGETS.map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
+                                className={cn(
+                                    "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
+                                    targetId === t.id
+                                        ? "bg-white text-[#4F46E5] shadow-sm"
+                                        : "text-[#6B7280] hover:text-[#111827] hover:bg-white/50"
+                                )}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="bg-[#F8F9FA] rounded-[2rem] border border-[#E5E7EB] p-6 sm:p-10 lg:p-12 relative">
@@ -295,7 +465,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                     </span>
 
                                     {/* Bar track */}
-                                    <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
+                                    <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden mt-1">
                                         {/* Fill */}
                                         <div
                                             className={cn(
@@ -310,12 +480,14 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                         />
                                     </div>
 
-                                    {/* Side indicator dot */}
+                                    {/* Side indicator dot -> Text */}
                                     <span className={cn(
-                                        "w-1.5 h-1.5 rounded-full shrink-0",
-                                        step.side === 'merchant' ? "bg-[#10B981]" : "bg-[#6366F1]",
-                                        !isActive && !isDone && "opacity-40",
-                                    )} />
+                                        "text-[9px] font-bold tracking-wider uppercase mt-1 transition-colors",
+                                        step.side === 'merchant' ? "text-[#10B981]" : "text-[#6366F1]",
+                                        !isActive && !isDone && "opacity-40"
+                                    )}>
+                                        {step.side === 'merchant' ? 'Commerçant' : 'Client'}
+                                    </span>
                                 </button>
                             )
                         })}

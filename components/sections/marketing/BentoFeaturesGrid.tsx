@@ -219,6 +219,11 @@ function BrandLogos() {
             subtitle: "Retail & SAV",
             imageSrc: "/marketing/brand-sav.png",
         },
+        {
+            name: "Magic Park",
+            subtitle: "Parcs d'attractions & festivals",
+            imageSrc: "/marketing/usecase-event-ai.png",
+        },
     ]
 
     return (

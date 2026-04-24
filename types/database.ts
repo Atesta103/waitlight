@@ -6,36 +6,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Regenerated after the banned_words merchant-scoped uniqueness migration.
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
   public: {
     Tables: {
@@ -73,56 +50,58 @@ export type Database = {
           avg_prep_computed_at: string | null
           avg_wait_time: number | null
           background_url: string | null
-          brand_color: string | null
-          font_family: string | null
           border_radius: string | null
-          theme_pattern: string | null
+          brand_color: string | null
           bypass_paywall: boolean
           calculated_avg_prep_time: number | null
           created_at: string
           default_prep_time_min: number
+          font_family: string | null
           id: string
           is_open: boolean
           logo_url: string | null
           name: string
           slug: string
           slug_last_changed_at: string | null
+          theme_pattern: string
         }
         Insert: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
           background_url?: string | null
-          brand_color?: string | null
-          font_family?: string | null
           border_radius?: string | null
+          brand_color?: string | null
           bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number
+          font_family?: string | null
           id: string
           is_open?: boolean
           logo_url?: string | null
           name: string
           slug: string
           slug_last_changed_at?: string | null
+          theme_pattern?: string
         }
         Update: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
           background_url?: string | null
-          brand_color?: string | null
-          font_family?: string | null
           border_radius?: string | null
+          brand_color?: string | null
           bypass_paywall?: boolean
           calculated_avg_prep_time?: number | null
           created_at?: string
           default_prep_time_min?: number
+          font_family?: string | null
           id?: string
           is_open?: boolean
           logo_url?: string | null
           name?: string
           slug?: string
           slug_last_changed_at?: string | null
+          theme_pattern?: string
         }
         Relationships: []
       }
@@ -346,6 +325,27 @@ export type Database = {
           },
         ]
       }
+      tickets: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: string
+          name_flagged: boolean
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          id?: string
+          name_flagged?: boolean
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          name_flagged?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       merchant_analytics_view: {
@@ -528,9 +528,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

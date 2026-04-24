@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { forwardRef, useState, useCallback, useImperativeHandle } from "react"
 import { cn } from "@/lib/utils/cn"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
@@ -79,15 +79,23 @@ type NotificationPreferencesEditorProps = {
         thresholdMin: number
     }
     className?: string
+    showSaveButton?: boolean
+    onDirtyChange?: (isDirty: boolean) => void
 }
 
-function NotificationPreferencesEditor({
+type NotificationPreferencesEditorHandle = {
+    save: () => Promise<void>
+}
+
+const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHandle, NotificationPreferencesEditorProps>(function NotificationPreferencesEditor({
     initialChannels,
     initialSound,
     initialApproachingPosition,
     initialApproachingTime,
     className,
-}: NotificationPreferencesEditorProps) {
+    showSaveButton = true,
+    onDirtyChange,
+}: NotificationPreferencesEditorProps, ref) {
     const [channels, setChannels] = useState<NotificationChannels>(initialChannels)
     const [sound, setSound] = useState(initialSound)
     const [positionEnabled, setPositionEnabled] = useState(initialApproachingPosition.enabled)
@@ -99,10 +107,15 @@ function NotificationPreferencesEditor({
     const [saveSuccess, setSaveSuccess] = useState(false)
     const [saveError, setSaveError] = useState<string | null>(null)
 
+    const markDirty = useCallback(() => {
+        setSaveSuccess(false)
+        onDirtyChange?.(true)
+    }, [onDirtyChange])
+
     const toggleChannel = useCallback((key: keyof NotificationChannels) => {
         setChannels((prev) => ({ ...prev, [key]: !prev[key] }))
-        setSaveSuccess(false)
-    }, [])
+        markDirty()
+    }, [markDirty])
 
     const handleSave = useCallback(async () => {
         setIsSaving(true)
@@ -124,9 +137,14 @@ function NotificationPreferencesEditor({
             setSaveError(result.error)
         } else {
             setSaveSuccess(true)
+            onDirtyChange?.(false)
         }
         setIsSaving(false)
-    }, [channels, sound, positionEnabled, positionThreshold, timeEnabled, timeThreshold])
+    }, [channels, sound, positionEnabled, positionThreshold, timeEnabled, timeThreshold, onDirtyChange])
+
+    useImperativeHandle(ref, () => ({
+        save: handleSave,
+    }), [handleSave])
 
     return (
         <div className={cn("flex flex-col gap-5", className)}>
@@ -186,7 +204,7 @@ function NotificationPreferencesEditor({
                             value={sound}
                             onChange={(e) => {
                                 setSound(e.target.value)
-                                setSaveSuccess(false)
+                                    markDirty()
                             }}
                             options={SOUND_OPTIONS}
                             hint="Le son joué quand un client est appelé."
@@ -236,7 +254,7 @@ function NotificationPreferencesEditor({
                             checked={positionEnabled}
                             onChange={(v) => {
                                 setPositionEnabled(v)
-                                setSaveSuccess(false)
+                                markDirty()
                             }}
                             label="Position"
                             className="shrink-0 [&>span]:hidden"
@@ -253,7 +271,7 @@ function NotificationPreferencesEditor({
                                 value={positionThreshold}
                                 onChange={(e) => {
                                     setPositionThreshold(Number(e.target.value))
-                                    setSaveSuccess(false)
+                                    markDirty()
                                 }}
                                 hint={`Le client sera notifié quand il est en position ≤ ${positionThreshold}`}
                             />
@@ -296,7 +314,7 @@ function NotificationPreferencesEditor({
                             checked={timeEnabled}
                             onChange={(v) => {
                                 setTimeEnabled(v)
-                                setSaveSuccess(false)
+                                markDirty()
                             }}
                             label="Temps"
                             className="shrink-0 [&>span]:hidden"
@@ -313,7 +331,7 @@ function NotificationPreferencesEditor({
                                 value={timeThreshold}
                                 onChange={(e) => {
                                     setTimeThreshold(Number(e.target.value))
-                                    setSaveSuccess(false)
+                                    markDirty()
                                 }}
                                 hint={`Le client sera notifié quand il reste moins de ${timeThreshold} min.`}
                             />
@@ -322,36 +340,37 @@ function NotificationPreferencesEditor({
                 </div>
             </div>
 
-            {/* ── Save bar ───────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between gap-3 pt-2">
-                <div className="flex items-center gap-2 text-sm">
-                    {saveSuccess && (
-                        <span className="flex items-center gap-1.5 text-green-600">
-                            <CheckCircle2 size={14} />
-                            Préférences enregistrées.
-                        </span>
-                    )}
-                    {saveError && (
-                        <span className="text-red-600">{saveError}</span>
-                    )}
+            {showSaveButton ? (
+                <div className="flex items-center justify-between gap-3 pt-2">
+                    <div className="flex items-center gap-2 text-sm">
+                        {saveSuccess && (
+                            <span className="flex items-center gap-1.5 text-green-600">
+                                <CheckCircle2 size={14} />
+                                Préférences enregistrées.
+                            </span>
+                        )}
+                        {saveError && (
+                            <span className="text-red-600">{saveError}</span>
+                        )}
+                    </div>
+                    <Button
+                        variant="primary"
+                        size="md"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        isLoading={isSaving}
+                    >
+                        {isSaving ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
+                        Enregistrer
+                    </Button>
                 </div>
-                <Button
-                    variant="primary"
-                    size="md"
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    isLoading={isSaving}
-                >
-                    {isSaving ? (
-                        <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                        <Save size={16} />
-                    )}
-                    Enregistrer
-                </Button>
-            </div>
+            ) : null}
         </div>
     )
 }
 
-export { NotificationPreferencesEditor, type NotificationPreferencesEditorProps }
+export { NotificationPreferencesEditor, type NotificationPreferencesEditorProps, type NotificationPreferencesEditorHandle }

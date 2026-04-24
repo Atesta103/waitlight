@@ -49,8 +49,8 @@ import {
     type NotificationChannels,
 } from "@/lib/actions/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
-import { ScheduleEditor } from "@/components/composed/ScheduleEditor"
-import { NotificationPreferencesEditor } from "@/components/composed/NotificationPreferencesEditor"
+import { ScheduleEditor, type ScheduleEditorHandle } from "@/components/composed/ScheduleEditor"
+import { NotificationPreferencesEditor, type NotificationPreferencesEditorHandle } from "@/components/composed/NotificationPreferencesEditor"
 import { createClient } from "@/lib/supabase/client"
 import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 
@@ -101,7 +101,6 @@ const NAV_SECTIONS = [
     { id: "queue", label: "File d'attente", icon: Layers },
     { id: "schedule", label: "Horaires", icon: CalendarClock },
     { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "notification-prefs", label: "Préf. client", icon: BellRing },
     { id: "bannedwords", label: "Noms bannis", icon: ShieldAlert },
     { id: "waittime", label: "Temps d'attente", icon: Clock },
 ] as const
@@ -493,12 +492,13 @@ function UploadZone({
                 aria-label="Choisir un logo"
                 onChange={onFile}
             />
+
         </div>
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UnchangedBadge
+// ChangedBadge
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ChangedBadge() {
@@ -519,6 +519,7 @@ function ChangedBadge() {
 
 function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const shouldReduce = useReducedMotion()
+    const [activeTab, setActiveTab] = useState<(typeof NAV_SECTIONS)[number]["id"]>("identity")
 
     // ── Identity ──────────────────────────────────────────────────────────────
     const [identity, setIdentity] = useState({
@@ -548,6 +549,12 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [queueError, setQueueError] = useState<string | null>(null)
     const [queueSuccess, setQueueSuccess] = useState(false)
     const [isQueuePending, startQueueTransition] = useTransition()
+
+    const [scheduleDirty, setScheduleDirty] = useState(false)
+    const [notificationDirty, setNotificationDirty] = useState(false)
+    const [embeddedEditorsReset, setEmbeddedEditorsReset] = useState(0)
+    const scheduleEditorRef = useRef<ScheduleEditorHandle>(null)
+    const notificationEditorRef = useRef<NotificationPreferencesEditorHandle>(null)
 
     // ── Logo ──────────────────────────────────────────────────────────────────
     const [isUploading, setIsUploading] = useState(false)
@@ -819,6 +826,13 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         }),
     }
 
+    const dirtySections = [
+        identityChanged ? "Identité" : null,
+        queueChanged ? "File" : null,
+        scheduleDirty ? "Horaires" : null,
+        notificationDirty ? "Notifications" : null,
+    ].filter((section): section is string => section !== null)
+
     // ─────────────────────────────────────────────────────────────────────────
     // Render
     // ─────────────────────────────────────────────────────────────────────────
@@ -833,26 +847,51 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 <ul className="flex flex-col gap-1">
                     {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                         <li key={id}>
-                            <a
-                                href={`#${id}`}
+                            <button
+                                onClick={() => setActiveTab(id)}
                                 className={cn(
-                                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary",
-                                    "transition-colors hover:bg-surface-card hover:text-text-primary",
-                                    "focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none",
+                                    "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium",
+                                    activeTab === id
+                                        ? "bg-brand-primary/10 text-brand-primary"
+                                        : "text-text-secondary hover:bg-surface-card hover:text-text-primary",
+                                    "transition-colors focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none",
                                 )}
                             >
                                 <Icon size={15} aria-hidden="true" />
                                 {label}
-                            </a>
+                            </button>
                         </li>
                     ))}
                 </ul>
             </nav>
 
             {/* ── Main content ─────────────────────────────────────────── */}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 pb-32">
+                {/* ── Mobile horizontal nav ────────────────────── */}
+                <div className="lg:hidden w-full overflow-x-auto no-scrollbar mb-6 pb-2">
+                    <ul className="flex items-center gap-2 w-max">
+                        {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
+                            <li key={id}>
+                                <button
+                                    onClick={() => setActiveTab(id)}
+                                    className={cn(
+                                        "flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                                        activeTab === id
+                                            ? "bg-brand-primary text-text-inverse shadow-sm"
+                                            : "bg-surface-card text-text-secondary border border-border-default hover:bg-surface-base"
+                                    )}
+                                >
+                                    <Icon size={14} aria-hidden="true" />
+                                    {label}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                
                 <div className="flex max-w-2xl flex-col gap-10">
                     {/* ── Identity ──────────────────────────────────────── */}
+                    {activeTab === "identity" && (
                     <motion.div
                         custom={0}
                         initial="hidden"
@@ -887,7 +926,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
 
                                         <hr className="border-border-default" />
 
-                                        {/* Name + prep time */}
+                                        {/* Name */}
                                         <div className="grid gap-4 sm:grid-cols-2">
                                             <Input
                                                 label="Nom du commerce"
@@ -899,22 +938,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                     )
                                                 }
                                             />
-                                            <Input
-                                                label="Temps de préparation (min)"
-                                                type="number"
-                                                min={1}
-                                                max={120}
-                                                value={
-                                                    identity.defaultPrepTimeMin
-                                                }
-                                                onChange={(e) =>
-                                                    updateIdentity(
-                                                        "defaultPrepTimeMin",
-                                                        Number(e.target.value),
-                                                    )
-                                                }
-                                                hint="Durée par défaut par client."
-                                            />
+
                                         </div>
 
                                         {/* Slug */}
@@ -1033,22 +1057,15 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 </CardContent>
                             </Card>
 
-                            <AnimatedSaveBar
-                                show={identityChanged}
-                                onSave={handleSaveIdentity}
-                                onCancel={handleResetIdentity}
-                                isLoading={isIdentityPending}
-                                label="Enregistrer l'identité"
-                                error={identityError}
-                                success={identitySuccess}
-                                successMessage="Identité mise à jour."
-                            />
+                            
                         </SectionBlock>
                     </motion.div>
+                )}
 
                     {/* ── Display mode ──────────────────────────────────── */}
+                    {activeTab === "display" && (
                     <motion.div
-                        custom={1}
+                        custom={0}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -1080,10 +1097,12 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             </Card>
                         </SectionBlock>
                     </motion.div>
+                )}
 
                     {/* ── Queue config ───────────────────────────────────── */}
+                    {activeTab === "queue" && (
                     <motion.div
-                        custom={2}
+                        custom={0}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -1137,59 +1156,14 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                     </div>
                                 </CardContent>
                             </Card>
-
-                            {/* Notifications & automations — visually grouped */}
-                            <div
-                                id="notifications"
-                                className="mt-4 flex flex-col gap-3 scroll-mt-6"
-                                aria-label="Notifications et automatisations"
-                            >
-                                <div className="flex items-center gap-2 pl-1">
-                                    <Bell
-                                        size={14}
-                                        className="text-text-secondary"
-                                        aria-hidden="true"
-                                    />
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                                        Notifications &amp; automatisations
-                                    </p>
-                                </div>
-                                <ToggleRow
-                                    icon={BellRing}
-                                    label="Notifications push clients"
-                                    description="Envoie une notification au client lorsqu'il est appelé."
-                                    checked={queue.notificationsEnabled}
-                                    onChange={(v) =>
-                                        updateQueue("notificationsEnabled", v)
-                                    }
-                                />
-                                <ToggleRow
-                                    icon={Zap}
-                                    label="Fermeture automatique"
-                                    description="Passe le ticket en « terminé » si aucune action dans les 5 min après l'appel."
-                                    checked={queue.autoCloseEnabled}
-                                    onChange={(v) =>
-                                        updateQueue("autoCloseEnabled", v)
-                                    }
-                                />
-                            </div>
-
-                            <AnimatedSaveBar
-                                show={queueChanged}
-                                onSave={handleSaveQueue}
-                                onCancel={handleResetQueue}
-                                isLoading={isQueuePending}
-                                label="Enregistrer"
-                                error={queueError}
-                                success={queueSuccess}
-                                successMessage="Configuration mise à jour."
-                            />
                         </SectionBlock>
                     </motion.div>
+                )}
 
                     {/* ── Schedule ──────────────────────────────────────── */}
+                    {activeTab === "schedule" && (
                     <motion.div
-                        custom={3}
+                        custom={0}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -1200,11 +1174,31 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             title="Horaires d'ouverture"
                             description="Configurez les horaires de la file par jour de la semaine et ajoutez des jours exceptionnels."
                         >
-                            <ScheduleEditor initialSchedule={initialData.schedule} />
+                            <Card>
+                                <CardContent>
+                                    <div className="mb-4 flex flex-col gap-1">
+                                        <p className="text-sm font-medium text-text-primary">
+                                            Heures d'ouverture et fermetures exceptionnelles
+                                        </p>
+                                        <p className="text-sm text-text-secondary">
+                                            L&apos;éditeur ci-dessous gère les plages hebdomadaires et les jours spéciaux dans une seule vue.
+                                        </p>
+                                    </div>
+                                    <ScheduleEditor
+                                        key={embeddedEditorsReset}
+                                        ref={scheduleEditorRef}
+                                        initialSchedule={initialData.schedule}
+                                        showSaveButton={false}
+                                        onDirtyChange={setScheduleDirty}
+                                    />
+                                </CardContent>
+                            </Card>
                         </SectionBlock>
                     </motion.div>
+                )}
 
                     {/* ── Notification Preferences ──────────────────────── */}
+                    {activeTab === "notifications" && (
                     <motion.div
                         custom={4}
                         initial="hidden"
@@ -1214,26 +1208,65 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         <SectionBlock
                             id="notification-prefs"
                             icon={BellRing}
-                            title="Préférences de notification client"
-                            description="Choisissez les canaux d'alerte et configurez la notification « bientôt ton tour »."
+                            title="Notifications"
+                            description="Regroupez ici les notifications clients, les canaux et les automatisations de file."
                         >
-                            <NotificationPreferencesEditor
-                                initialChannels={initialData.notificationChannels}
-                                initialSound={initialData.notificationSound}
-                                initialApproachingPosition={{
-                                    enabled: initialData.approachingPositionEnabled,
-                                    threshold: initialData.approachingPositionThreshold,
-                                }}
-                                initialApproachingTime={{
-                                    enabled: initialData.approachingTimeEnabled,
-                                    thresholdMin: initialData.approachingTimeThresholdMin,
-                                }}
-                            />
+                            <div className="flex flex-col gap-5">
+                                <Card>
+                                    <CardContent>
+                                        <div className="flex flex-col gap-3">
+                                            <div className="flex items-center gap-2 pl-1">
+                                                <Bell
+                                                    size={14}
+                                                    className="text-text-secondary"
+                                                    aria-hidden="true"
+                                                />
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                                                    Notifications &amp; automatisations
+                                                </p>
+                                            </div>
+                                            <ToggleRow
+                                                icon={BellRing}
+                                                label="Notifications push clients"
+                                                description="Envoie une notification au client lorsqu'il est appelé."
+                                                checked={queue.notificationsEnabled}
+                                                onChange={(v) => updateQueue("notificationsEnabled", v)}
+                                            />
+                                            <ToggleRow
+                                                icon={Zap}
+                                                label="Fermeture automatique"
+                                                description="Passe le ticket en « terminé » si aucune action dans les 5 min après l'appel."
+                                                checked={queue.autoCloseEnabled}
+                                                onChange={(v) => updateQueue("autoCloseEnabled", v)}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <NotificationPreferencesEditor
+                                    key={embeddedEditorsReset}
+                                    ref={notificationEditorRef}
+                                    initialChannels={initialData.notificationChannels}
+                                    initialSound={initialData.notificationSound}
+                                    initialApproachingPosition={{
+                                        enabled: initialData.approachingPositionEnabled,
+                                        threshold: initialData.approachingPositionThreshold,
+                                    }}
+                                    initialApproachingTime={{
+                                        enabled: initialData.approachingTimeEnabled,
+                                        thresholdMin: initialData.approachingTimeThresholdMin,
+                                    }}
+                                    showSaveButton={false}
+                                    onDirtyChange={setNotificationDirty}
+                                />
+                            </div>
                         </SectionBlock>
                     </motion.div>
+                )}
                     {/* ── Banned Words ──────────────────────────────────── */}
+                    {activeTab === "bannedwords" && (
                     <motion.div
-                        custom={3}
+                        custom={0}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -1251,10 +1284,12 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             </Card>
                         </SectionBlock>
                     </motion.div>
+                )}
 
                     {/* ── Wait time (live) ───────────────────────────────── */}
+                    {activeTab === "waittime" && (
                     <motion.div
-                        custom={3}
+                        custom={0}
                         initial="hidden"
                         animate="visible"
                         variants={sectionVariants}
@@ -1283,6 +1318,31 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         >
                             <Card>
                                 <CardContent>
+                                    <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-end">
+                                        <div>
+                                            <p className="text-sm font-medium text-text-primary">
+                                                Temps de préparation moyen
+                                            </p>
+                                            <p className="mt-1 text-sm text-text-secondary">
+                                                Modifiez manuellement la base utilisée par l&apos;algorithme quand les données automatiques ne sont pas encore fiables.
+                                            </p>
+                                        </div>
+                                        <Input
+                                            label="Temps moyen (minutes)"
+                                            type="number"
+                                            min={1}
+                                            max={120}
+                                            value={identity.defaultPrepTimeMin}
+                                            onChange={(e) =>
+                                                updateIdentity(
+                                                    "defaultPrepTimeMin",
+                                                    Number(e.target.value),
+                                                )
+                                            }
+                                            hint="Utilisé comme valeur de secours et comme base de départ de l'estimation."
+                                        />
+                                    </div>
+
                                     <div className="flex flex-col divide-y divide-border-default pt-1">
                                         {/* Effective time */}
                                         <InfoRow
@@ -1361,6 +1421,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             </Card>
                         </SectionBlock>
                     </motion.div>
+                )}
                 </div>
             </div>
 
@@ -1513,6 +1574,56 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     </Button>
                 </DialogFooter>
             </Dialog>
+
+            <AnimatePresence>
+                {dirtySections.length > 0 && (
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-6 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 px-4"
+                    >
+                        <div className="flex flex-col gap-3 rounded-2xl border border-border-default bg-surface-card p-4 shadow-2xl sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-text-primary">
+                                    Modifications non enregistrées
+                                </p>
+                                <p className="mt-1 text-sm text-text-secondary">
+                                    Sections modifiées : {dirtySections.join(", ")}.
+                                </p>
+                            </div>
+                            <div className="flex shrink-0 gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        handleResetIdentity()
+                                        handleResetQueue()
+                                        setScheduleDirty(false)
+                                        setNotificationDirty(false)
+                                        setEmbeddedEditorsReset((value) => value + 1)
+                                    }}
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={() => {
+                                        if (identityChanged) handleSaveIdentity()
+                                        if (queueChanged) handleSaveQueue()
+                                        if (scheduleDirty) void scheduleEditorRef.current?.save()
+                                        if (notificationDirty) void notificationEditorRef.current?.save()
+                                    }}
+                                    isLoading={isIdentityPending || isQueuePending}
+                                >
+                                    Enregistrer les modifications
+                                </Button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

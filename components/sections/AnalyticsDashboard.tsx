@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, Fragment } from "react"
+import { useState, useCallback, useMemo, useEffect, Fragment } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useReducedMotion, motion } from "framer-motion"
 import {
@@ -317,12 +317,16 @@ function exportCsv(rows: AnalyticsRow[]) {
 
 export function AnalyticsDashboard({ merchantId, initialData }: Props) {
     const prefersReduced = useReducedMotion()
-    const [selectedDay, setSelectedDay] = useState(() => {
-        // JS: 0=Sun, 1=Mon, ..., 6=Sat → Analytics: 0=Mon, 1=Tue, ..., 6=Sun
-        const jsDay = new Date().getDay()
-        return jsDay === 0 ? 6 : jsDay - 1
-    })
+    const [selectedDay, setSelectedDay] = useState<number | null>(null)
     const [presetIdx, setPresetIdx] = useState(3)     // default: all time
+    const [isClientReady, setIsClientReady] = useState(false)
+
+    useEffect(() => {
+        // Use the current client day without rendering a mismatching default on the server.
+        const jsDay = new Date().getDay()
+        setSelectedDay(jsDay === 0 ? 6 : jsDay - 1)
+        setIsClientReady(true)
+    }, [])
 
     const PRESETS = useMemo(() => buildPresets(), [])
     const activeRange = PRESETS[presetIdx].range
@@ -449,7 +453,7 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                         id="rush-title"
                         className="text-sm font-semibold text-text-primary"
                     >
-                        Courbe de rush — {DAY_LABELS_FULL[selectedDay]}
+                        Courbe de rush — {DAY_LABELS_FULL[selectedDay ?? 0]}
                     </h3>
 
                     <div
@@ -476,10 +480,10 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                     </div>
                 </div>
 
-                {isLoading ? (
+                {!isClientReady || isLoading ? (
                     <Skeleton className="h-[220px] rounded-lg" />
                 ) : rows.length > 0 ? (
-                    <RushCurve rows={rows} selectedDay={selectedDay} maxCount={maxCount} />
+                    <RushCurve rows={rows} selectedDay={selectedDay ?? 0} maxCount={maxCount} />
                 ) : (
                     <div className="h-[220px] flex items-center justify-center text-sm text-text-secondary">
                         Aucune donnée

@@ -83,6 +83,7 @@ export function QueueSection({
         <div className="flex flex-col gap-6">
             <DashboardHeader
                 merchantName={merchantName}
+                merchantSlug={merchantSlug}
                 isOpen={isOpen}
                 waitingCount={waitingCount}
                 onToggleOpen={(v) => toggleMutation.mutate(v)}

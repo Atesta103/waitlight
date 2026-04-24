@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { forwardRef, useState, useCallback, useImperativeHandle } from "react"
 import { cn } from "@/lib/utils/cn"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
@@ -47,9 +47,15 @@ function buildEmptyWeekly(): Record<string, WeeklyScheduleDay> {
 type ScheduleEditorProps = {
     initialSchedule: ScheduleData | null
     className?: string
+    showSaveButton?: boolean
+    onDirtyChange?: (isDirty: boolean) => void
 }
 
-function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
+type ScheduleEditorHandle = {
+    save: () => Promise<void>
+}
+
+const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(function ScheduleEditor({ initialSchedule, className, showSaveButton = true, onDirtyChange }: ScheduleEditorProps, ref) {
     const [enabled, setEnabled] = useState(initialSchedule !== null)
     const [weekly, setWeekly] = useState<Record<string, WeeklyScheduleDay>>(
         initialSchedule?.weekly ?? buildEmptyWeekly(),
@@ -61,14 +67,19 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
     const [saveSuccess, setSaveSuccess] = useState(false)
     const [saveError, setSaveError] = useState<string | null>(null)
 
+    const markDirty = useCallback(() => {
+        setSaveSuccess(false)
+        onDirtyChange?.(true)
+    }, [onDirtyChange])
+
     // ── Day toggle ──────────────────────────────────────────────────────────
     const toggleDay = useCallback((dayKey: string) => {
         setWeekly((prev) => ({
             ...prev,
             [dayKey]: prev[dayKey] ? null : { open: DEFAULT_OPEN, close: DEFAULT_CLOSE },
         }))
-        setSaveSuccess(false)
-    }, [])
+        markDirty()
+    }, [markDirty])
 
     const updateDayTime = useCallback(
         (dayKey: string, field: "open" | "close", value: string) => {
@@ -77,9 +88,9 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
                 if (!day) return prev
                 return { ...prev, [dayKey]: { ...day, [field]: value } }
             })
-            setSaveSuccess(false)
+            markDirty()
         },
-        [],
+        [markDirty],
     )
 
     // ── Exceptions ──────────────────────────────────────────────────────────
@@ -88,23 +99,23 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
         tomorrow.setDate(tomorrow.getDate() + 1)
         const dateStr = tomorrow.toISOString().split("T")[0]
         setExceptions((prev) => [...prev, { date: dateStr, closed: true }])
-        setSaveSuccess(false)
-    }, [])
+        markDirty()
+    }, [markDirty])
 
     const updateException = useCallback(
         (idx: number, update: Partial<ScheduleException>) => {
             setExceptions((prev) =>
                 prev.map((ex, i) => (i === idx ? { ...ex, ...update } : ex)),
             )
-            setSaveSuccess(false)
+            markDirty()
         },
-        [],
+        [markDirty],
     )
 
     const removeException = useCallback((idx: number) => {
         setExceptions((prev) => prev.filter((_, i) => i !== idx))
-        setSaveSuccess(false)
-    }, [])
+        markDirty()
+    }, [markDirty])
 
     // ── Save ────────────────────────────────────────────────────────────────
     const handleSave = useCallback(async () => {
@@ -122,9 +133,14 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
             setSaveError(result.error)
         } else {
             setSaveSuccess(true)
+            onDirtyChange?.(false)
         }
         setIsSaving(false)
-    }, [enabled, weekly, exceptions])
+    }, [enabled, weekly, exceptions, onDirtyChange])
+
+    useImperativeHandle(ref, () => ({
+        save: handleSave,
+    }), [handleSave])
 
     return (
         <div className={cn("flex flex-col gap-4", className)}>
@@ -133,7 +149,7 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
                 checked={enabled}
                 onChange={(v) => {
                     setEnabled(v)
-                    setSaveSuccess(false)
+                    markDirty()
                 }}
                 label="Activer les horaires d'ouverture"
             />
@@ -155,22 +171,22 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
                                         <div
                                             key={day.key}
                                             className={cn(
-                                                "flex items-center gap-3 rounded-lg border p-3 transition-colors",
+                                                "flex items-center gap-3 rounded-xl border p-3.5 transition-all shadow-sm",
                                                 isOpen
-                                                    ? "border-border-default bg-surface-base"
-                                                    : "border-border-default/50 bg-surface-base/50 opacity-60",
+                                                    ? "border-border-default bg-white"
+                                                    : "border-transparent bg-surface-base/50 opacity-50",
                                             )}
                                         >
                                             {/* Day name + toggle */}
                                             <button
                                                 onClick={() => toggleDay(day.key)}
-                                                className="flex w-12 shrink-0 items-center justify-center"
+                                                className="flex w-14 shrink-0 items-center justify-start"
                                                 aria-label={`${isOpen ? "Fermer" : "Ouvrir"} le ${day.full}`}
                                             >
                                                 <span
                                                     className={cn(
-                                                        "text-sm font-semibold transition-colors",
-                                                        isOpen ? "text-text-primary" : "text-text-secondary line-through",
+                                                        "text-sm font-bold uppercase tracking-wider transition-colors",
+                                                        isOpen ? "text-brand-primary" : "text-text-secondary line-through",
                                                     )}
                                                 >
                                                     {day.short}
@@ -185,24 +201,24 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
                                                         onChange={(e) =>
                                                             updateDayTime(day.key, "open", e.target.value)
                                                         }
-                                                        className="rounded-md border border-border-default bg-white px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                                        className="rounded-lg border border-border-default bg-surface-base px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
                                                         aria-label={`Heure d'ouverture ${day.full}`}
                                                     />
-                                                    <span className="text-xs text-text-secondary">à</span>
+                                                    <span className="text-xs font-medium text-text-secondary">à</span>
                                                     <input
                                                         type="time"
                                                         value={dayData.close}
                                                         onChange={(e) =>
                                                             updateDayTime(day.key, "close", e.target.value)
                                                         }
-                                                        className="rounded-md border border-border-default bg-white px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                                        className="rounded-lg border border-border-default bg-surface-base px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
                                                         aria-label={`Heure de fermeture ${day.full}`}
                                                     />
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-1 items-center gap-2">
-                                                    <CalendarOff size={14} className="text-text-secondary" />
-                                                    <span className="text-xs text-text-secondary">Fermé</span>
+                                                    <CalendarOff size={16} className="text-text-secondary" />
+                                                    <span className="text-sm font-medium text-text-secondary">Fermé</span>
                                                 </div>
                                             )}
 
@@ -315,36 +331,37 @@ function ScheduleEditor({ initialSchedule, className }: ScheduleEditorProps) {
                 </div>
             )}
 
-            {/* Save bar */}
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                    {saveSuccess && (
-                        <span className="flex items-center gap-1.5 text-green-600">
-                            <CalendarClock size={14} />
-                            Horaires enregistrés.
-                        </span>
-                    )}
-                    {saveError && (
-                        <span className="text-red-600">{saveError}</span>
-                    )}
+            {showSaveButton ? (
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                        {saveSuccess && (
+                            <span className="flex items-center gap-1.5 text-green-600">
+                                <CalendarClock size={14} />
+                                Horaires enregistrés.
+                            </span>
+                        )}
+                        {saveError && (
+                            <span className="text-red-600">{saveError}</span>
+                        )}
+                    </div>
+                    <Button
+                        variant="primary"
+                        size="md"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        isLoading={isSaving}
+                    >
+                        {isSaving ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
+                        Enregistrer les horaires
+                    </Button>
                 </div>
-                <Button
-                    variant="primary"
-                    size="md"
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    isLoading={isSaving}
-                >
-                    {isSaving ? (
-                        <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                        <Save size={16} />
-                    )}
-                    Enregistrer les horaires
-                </Button>
-            </div>
+            ) : null}
         </div>
     )
 }
 
-export { ScheduleEditor, type ScheduleEditorProps }
+export { ScheduleEditor, type ScheduleEditorProps, type ScheduleEditorHandle }
