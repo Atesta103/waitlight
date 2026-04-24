@@ -21,6 +21,8 @@ type CustomerWaitViewProps = {
     customerName: string
     slug: string
     ticketId: string
+    thankYouMessage?: string | null
+    backgroundUrl?: string | null
     className?: string
 }
 
@@ -33,6 +35,8 @@ function CustomerWaitView({
     customerName,
     slug,
     ticketId,
+    thankYouMessage,
+    backgroundUrl,
     className,
 }: CustomerWaitViewProps) {
     const prefersReduced = useReducedMotion()
@@ -48,6 +52,13 @@ function CustomerWaitView({
 
     return (
         <div className={cn("flex flex-col gap-6", className)}>
+            {backgroundUrl && (
+                <div
+                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 dark:opacity-10 pointer-events-none"
+                    style={{ backgroundImage: `url(${backgroundUrl})` }}
+                />
+            )}
+
             {connectionState !== "connected" ? (
                 <ConnectionStatus state={connectionState} />
             ) : null}
@@ -80,7 +91,7 @@ function CustomerWaitView({
                         <StatusBanner
                             variant="done"
                             title="Merci !"
-                            description="Votre visite est terminée. Bonne journée !"
+                            description={thankYouMessage || "Votre visite est terminée. Bonne journée !"}
                         />
                     </motion.div>
                 ) : status === "cancelled" ? (

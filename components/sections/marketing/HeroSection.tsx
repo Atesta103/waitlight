@@ -358,6 +358,16 @@ export function HeroSection({ id }: { id?: string }) {
                     </div>
 
                     {/* ── Right: phone + dashboard mockups ── */}
+                    {/* Mobile: compact centered phone mockup */}
+                    <div className="flex justify-center lg:hidden">
+                        <div className="relative w-full max-w-[300px]">
+                            <div className="scale-[0.85] origin-top">
+                                <PhoneMockup showNotification={false} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Desktop: full side-by-side layout */}
                     <div className="hidden lg:flex lg:justify-end">
                         <div className="relative w-full max-w-[500px] min-h-[480px] sm:min-h-[560px]">
                             <div className="hidden sm:block absolute right-0 top-8 z-0">

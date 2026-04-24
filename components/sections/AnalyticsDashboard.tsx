@@ -317,7 +317,11 @@ function exportCsv(rows: AnalyticsRow[]) {
 
 export function AnalyticsDashboard({ merchantId, initialData }: Props) {
     const prefersReduced = useReducedMotion()
-    const [selectedDay, setSelectedDay] = useState(1) // default: Monday
+    const [selectedDay, setSelectedDay] = useState(() => {
+        // JS: 0=Sun, 1=Mon, ..., 6=Sat → Analytics: 0=Mon, 1=Tue, ..., 6=Sun
+        const jsDay = new Date().getDay()
+        return jsDay === 0 ? 6 : jsDay - 1
+    })
     const [presetIdx, setPresetIdx] = useState(3)     // default: all time
 
     const PRESETS = useMemo(() => buildPresets(), [])

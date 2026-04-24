@@ -72,6 +72,7 @@ export type Database = {
         Row: {
           avg_prep_computed_at: string | null
           avg_wait_time: number | null
+          background_url: string | null
           brand_color: string | null
           font_family: string | null
           border_radius: string | null
@@ -90,6 +91,7 @@ export type Database = {
         Insert: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          background_url?: string | null
           brand_color?: string | null
           font_family?: string | null
           border_radius?: string | null
@@ -107,6 +109,7 @@ export type Database = {
         Update: {
           avg_prep_computed_at?: string | null
           avg_wait_time?: number | null
+          background_url?: string | null
           brand_color?: string | null
           font_family?: string | null
           border_radius?: string | null
@@ -236,27 +239,51 @@ export type Database = {
       }
       settings: {
         Row: {
+          approaching_position_enabled: boolean
+          approaching_position_threshold: number
+          approaching_time_enabled: boolean
+          approaching_time_threshold_min: number
           auto_close_enabled: boolean
           max_capacity: number
           merchant_id: string
+          notification_channels: Json
+          notification_sound: string
           notifications_enabled: boolean
           qr_regenerated_at: string | null
+          schedule: Json | null
+          thank_you_message: string | null
           welcome_message: string | null
         }
         Insert: {
+          approaching_position_enabled?: boolean
+          approaching_position_threshold?: number
+          approaching_time_enabled?: boolean
+          approaching_time_threshold_min?: number
           auto_close_enabled?: boolean
           max_capacity?: number
           merchant_id: string
+          notification_channels?: Json
+          notification_sound?: string
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
+          schedule?: Json | null
+          thank_you_message?: string | null
           welcome_message?: string | null
         }
         Update: {
+          approaching_position_enabled?: boolean
+          approaching_position_threshold?: number
+          approaching_time_enabled?: boolean
+          approaching_time_threshold_min?: number
           auto_close_enabled?: boolean
           max_capacity?: number
           merchant_id?: string
+          notification_channels?: Json
+          notification_sound?: string
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
+          schedule?: Json | null
+          thank_you_message?: string | null
           welcome_message?: string | null
         }
         Relationships: [

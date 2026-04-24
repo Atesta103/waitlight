@@ -10,10 +10,12 @@ import { checkNameAction } from "@/lib/actions/queue"
 type JoinFormProps = {
     onSubmit: (data: { customerName: string; consent: boolean }) => void
     isLoading?: boolean
+    /** Merchant slug — used for per-merchant name ban filtering */
+    slug?: string
     className?: string
 }
 
-function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
+function JoinForm({ onSubmit, isLoading = false, slug, className }: JoinFormProps) {
     const [customerName, setCustomerName] = useState("")
     const [consent, setConsent] = useState(false)
     const [errors, setErrors] = useState<{ name?: string; consent?: string }>(
@@ -28,7 +30,7 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
             if (trimmed.length < 2) return
 
             setIsCheckingName(true)
-            const result = await checkNameAction(trimmed)
+            const result = await checkNameAction(trimmed, slug)
             if (result.isBanned) {
                 setErrors(prev => ({ ...prev, name: "Ce prénom n'est pas autorisé." }))
             } else {
@@ -45,7 +47,7 @@ function JoinForm({ onSubmit, isLoading = false, className }: JoinFormProps) {
 
         const timeoutId = setTimeout(checkName, 400)
         return () => clearTimeout(timeoutId)
-    }, [customerName])
+    }, [customerName, slug])
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault()

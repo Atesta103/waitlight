@@ -1232,10 +1232,18 @@ export default function DesignSystemPage() {
                                     maxCapacity: 20,
                                     welcomeMessage:
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
+                                    thankYouMessage: "",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
                                     calculatedAvgPrepTime: null,
                                     avgPrepComputedAt: null,
+                                    schedule: null,
+                                    notificationChannels: { sound: true, vibrate: true, toast: true, push: true },
+                                    notificationSound: "arpeggio",
+                                    approachingPositionEnabled: false,
+                                    approachingPositionThreshold: 3,
+                                    approachingTimeEnabled: false,
+                                    approachingTimeThresholdMin: 5,
                                 }}
                             />
                         </SubSection>

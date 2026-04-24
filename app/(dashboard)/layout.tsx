@@ -33,7 +33,7 @@ export default async function DashboardLayout({
     // Check merchant profile exists — redirect to onboarding if not.
     const { data: merchant, error } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, bypass_paywall, brand_color, font_family, border_radius")
+        .select("id, name, slug, logo_url, is_open, bypass_paywall, brand_color, font_family, border_radius")
         .eq("id", user!.id)
         .maybeSingle()
 
@@ -130,6 +130,7 @@ export default async function DashboardLayout({
                             <div className="shrink-0">
                                 <UserMenu
                                     name={merchant.name}
+                                    logoUrl={merchant.logo_url}
                                     dropdownSide="top"
                                 />
                             </div>
@@ -178,7 +179,7 @@ export default async function DashboardLayout({
 
                             {/* Right — user menu */}
                             <div className="flex justify-end">
-                                <UserMenu name={merchant.name} />
+                                <UserMenu name={merchant.name} logoUrl={merchant.logo_url} />
                             </div>
                         </div>
                     </div>

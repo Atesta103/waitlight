@@ -7,17 +7,6 @@ type WaitPageProps = {
     params: Promise<{ slug: string; ticketId: string }>
 }
 
-// Explicit type that matches WaitClient's Merchant type.
-// The `calculated_avg_prep_time` column is added by migration 20260305000001.
-// Until Supabase types are regenerated, we cast to this type manually.
-type MerchantRow = {
-    id: string
-    name: string
-    slug: string
-    default_prep_time_min: number
-    calculated_avg_prep_time: number | null
-}
-
 /**
  * Server component for /[slug]/wait/[ticketId].
  * Fetches merchant data and passes ticketId to client component.
@@ -34,7 +23,18 @@ export default async function WaitPage({ params }: WaitPageProps) {
 
     const { data } = await supabase
         .from("merchants")
-        .select("id, name, slug, default_prep_time_min, calculated_avg_prep_time")
+        .select(`
+            id, name, slug, background_url, default_prep_time_min, calculated_avg_prep_time,
+            settings!inner(
+                notification_channels,
+                notification_sound,
+                approaching_position_enabled,
+                approaching_position_threshold,
+                approaching_time_enabled,
+                approaching_time_threshold_min,
+                thank_you_message
+            )
+        `)
         .eq("slug", slug)
         .single()
 
@@ -42,12 +42,21 @@ export default async function WaitPage({ params }: WaitPageProps) {
         notFound()
     }
 
-    // Cast to explicit type — column exists after migration 20260305000001
-    const merchant = data as unknown as MerchantRow
+    // Pass everything correctly formatted to the client
+    const merchant = {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        background_url: data.background_url,
+        default_prep_time_min: data.default_prep_time_min,
+        calculated_avg_prep_time: data.calculated_avg_prep_time,
+        settings: Array.isArray(data.settings) ? data.settings[0] : data.settings
+    }
 
     return (
         <WaitClient
-            merchant={merchant}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            merchant={merchant as any}
             ticketId={ticketId}
         />
     )

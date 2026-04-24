@@ -189,7 +189,7 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
 
             {/* Join form */}
             <Card>
-                <JoinForm onSubmit={handleSubmit} isLoading={isLoading} />
+                <JoinForm onSubmit={handleSubmit} isLoading={isLoading} slug={merchant.slug} />
             </Card>
 
             {/* Server error */}

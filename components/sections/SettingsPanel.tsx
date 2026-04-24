@@ -35,6 +35,8 @@ import {
     Info,
     Sparkles,
     RotateCcw,
+    ShieldAlert,
+    CalendarClock,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -42,7 +44,13 @@ import {
     checkSlugAvailabilitySettingsAction,
     deleteLogoAction,
     resetAvgPrepTimeAction,
+    updateThankYouMessageAction,
+    type ScheduleData,
+    type NotificationChannels,
 } from "@/lib/actions/settings"
+import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
+import { ScheduleEditor } from "@/components/composed/ScheduleEditor"
+import { NotificationPreferencesEditor } from "@/components/composed/NotificationPreferencesEditor"
 import { createClient } from "@/lib/supabase/client"
 import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 
@@ -61,12 +69,21 @@ type SettingsData = {
     defaultPrepTimeMin: number
     maxCapacity: number
     welcomeMessage: string
+    thankYouMessage: string
     notificationsEnabled: boolean
     autoCloseEnabled: boolean
     /** Auto-computed value from calculate_avg_prep(). null = manual mode. */
     calculatedAvgPrepTime: number | null
     /** ISO timestamp of the last cron run. null = never run yet. */
     avgPrepComputedAt: string | null
+    // Phase 2+ fields
+    schedule: ScheduleData | null
+    notificationChannels: NotificationChannels
+    notificationSound: string
+    approachingPositionEnabled: boolean
+    approachingPositionThreshold: number
+    approachingTimeEnabled: boolean
+    approachingTimeThresholdMin: number
 }
 
 type SettingsPanelProps = {
@@ -82,7 +99,10 @@ const NAV_SECTIONS = [
     { id: "identity", label: "Identité", icon: User },
     { id: "display", label: "Affichage", icon: Sparkles },
     { id: "queue", label: "File d'attente", icon: Layers },
+    { id: "schedule", label: "Horaires", icon: CalendarClock },
     { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "notification-prefs", label: "Préf. client", icon: BellRing },
+    { id: "bannedwords", label: "Noms bannis", icon: ShieldAlert },
     { id: "waittime", label: "Temps d'attente", icon: Clock },
 ] as const
 
@@ -520,6 +540,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [queue, setQueue] = useState({
         maxCapacity: initialData.maxCapacity,
         welcomeMessage: initialData.welcomeMessage,
+        thankYouMessage: initialData.thankYouMessage,
         notificationsEnabled: initialData.notificationsEnabled,
         autoCloseEnabled: initialData.autoCloseEnabled,
     })
@@ -754,6 +775,11 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 notifications_enabled: queue.notificationsEnabled,
                 auto_close_enabled: queue.autoCloseEnabled,
             })
+
+            // Also save the thank you message (separate action)
+            if (queue.thankYouMessage !== initialData.thankYouMessage) {
+                await updateThankYouMessageAction(queue.thankYouMessage || null)
+            }
             if ("error" in result) {
                 setQueueError(result.error)
             } else {
@@ -767,6 +793,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         setQueue({
             maxCapacity: initialData.maxCapacity,
             welcomeMessage: initialData.welcomeMessage,
+            thankYouMessage: initialData.thankYouMessage,
             notificationsEnabled: initialData.notificationsEnabled,
             autoCloseEnabled: initialData.autoCloseEnabled,
         })
@@ -1096,6 +1123,17 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             }
                                             hint="Affiché sur la page client après le scan du QR code."
                                         />
+                                        <Textarea
+                                            label="Message de remerciement"
+                                            value={queue.thankYouMessage}
+                                            onChange={(e) =>
+                                                updateQueue(
+                                                    "thankYouMessage",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            hint="Affiché lorsque le client a été servi. Laissez vide pour le message par défaut."
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1146,6 +1184,71 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 success={queueSuccess}
                                 successMessage="Configuration mise à jour."
                             />
+                        </SectionBlock>
+                    </motion.div>
+
+                    {/* ── Schedule ──────────────────────────────────────── */}
+                    <motion.div
+                        custom={3}
+                        initial="hidden"
+                        animate="visible"
+                        variants={sectionVariants}
+                    >
+                        <SectionBlock
+                            id="schedule"
+                            icon={CalendarClock}
+                            title="Horaires d'ouverture"
+                            description="Configurez les horaires de la file par jour de la semaine et ajoutez des jours exceptionnels."
+                        >
+                            <ScheduleEditor initialSchedule={initialData.schedule} />
+                        </SectionBlock>
+                    </motion.div>
+
+                    {/* ── Notification Preferences ──────────────────────── */}
+                    <motion.div
+                        custom={4}
+                        initial="hidden"
+                        animate="visible"
+                        variants={sectionVariants}
+                    >
+                        <SectionBlock
+                            id="notification-prefs"
+                            icon={BellRing}
+                            title="Préférences de notification client"
+                            description="Choisissez les canaux d'alerte et configurez la notification « bientôt ton tour »."
+                        >
+                            <NotificationPreferencesEditor
+                                initialChannels={initialData.notificationChannels}
+                                initialSound={initialData.notificationSound}
+                                initialApproachingPosition={{
+                                    enabled: initialData.approachingPositionEnabled,
+                                    threshold: initialData.approachingPositionThreshold,
+                                }}
+                                initialApproachingTime={{
+                                    enabled: initialData.approachingTimeEnabled,
+                                    thresholdMin: initialData.approachingTimeThresholdMin,
+                                }}
+                            />
+                        </SectionBlock>
+                    </motion.div>
+                    {/* ── Banned Words ──────────────────────────────────── */}
+                    <motion.div
+                        custom={3}
+                        initial="hidden"
+                        animate="visible"
+                        variants={sectionVariants}
+                    >
+                        <SectionBlock
+                            id="bannedwords"
+                            icon={ShieldAlert}
+                            title="Noms bannis"
+                            description="Les prénoms signalés sont automatiquement bloqués lors de l'inscription."
+                        >
+                            <Card>
+                                <CardContent>
+                                    <BannedWordsManager />
+                                </CardContent>
+                            </Card>
                         </SectionBlock>
                     </motion.div>
 

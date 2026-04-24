@@ -60,6 +60,16 @@ export const Done: Story = {
     },
 }
 
+export const DoneCustomThankYou: Story = {
+    args: {
+        status: "done",
+        position: null,
+        totalWaiting: null,
+        estimatedWaitMinutes: null,
+        thankYouMessage: "Merci d'avoir joué chez nous ! N'hésitez pas à laisser un avis sur Google.",
+    },
+}
+
 export const Cancelled: Story = {
     args: {
         status: "cancelled",
@@ -86,5 +96,15 @@ export const Reconnecting: Story = {
         totalWaiting: 9,
         estimatedWaitMinutes: 15,
         connectionState: "reconnecting" as const,
+    },
+}
+
+export const WithBackground: Story = {
+    args: {
+        status: "waiting",
+        position: 3,
+        totalWaiting: 9,
+        estimatedWaitMinutes: 15,
+        backgroundUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=2000&auto=format&fit=crop",
     },
 }

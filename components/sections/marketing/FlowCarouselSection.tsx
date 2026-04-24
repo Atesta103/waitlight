@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Settings, QrCode, CheckCircle2, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
@@ -11,7 +11,7 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 function SetupMockup() {
     return (
-        <div className="scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
+        <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
             <div className="bg-[#F8F9FA] px-5 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-bold text-[#111827]">Paramètres de la file</h3>
@@ -32,9 +32,10 @@ function SetupMockup() {
                         </span>
                         <input
                             type="text"
-                            className="block w-full min-w-0 flex-1 rounded-none rounded-r-md border border-[#D1D5DB] px-3 py-2 text-xs text-[#111827] focus:border-[#6366F1] focus:ring-[#6366F1] sm:text-sm"
+                            className="block w-full min-w-0 flex-1 rounded-none rounded-r-md border border-[#D1D5DB] px-3 py-2 text-xs text-[#111827] sm:text-sm"
                             defaultValue="Le Bistrot du Coin"
                             readOnly
+                            tabIndex={-1}
                         />
                     </div>
                 </div>
@@ -44,7 +45,7 @@ function SetupMockup() {
                     <label className="block text-[11px] font-semibold text-[#374151] mb-2">Couleur principale</label>
                     <div className="flex gap-3">
                         {['#6366F1', '#10B981', '#F43F5E', '#F59E0B', '#111827'].map((color, i) => (
-                            <div key={i} className={cn("w-8 h-8 rounded-full cursor-pointer relative shadow-sm border border-black/10 transition-transform hover:scale-110", i===0 && "ring-2 ring-offset-2 ring-[#6366F1]")} style={{ backgroundColor: color }}>
+                            <div key={i} className={cn("w-8 h-8 rounded-full relative shadow-sm border border-black/10", i===0 && "ring-2 ring-offset-2 ring-[#6366F1]")} style={{ backgroundColor: color }}>
                                 {i === 0 && <span className="absolute inset-0 flex items-center justify-center"><CheckCircle2 size={14} className="text-white drop-shadow-md" /></span>}
                             </div>
                         ))}
@@ -53,13 +54,13 @@ function SetupMockup() {
 
                 {/* QR Code Action */}
                 <div className="pt-2 flex justify-end gap-3">
-                    <button className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-semibold text-[#374151] shadow-sm flex items-center gap-1.5 hover:bg-[#F9FAFB]">
+                    <span className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-semibold text-[#374151] shadow-sm flex items-center gap-1.5">
                         <QrCode size={14} />
                         Voir le QR Code
-                    </button>
-                    <button className="px-4 py-2 bg-[#111827] text-white rounded-lg text-xs font-semibold shadow-sm hover:bg-[#374151]">
+                    </span>
+                    <span className="px-4 py-2 bg-[#111827] text-white rounded-lg text-xs font-semibold shadow-sm">
                         Enregistrer
-                    </button>
+                    </span>
                 </div>
             </div>
         </div>
@@ -68,7 +69,7 @@ function SetupMockup() {
 
 function ScanMockup() {
     return (
-        <div className="scale-75 sm:scale-90 origin-center">
+        <div className="pointer-events-none scale-75 sm:scale-90 origin-center">
             <QRCodeDisplay slug="lebistrot" size={180} mockMode={true} />
         </div>
     )
@@ -76,7 +77,7 @@ function ScanMockup() {
 
 function WaitMockup() {
     return (
-        <div className="scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
+        <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={false} />
         </div>
     )
@@ -84,7 +85,7 @@ function WaitMockup() {
 
 function CallMockup() {
     return (
-        <div className="scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px]">
+        <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px]">
             <div className="w-full rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
                 <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
                     <div>
@@ -103,10 +104,10 @@ function CallMockup() {
                             <p className="text-[10px] text-[#6B7280]">Attends depuis 8 min</p>
                         </div>
                     </div>
-                    <button className="bg-[#6366F1] text-white px-3 py-1.5 rounded-md text-[10px] font-bold shadow-sm flex items-center gap-1 hover:bg-[#4F46E5] transition-colors relative overflow-hidden group">
+                    <span className="bg-[#6366F1] text-white px-3 py-1.5 rounded-md text-[10px] font-bold shadow-sm flex items-center gap-1 relative overflow-hidden">
                         <BellRing size={12} className="animate-pulse" />
                         Appeler
-                    </button>
+                    </span>
                 </div>
                 <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-[#E5E7EB] opacity-60">
                     <div className="flex items-center gap-3">
@@ -124,7 +125,7 @@ function CallMockup() {
 
 function NotifyMockup() {
     return (
-        <div className="scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
+        <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={true} />
         </div>
     )
@@ -132,7 +133,7 @@ function NotifyMockup() {
 
 function StatsMockup() {
     return (
-        <div className="scale-[0.80] sm:scale-95 origin-center">
+        <div className="pointer-events-none scale-[0.80] sm:scale-95 origin-center">
             <MerchantDashboardMockup />
         </div>
     )
@@ -185,26 +186,69 @@ const FLOW_STEPS = [
     }
 ]
 
+/** Duration (ms) each slide stays before auto-advancing */
+const AUTO_PLAY_INTERVAL_MS = 6000
+
 export function FlowCarouselSection({ id }: { id?: string }) {
     const [currentStep, setCurrentStep] = useState(0)
     const [direction, setDirection] = useState(0)
-    
-    // Auto-play option could be added here with useEffect, but keeping manual control for better UX
+    /** progress 0→1 of the current bar fill (for CSS animation reset) */
+    const [progress, setProgress] = useState(0)
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const startRef = useRef(Date.now())
 
-    const paginate = (newDirection: number) => {
-        setDirection(newDirection)
+    const goTo = useCallback((index: number, dir?: number) => {
+        setDirection(dir ?? (index > currentStep ? 1 : -1))
+        setCurrentStep(index)
+        setProgress(0)
+        startRef.current = Date.now()
+    }, [currentStep])
+
+    const paginate = useCallback((newDirection: number) => {
         setCurrentStep((prev) => {
             let next = prev + newDirection
             if (next < 0) next = FLOW_STEPS.length - 1
             if (next >= FLOW_STEPS.length) next = 0
+            setDirection(newDirection)
+            setProgress(0)
+            startRef.current = Date.now()
             return next
         })
-    }
+    }, [])
 
-    const setStep = (index: number) => {
-        setDirection(index > currentStep ? 1 : -1)
-        setCurrentStep(index)
-    }
+    // Auto-play: tick every 50ms to update the progress bar smoothly
+    useEffect(() => {
+        startRef.current = Date.now()
+
+        timerRef.current = setInterval(() => {
+            const elapsed = Date.now() - startRef.current
+            const p = Math.min(elapsed / AUTO_PLAY_INTERVAL_MS, 1)
+            setProgress(p)
+
+            if (p >= 1) {
+                // Auto-advance to next
+                setCurrentStep((prev) => {
+                    const next = (prev + 1) % FLOW_STEPS.length
+                    setDirection(1)
+                    setProgress(0)
+                    startRef.current = Date.now()
+                    return next
+                })
+            }
+        }, 50)
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current)
+        }
+    }, [])
+
+    // When user manually navigates, reset the timer
+    const handleManualNav = useCallback((index: number) => {
+        goTo(index)
+    }, [goTo])
+
+    const handlePrev = useCallback(() => paginate(-1), [paginate])
+    const handleNext = useCallback(() => paginate(1), [paginate])
 
     const stepData = FLOW_STEPS[currentStep]
     const CurrentMockup = stepData.Mockup
@@ -224,26 +268,57 @@ export function FlowCarouselSection({ id }: { id?: string }) {
 
                 <div className="bg-[#F8F9FA] rounded-[2rem] border border-[#E5E7EB] p-6 sm:p-10 lg:p-12 relative">
                     
-                    {/* Navigation Dots */}
-                    <div className="flex flex-wrap justify-center gap-2 mb-10">
-                        {FLOW_STEPS.map((step, idx) => (
-                            <button
-                                key={step.id}
-                                onClick={() => setStep(idx)}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5",
-                                    currentStep === idx 
-                                        ? "bg-[#111827] text-white shadow-md" 
-                                        : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F3F4F6]"
-                                )}
-                            >
-                                <span className={cn(
-                                    "w-1.5 h-1.5 rounded-full",
-                                    step.side === 'merchant' ? "bg-[#10B981]" : "bg-[#6366F1]"
-                                )} />
-                                {step.title.split('.')[0]} {/* Just the number */}
-                            </button>
-                        ))}
+                    {/* ── Progressive fill bars ── */}
+                    <div className="flex items-center gap-2 sm:gap-3 mb-10">
+                        {FLOW_STEPS.map((step, idx) => {
+                            const isActive = idx === currentStep
+                            const isDone = idx < currentStep
+
+                            return (
+                                <button
+                                    key={step.id}
+                                    onClick={() => handleManualNav(idx)}
+                                    className="group relative flex-1 flex flex-col items-center gap-1.5 focus-visible:outline-none"
+                                    aria-label={`Étape ${idx + 1}: ${step.title}`}
+                                    aria-current={isActive ? "step" : undefined}
+                                >
+                                    {/* Step label — visible on sm+ */}
+                                    <span className={cn(
+                                        "hidden sm:block text-[10px] font-semibold tracking-wide transition-colors",
+                                        isActive
+                                            ? "text-[#111827]"
+                                            : isDone
+                                              ? "text-[#6366F1]"
+                                              : "text-[#9CA3AF] group-hover:text-[#6B7280]",
+                                    )}>
+                                        {idx + 1}
+                                    </span>
+
+                                    {/* Bar track */}
+                                    <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
+                                        {/* Fill */}
+                                        <div
+                                            className={cn(
+                                                "absolute inset-y-0 left-0 rounded-full transition-[width]",
+                                                isDone
+                                                    ? "bg-[#6366F1] w-full"
+                                                    : isActive
+                                                      ? "bg-[#6366F1]"
+                                                      : "bg-transparent w-0",
+                                            )}
+                                            style={isActive ? { width: `${progress * 100}%`, transition: "width 50ms linear" } : undefined}
+                                        />
+                                    </div>
+
+                                    {/* Side indicator dot */}
+                                    <span className={cn(
+                                        "w-1.5 h-1.5 rounded-full shrink-0",
+                                        step.side === 'merchant' ? "bg-[#10B981]" : "bg-[#6366F1]",
+                                        !isActive && !isDone && "opacity-40",
+                                    )} />
+                                </button>
+                            )
+                        })}
                     </div>
 
                     <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -276,14 +351,14 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             {/* Controls */}
                             <div className="flex items-center gap-4 mt-10">
                                 <button 
-                                    onClick={() => paginate(-1)}
+                                    onClick={handlePrev}
                                     className="w-12 h-12 rounded-full border border-[#D1D5DB] flex items-center justify-center text-[#374151] hover:bg-white hover:text-[#111827] hover:shadow-md transition-all"
                                     aria-label="Étape précédente"
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
                                 <button 
-                                    onClick={() => paginate(1)}
+                                    onClick={handleNext}
                                     className="w-12 h-12 rounded-full bg-[#111827] flex items-center justify-center text-white hover:bg-[#374151] shadow-md transition-all"
                                     aria-label="Étape suivante"
                                 >
@@ -292,8 +367,8 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             </div>
                         </div>
 
-                        {/* Right: Mockup Carousel — hidden on mobile */}
-                        <div className="hidden lg:flex relative w-full h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2">
+                        {/* Right: Mockup Carousel — pointer-events-none to prevent interaction distraction */}
+                        <div className="hidden lg:flex relative w-full h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2 pointer-events-none select-none">
                             {/* Decorative background circle */}
                             <div className="absolute w-[300px] h-[300px] rounded-full bg-white/40 blur-3xl" />
                             

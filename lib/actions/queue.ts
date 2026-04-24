@@ -302,7 +302,7 @@ export async function joinQueueAction(
     const supabase = await createClient()
 
     // ── 0. Check for banned words ────────────────────────────────────────────
-    const nameCheck = await checkNameAction(customerName)
+    const nameCheck = await checkNameAction(customerName, slug)
     if (nameCheck.isBanned) {
         return { error: "Ce prénom n'est pas autorisé." }
     }
@@ -431,13 +431,40 @@ export async function reportTicketNameAction(
     }
 }
 
-export async function checkNameAction(name: string): Promise<{ isBanned: boolean }> {
+/**
+ * Check if a customer name is banned for the given merchant.
+ * Checks both merchant-specific bans and global bans (merchant_id IS NULL).
+ *
+ * @param name - The customer name to check.
+ * @param slug - The merchant slug, used to look up the merchant_id.
+ */
+export async function checkNameAction(name: string, slug?: string): Promise<{ isBanned: boolean }> {
     if (!name) return { isBanned: false }
     const supabase = await createClient()
-    const { data } = await supabase
+    const normalised = name.toLowerCase().trim()
+
+    // If slug provided, resolve merchant_id for per-merchant filtering
+    let merchantId: string | null = null
+    if (slug) {
+        const { data: merchant } = await supabase
+            .from("merchants")
+            .select("id")
+            .eq("slug", slug)
+            .single()
+        merchantId = merchant?.id ?? null
+    }
+
+    // Check both global (merchant_id IS NULL) and merchant-specific bans
+    let query = supabase
         .from("banned_words")
         .select("id")
-        .eq("word", name.toLowerCase())
-        .single()
+        .eq("word", normalised)
+
+    if (merchantId) {
+        // Match either global bans or this merchant's bans
+        query = query.or(`merchant_id.is.null,merchant_id.eq.${merchantId}`)
+    }
+
+    const { data } = await query.limit(1).maybeSingle()
     return { isBanned: !!data }
 }

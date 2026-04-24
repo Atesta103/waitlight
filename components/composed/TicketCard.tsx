@@ -131,7 +131,7 @@ function TicketCard({
                                 variant: "destructive" as const,
                                 onClick: () => onCancel(id),
                             }] : []),
-                            ...(onReportName && !customerName.startsWith("Guest-") ? [{
+                            ...(onReportName && customerName !== "…" && !customerName.startsWith("Client-") ? [{
                                 label: "Signaler le prénom",
                                 icon: <ShieldAlert size={16} />,
                                 onClick: () => onReportName(id, customerName),

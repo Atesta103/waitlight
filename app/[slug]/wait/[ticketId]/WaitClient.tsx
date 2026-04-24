@@ -14,9 +14,19 @@ type Merchant = {
     id: string
     name: string
     slug: string
+    background_url: string | null
     default_prep_time_min: number
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
+    settings: {
+        notification_channels: Record<string, boolean>
+        notification_sound: string
+        approaching_position_enabled: boolean
+        approaching_position_threshold: number
+        approaching_time_enabled: boolean
+        approaching_time_threshold_min: number
+        thank_you_message: string | null
+    }
 }
 
 type TicketData = {
@@ -42,6 +52,8 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
+    const [hasNotifiedApproaching, setHasNotifiedApproaching] = useState(false)
+    const [hasNotifiedCalled, setHasNotifiedCalled] = useState(false)
     const supabaseRef = useRef(createClient())
 
     // ── TanStack Query ────────────────────────────────────────────────────────
@@ -141,6 +153,68 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         }
     }, [ticket, position, merchant.name])
 
+    // Effective prep time: prefer calculated value, fall back to default
+    const effectivePrepTime =
+        merchant.calculated_avg_prep_time ?? merchant.default_prep_time_min
+
+    // Estimate wait time based on position and effective prep time
+    const estimatedWaitMinutes =
+        position !== undefined && position > 0
+            ? position * effectivePrepTime
+            : null
+
+    // ── Client-side Notifications ─────────────────────────────────────────────
+    useEffect(() => {
+        if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
+
+        // Wait to make sure notifications logic works in the client, but for now we just import the sound
+        const triggerNotification = async () => {
+            const { playSound, playHapticBuzz } = await import("@/lib/utils/notifications")
+            const prefs = merchant.settings
+            
+            if (prefs.notification_channels.sound) {
+                playSound(prefs.notification_sound)
+            }
+            if (prefs.notification_channels.vibrate) {
+                playHapticBuzz()
+            }
+            
+            // In a real PWA we'd trigger a native push or a toast.
+            // For now, we rely on the CustomerWaitView displaying the status change.
+        }
+
+        // Called notification
+        if (ticket.status === "called" && !hasNotifiedCalled) {
+            setHasNotifiedCalled(true)
+            triggerNotification()
+            return
+        }
+
+        // Approaching notification
+        if (
+            ticket.status === "waiting" &&
+            !hasNotifiedApproaching &&
+            position !== undefined &&
+            estimatedWaitMinutes !== null
+        ) {
+            const s = merchant.settings
+            let isApproaching = false
+
+            if (s.approaching_position_enabled && position <= s.approaching_position_threshold) {
+                isApproaching = true
+            }
+            if (s.approaching_time_enabled && estimatedWaitMinutes <= s.approaching_time_threshold_min) {
+                isApproaching = true
+            }
+
+            if (isApproaching) {
+                setHasNotifiedApproaching(true)
+                triggerNotification()
+            }
+        }
+    }, [ticket, position, estimatedWaitMinutes, hasNotifiedApproaching, hasNotifiedCalled, merchant.settings])
+
+
     if (ticketNotFound) {
         return (
             <StatusBanner
@@ -162,16 +236,6 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         )
     }
 
-    // Effective prep time: prefer calculated value, fall back to default
-    const effectivePrepTime =
-        merchant.calculated_avg_prep_time ?? merchant.default_prep_time_min
-
-    // Estimate wait time based on position and effective prep time
-    const estimatedWaitMinutes =
-        position !== undefined && position > 0
-            ? position * effectivePrepTime
-            : null
-
     // Count total waiting (position is 1-based, so it gives us
     // the count of people ahead + 1 for the customer themselves)
     // We default to null if position isn't loaded yet
@@ -191,6 +255,8 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 customerName={ticket.customer_name}
                 slug={merchant.slug}
                 ticketId={ticketId}
+                thankYouMessage={merchant.settings.thank_you_message}
+                backgroundUrl={merchant.background_url}
             />
 
             <Dialog 

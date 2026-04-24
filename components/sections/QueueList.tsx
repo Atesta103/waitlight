@@ -162,7 +162,7 @@ function QueueList({
                 ["queue", merchantId],
                 (old) =>
                     old?.map((t) =>
-                        t.id === id ? { ...t, customer_name: "Guest-..." } : t,
+                        t.id === id ? { ...t, customer_name: "…" } : t,
                     ) ?? [],
             )
             return { prev }
