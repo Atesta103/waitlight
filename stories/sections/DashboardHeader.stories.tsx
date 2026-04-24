@@ -8,6 +8,7 @@ const meta = {
     parameters: { layout: "padded" },
     args: {
         merchantName: "Boulangerie Martin",
+        merchantSlug: "boulangerie-martin",
         isOpen: true,
         waitingCount: 5,
         onToggleOpen: () => {},
@@ -20,13 +21,13 @@ type Story = StoryObj<typeof meta>
 export const Open: Story = {}
 
 export const Closed: Story = {
-    args: { isOpen: false, waitingCount: 0 },
+    args: { merchantSlug: "boulangerie-martin", isOpen: false, waitingCount: 0 },
 }
 
 export const HighTraffic: Story = {
-    args: { isOpen: true, waitingCount: 24 },
+    args: { merchantSlug: "boulangerie-martin", isOpen: true, waitingCount: 24 },
 }
 
 export const NoClients: Story = {
-    args: { isOpen: true, waitingCount: 0 },
+    args: { merchantSlug: "boulangerie-martin", isOpen: true, waitingCount: 0 },
 }

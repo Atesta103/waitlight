@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, useRef, useCallback } from "react"
+import type { ElementType, ReactNode } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/Card"
 import {
@@ -107,6 +108,15 @@ const NAV_SECTIONS = [
 // SectionBlock — section with anchor + visual accent
 // ─────────────────────────────────────────────────────────────────────────────
 
+type SectionBlockProps = {
+    id: string
+    icon: ElementType
+    title: string
+    description?: string
+    children: ReactNode
+    badge?: ReactNode
+}
+
 function SectionBlock({
     id,
     icon: Icon,
@@ -114,7 +124,7 @@ function SectionBlock({
     description,
     children,
     badge,
-}) {
+}: SectionBlockProps) {
     return (
         <section
             id={id}
