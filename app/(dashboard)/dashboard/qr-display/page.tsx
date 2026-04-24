@@ -28,7 +28,7 @@ export default async function QrDisplayPage() {
     if (!merchant) return null
 
     return (
-        <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center gap-8">
+        <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center gap-8 bg-surface-base px-4 py-8">
             <QRCodeDisplay slug={merchant.slug} size={280} />
 
             <p className="max-w-xs text-center text-xs text-text-secondary print:hidden">

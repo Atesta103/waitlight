@@ -1143,13 +1143,6 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 </p>
                                             </div>
                                             <ToggleRow
-                                                icon={BellRing}
-                                                label="Notifications push clients"
-                                                description="Envoie une notification au client lorsqu'il est appelé."
-                                                checked={queue.notificationsEnabled}
-                                                onChange={(v) => updateQueue("notificationsEnabled", v)}
-                                            />
-                                            <ToggleRow
                                                 icon={Zap}
                                                 label="Fermeture automatique"
                                                 description="Passe le ticket en « terminé » si aucune action dans les 5 min après l'appel."
@@ -1235,7 +1228,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         >
                             <Card>
                                 <CardContent>
-                                    <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-end">
+                                    <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
                                         <div>
                                             <p className="text-sm font-medium text-text-primary">
                                                 Temps de préparation moyen

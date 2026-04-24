@@ -84,9 +84,7 @@ export function HeaderQueueControl({
                     </span>
                 ) : (
                     <>
-                        <span className="hidden sm:inline">
-                            Ouvrir la file et afficher le QR Code
-                        </span>
+                        <span className="hidden sm:inline">Ouvrir la file</span>
                         <span className="sm:hidden">Ouvrir</span>
                     </>
                 )}
@@ -98,13 +96,14 @@ export function HeaderQueueControl({
         <Link
             href="/dashboard/qr-display"
             className={controlClasses}
+            aria-label="Voir le QR code en plein écran"
         >
             <QrCode size={isMobile ? 16 : 18} aria-hidden="true" />
             {isMobile ? (
                 <span>Voir le QR</span>
             ) : (
                 <>
-                    <span className="hidden sm:inline">Afficher le QR Code</span>
+                    <span className="hidden sm:inline">Voir le QR</span>
                     <span className="sm:hidden">QR Code</span>
                 </>
             )}

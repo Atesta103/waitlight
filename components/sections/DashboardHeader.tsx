@@ -2,25 +2,24 @@
 
 import { Toggle } from "@/components/ui/Toggle"
 import { Badge } from "@/components/ui/Badge"
-import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
-import { Users, Store, QrCode } from "lucide-react"
+import { Users, Store } from "lucide-react"
 
 type DashboardHeaderProps = {
     merchantName: string
-    merchantSlug: string
     isOpen: boolean
     waitingCount: number
     onToggleOpen: (isOpen: boolean) => void
+    isUpdatingOpenState?: boolean
     className?: string
 }
 
 function DashboardHeader({
     merchantName,
-    merchantSlug,
     isOpen,
     waitingCount,
     onToggleOpen,
+    isUpdatingOpenState = false,
     className,
 }: DashboardHeaderProps) {
     return (
@@ -76,37 +75,14 @@ function DashboardHeader({
                     <span className="text-sm font-medium text-text-primary sm:hidden">
                         {isOpen ? "File ouverte" : "File fermée"}
                     </span>
-                    
-                    <div className="flex items-center gap-3">
-                        {!isOpen ? (
-                            <Button size="sm" onClick={() => onToggleOpen(true)}>
-                                Ouvrir la file
-                            </Button>
-                        ) : (
-                            <a
-                                href={`/qr?slug=${encodeURIComponent(merchantSlug)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <Button size="sm" className="gap-2">
-                                    <QrCode size={14} aria-hidden="true" />
-                                    <span className="hidden sm:inline">Afficher le QR code</span>
-                                    <span className="sm:hidden">QR code</span>
-                                </Button>
-                            </a>
-                        )}
 
-                        {isOpen && (
-                            <div className="flex items-center gap-2 border-l border-border-default pl-3">
-                                <Toggle
-                                    checked={isOpen}
-                                    onChange={onToggleOpen}
-                                    label="Fermer"
-                                    className="[&>span]:hidden sm:[&>span]:inline"
-                                />
-                            </div>
-                        )}
-                    </div>
+                    <Toggle
+                        checked={isOpen}
+                        onChange={onToggleOpen}
+                        label={isOpen ? "Fermer la file" : "Ouvrir la file"}
+                        disabled={isUpdatingOpenState}
+                        className="shrink-0"
+                    />
                 </div>
             </div>
         </header>

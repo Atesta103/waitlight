@@ -54,7 +54,7 @@ function CustomerWaitView({
         <div className={cn("flex flex-col gap-6", className)}>
             {backgroundUrl && (
                 <div
-                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 dark:opacity-10 pointer-events-none"
+                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
                     style={{ backgroundImage: `url(${backgroundUrl})` }}
                 />
             )}
