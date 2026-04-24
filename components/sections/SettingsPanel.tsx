@@ -514,8 +514,21 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         key: K,
         value: (typeof identity)[K],
     ) => {
-        setIdentity((prev) => ({ ...prev, [key]: value }))
-        setIdentityChanged(true)
+        setIdentity((prev) => {
+            const next = { ...prev, [key]: value }
+            // Recompute dirty state against initial data
+            const isDirty =
+                next.merchantName !== initialData.merchantName ||
+                next.slug !== initialData.slug ||
+                next.logoUrl !== initialData.logoUrl ||
+                next.brand_color !== initialData.brandColor ||
+                next.font_family !== initialData.fontFamily ||
+                next.border_radius !== initialData.borderRadius ||
+                next.theme_pattern !== initialData.themePattern ||
+                next.defaultPrepTimeMin !== initialData.defaultPrepTimeMin
+            setIdentityChanged(isDirty)
+            return next
+        })
         setIdentityError(null)
         setIdentitySuccess(false)
     }
@@ -524,8 +537,17 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         key: K,
         value: (typeof queue)[K],
     ) => {
-        setQueue((prev) => ({ ...prev, [key]: value }))
-        setQueueChanged(true)
+        setQueue((prev) => {
+            const next = { ...prev, [key]: value }
+            const isDirty =
+                next.maxCapacity !== initialData.maxCapacity ||
+                next.welcomeMessage !== initialData.welcomeMessage ||
+                next.thankYouMessage !== initialData.thankYouMessage ||
+                next.notificationsEnabled !== initialData.notificationsEnabled ||
+                next.autoCloseEnabled !== initialData.autoCloseEnabled
+            setQueueChanged(isDirty)
+            return next
+        })
         setQueueError(null)
         setQueueSuccess(false)
     }
@@ -777,7 +799,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             </nav>
 
             {/* ── Main content ─────────────────────────────────────────── */}
-            <div className="min-w-0 flex-1 pb-32">
+            <div className="min-w-0 flex-1 pb-32 md:pb-8">
                 {/* ── Mobile horizontal nav ────────────────────── */}
                 <div className="lg:hidden w-full overflow-x-auto no-scrollbar mb-6 pb-2">
                     <ul className="flex items-center gap-2 w-max">
@@ -800,7 +822,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     </ul>
                 </div>
                 
-                <div className="flex max-w-2xl flex-col gap-10">
+                <div className="flex max-w-3xl flex-col gap-10">
                     {/* ── Identity ──────────────────────────────────────── */}
                     {activeTab === "identity" && (
                     <motion.div
@@ -820,92 +842,92 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         >
                             <Card>
                                 <CardContent>
-                                    <div className="flex flex-col gap-6 pt-1">
-                                        {/* Upload zone */}
-                                        <UploadZone
-                                            name={identity.merchantName}
-                                            logoUrl={identity.logoUrl}
-                                            logoPreview={logoPreview}
-                                            isUploading={isUploading}
-                                            uploadError={uploadError}
-                                            onFile={handleLogoChange}
-                                            onDelete={() =>
-                                                setShowDeleteLogoDialog(true)
-                                            }
-                                            fileInputRef={fileInputRef}
-                                        />
+                                    <div className="flex flex-col gap-5 pt-1">
+                                        {/* Logo + Name + Slug — side by side */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-5">
+                                            {/* Upload zone */}
+                                            <div className="shrink-0">
+                                                <UploadZone
+                                                    name={identity.merchantName}
+                                                    logoUrl={identity.logoUrl}
+                                                    logoPreview={logoPreview}
+                                                    isUploading={isUploading}
+                                                    uploadError={uploadError}
+                                                    onFile={handleLogoChange}
+                                                    onDelete={() =>
+                                                        setShowDeleteLogoDialog(true)
+                                                    }
+                                                    fileInputRef={fileInputRef}
+                                                />
+                                            </div>
+
+                                            {/* Name + Slug stacked */}
+                                            <div className="flex flex-col gap-4 flex-1 min-w-0">
+                                                <Input
+                                                    label="Nom du commerce"
+                                                    value={identity.merchantName}
+                                                    onChange={(e) =>
+                                                        updateIdentity(
+                                                            "merchantName",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <SlugInput
+                                                    value={identity.slug}
+                                                    onChange={(v) =>
+                                                        updateIdentity("slug", v)
+                                                    }
+                                                    checkAvailability={
+                                                        checkSlugAvailabilitySettingsAction
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
 
                                         <hr className="border-border-default" />
 
-                                        {/* Name */}
-                                        <div className="grid gap-4 sm:grid-cols-2">
-                                            <Input
-                                                label="Nom du commerce"
-                                                value={identity.merchantName}
-                                                onChange={(e) =>
-                                                    updateIdentity(
-                                                        "merchantName",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-
-                                        </div>
-
-                                        {/* Slug */}
-                                        <SlugInput
-                                            value={identity.slug}
-                                            onChange={(v) =>
-                                                updateIdentity("slug", v)
-                                            }
-                                            checkAvailability={
-                                                checkSlugAvailabilitySettingsAction
-                                            }
-                                        />
-
-                                        {/* Brand Color & Typography & Layout */}
-                                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                                            <div className="min-w-0">
-                                                <ColorPicker
-                                                    label="Couleur de marque"
-                                                    value={identity.brand_color ?? "#4F46E5"}
-                                                    onChange={(e) => updateIdentity("brand_color", e.target.value)}
-                                                />
+                                        {/* Visuals: colour / font / radius + background selector */}
+                                        <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+                                            {/* Left: colour + font + radius */}
+                                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+                                                <div className="min-w-0">
+                                                    <ColorPicker
+                                                        label="Couleur de marque"
+                                                        value={identity.brand_color ?? "#4F46E5"}
+                                                        onChange={(e) => updateIdentity("brand_color", e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <Select
+                                                        label="Typographie"
+                                                        value={identity.font_family ?? "Inter"}
+                                                        onChange={(e) => updateIdentity("font_family", e.target.value)}
+                                                        options={[
+                                                            { value: "Inter", label: "Inter" },
+                                                            { value: "Roboto", label: "Roboto" },
+                                                            { value: "Open Sans", label: "Open Sans" },
+                                                            { value: "Lato", label: "Lato" },
+                                                            { value: "Poppins", label: "Poppins" },
+                                                        ]}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <Select
+                                                        label="Arrondi des bords"
+                                                        value={identity.border_radius ?? "0.5rem"}
+                                                        onChange={(e) => updateIdentity("border_radius", e.target.value)}
+                                                        options={[
+                                                            { value: "0.25rem", label: "Léger" },
+                                                            { value: "0.5rem", label: "Moyen" },
+                                                            { value: "1rem", label: "Fort" },
+                                                        ]}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="min-w-0">
-                                                <Select
-                                                    label="Typographie"
-                                                    value={identity.font_family ?? "Inter"}
-                                                    onChange={(e) => updateIdentity("font_family", e.target.value)}
-                                                    options={[
-                                                        { value: "Inter", label: "Inter" },
-                                                        { value: "Roboto", label: "Roboto" },
-                                                        { value: "Open Sans", label: "Open Sans" },
-                                                        { value: "Lato", label: "Lato" },
-                                                        { value: "Poppins", label: "Poppins" },
-                                                    ]}
-                                                />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <Select
-                                                    label="Arrondi des bords"
-                                                    value={identity.border_radius ?? "0.5rem"}
-                                                    onChange={(e) => updateIdentity("border_radius", e.target.value)}
-                                                    options={[
-                                                        { value: "0.25rem", label: "Léger" },
-                                                        { value: "0.5rem", label: "Moyen" },
-                                                        { value: "1rem", label: "Fort" },
-                                                    ]}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Live Preview */}
-                                    <div className="mt-8 border-t border-border-default pt-8">
-                                        <div className="grid gap-4 lg:grid-cols-[minmax(220px,280px)_1fr]">
-                                            <div className="space-y-3">
-                                                <h3 className="text-sm font-semibold text-text-primary">Choix de l&apos;arrière-plan</h3>
+
+                                            {/* Right: background selector + mini preview */}
+                                            <div className="flex flex-col gap-2 min-w-[180px] h-full">
                                                 <Select
                                                     label="Arrière-plan"
                                                     value={identity.theme_pattern ?? "none"}
@@ -921,45 +943,29 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                         { value: "food_cutlery", label: "Fourchette & Couteau" },
                                                     ]}
                                                 />
-                                            </div>
-
-                                            <div>
-                                                <h3 className="mb-2 text-sm font-semibold text-text-primary">Aperçu</h3>
+                                                {/* Mini preview */}
                                                 <div 
-                                                    className="relative border border-border-default rounded-3xl overflow-hidden bg-surface-base h-[30vh]"
+                                                    className="relative rounded-xl overflow-hidden bg-surface-base border border-border-default flex-1 min-h-[72px]"
                                                     style={{ fontFamily: `var(--font-${(identity.font_family?.toLowerCase().replace(' ', '-') || 'inter')})` }}
                                                 >
-                                                    <div className="absolute inset-0 rounded-3xl border-2 border-border-default bg-surface-base shadow-lg" />
-                                                    <div className="absolute inset-2 rounded-2xl overflow-hidden bg-surface-base">
-                                                        {/* Tint Base */}
-                                                        <div 
-                                                            className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
-                                                            style={{ backgroundColor: identity.brand_color ?? '#4F46E5' }}
-                                                        />
-                                                        
-                                                        {/* Pattern Preview */}
-                                                        {identity.theme_pattern === "dots" && (
-                                                            <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-                                                        )}
-                                                        {identity.theme_pattern === "grid" && (
-                                                            <div className="absolute inset-0 z-0 opacity-[0.02] dark:opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-                                                        )}
-                                                        {identity.theme_pattern === "glow" && (
-                                                            <div className="absolute inset-0 z-0 opacity-[0.10] dark:opacity-[0.15]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />
-                                                        )}
-                                                        {(identity.theme_pattern?.startsWith("food_")) && (
-                                                            <svg className="absolute inset-0 z-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] text-text-primary" aria-hidden="true">
-                                                                <defs>
-                                                                    <pattern id={`preview-motif`} x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                                                                        {identity.theme_pattern === "food_burger" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" /></g>}
-                                                                        {identity.theme_pattern === "food_pizza" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="m12 14-1 1" /><path fill="currentColor" d="m13.75 18.25-1.25 1.42" /><path fill="currentColor" d="M17.775 5.654a15.68 15.68 0 0 0-12.121 12.12" /><path fill="currentColor" d="M18.8 9.3a1 1 0 0 0 2.1 7.7" /><path fill="currentColor" d="M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z" /></g>}
-                                                                        {identity.theme_pattern === "food_coffee" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" /></g>}
-                                                                        {identity.theme_pattern === "food_cutlery" && <g transform="translate(26, 26) scale(1.4)"><path fill="currentColor" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.86 3.75 3.97V22h2.5v-9.03C11.34 12.86 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" /></g>}
-                                                                    </pattern>
-                                                                </defs>
-                                                                <rect x="0" y="0" width="100%" height="100%" fill="url(#preview-motif)" />
-                                                            </svg>
-                                                        )}
+                                                    <div className="absolute inset-0 rounded-xl bg-surface-base" />
+                                                    <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundColor: identity.brand_color ?? '#4F46E5' }} />
+                                                    {identity.theme_pattern === "dots" && <div className="absolute inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />}
+                                                    {identity.theme_pattern === "grid" && <div className="absolute inset-0 z-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />}
+                                                    {identity.theme_pattern === "glow" && <div className="absolute inset-0 z-0 opacity-[0.12]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />}
+                                                    {identity.theme_pattern?.startsWith("food_") && (
+                                                        <svg className="absolute inset-0 z-0 w-full h-full opacity-[0.05] text-text-primary" aria-hidden="true">
+                                                            <defs><pattern id="preview-motif-mini" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                                                                {identity.theme_pattern === "food_burger" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" /></g>}
+                                                                {identity.theme_pattern === "food_coffee" && <g transform="translate(18,18) scale(1)"><path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" /></g>}
+                                                            </pattern></defs>
+                                                            <rect x="0" y="0" width="100%" height="100%" fill="url(#preview-motif-mini)" />
+                                                        </svg>
+                                                    )}
+                                                    <div className="absolute bottom-1.5 left-0 right-0 flex justify-center">
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: identity.brand_color ?? '#4F46E5', color: '#fff', opacity: 0.9 }}>
+                                                            Aperçu
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>

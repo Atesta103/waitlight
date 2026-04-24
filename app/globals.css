@@ -59,6 +59,34 @@
   --radius-full: 9999px;
 }
 
+/* ─── Dark mode tokens (scoped to .dark set by next-themes on <html>) ─── */
+/* Only affects the app — marketing pages have class="light" on their root wrapper */
+
+.dark {
+  /* Surfaces */
+  --color-surface-base: #0f1117;
+  --color-surface-card: #1a1d27;
+  --color-surface-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Text */
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-disabled: #374151;
+  --color-text-inverse: #111827;
+
+  /* Borders */
+  --color-border-default: #2d3748;
+
+  /* Status backgrounds — slightly muted in dark */
+  --color-status-waiting-bg: #451a03;
+  --color-status-called-bg: #052e16;
+  --color-status-done-bg: #1f2937;
+  --color-status-cancelled-bg: #450a0a;
+  --color-feedback-error-bg: #450a0a;
+  --color-feedback-success-bg: #052e16;
+  --color-feedback-warning-bg: #451a03;
+  --color-feedback-info-bg: #1e3a5f;
+}
 
 
 @theme inline {

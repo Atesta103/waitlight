@@ -105,15 +105,16 @@ function BannedWordsManager({ className }: BannedWordsManagerProps) {
         <div className={cn("flex flex-col gap-4", className)}>
             <div className="rounded-2xl border border-border-default bg-surface-base/60 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <Input
-                        label="Nouveau mot"
-                        value={newWord}
-                        onChange={(e) => setNewWord(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Ajouter un mot…"
-                        className="flex-1 [&>label]:sr-only"
-                        maxLength={50}
-                    />
+                    <div className="flex-1 [&_label]:sr-only">
+                        <Input
+                            label="Nouveau mot"
+                            value={newWord}
+                            onChange={(e) => setNewWord(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Ajouter un mot…"
+                            maxLength={50}
+                        />
+                    </div>
                     <Button
                         variant="primary"
                         size="md"

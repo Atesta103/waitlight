@@ -32,7 +32,7 @@ const SUPPORT_INFOS = [
 
 export default function ContactPage() {
     return (
-        <main className="min-h-screen bg-[#F8F9FA] text-[#111827]">
+        <main className="light min-h-screen bg-[#F8F9FA] text-[#111827]">
             {/* Back link */}
             <div className="max-w-6xl mx-auto px-6 pt-6">
                 <Link

@@ -153,6 +153,7 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                 <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                     Canaux de notification
                 </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CHANNEL_DEFS.map((ch) => {
                     const Icon = ch.icon
                     const isChecked = channels[ch.key]
@@ -193,6 +194,7 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                         </div>
                     )
                 })}
+                </div>
             </div>
 
             {/* ── Sound Preset ───────────────────────────────────────────── */}
@@ -219,6 +221,7 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                     Notification « Bientôt ton tour »
                 </p>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Position-based */}
                 <div
                     className={cn(
@@ -337,6 +340,7 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                             />
                         </div>
                     )}
+                </div>
                 </div>
             </div>
 

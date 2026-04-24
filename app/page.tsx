@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
     return (
-        <main className="min-h-screen bg-[#F8F9FA] text-[#111827]">
+        <main className="light min-h-screen bg-[#F8F9FA] text-[#111827]">
             <MarketingNav />
             <HeroSection id="hero" />
             <BentoFeaturesGrid id="fonctionnalites" />

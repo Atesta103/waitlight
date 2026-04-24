@@ -173,7 +173,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                             className={cn(
                                                 "flex items-center gap-3 rounded-xl border p-3.5 transition-all shadow-sm",
                                                 isOpen
-                                                    ? "border-border-default bg-white"
+                                                    ? "border-border-default bg-surface-card"
                                                     : "border-transparent bg-surface-base/50 opacity-50",
                                             )}
                                         >
@@ -201,7 +201,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                                         onChange={(e) =>
                                                             updateDayTime(day.key, "open", e.target.value)
                                                         }
-                                                        className="rounded-lg border border-border-default bg-surface-base px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
+                                                        className="rounded-lg border border-border-default bg-surface-card px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
                                                         aria-label={`Heure d'ouverture ${day.full}`}
                                                     />
                                                     <span className="text-xs font-medium text-text-secondary">à</span>
@@ -211,7 +211,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                                         onChange={(e) =>
                                                             updateDayTime(day.key, "close", e.target.value)
                                                         }
-                                                        className="rounded-lg border border-border-default bg-surface-base px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
+                                                        className="rounded-lg border border-border-default bg-surface-card px-2.5 py-1.5 text-sm font-medium text-text-primary focus:border-brand-primary focus:bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all w-24 text-center"
                                                         aria-label={`Heure de fermeture ${day.full}`}
                                                     />
                                                 </div>
@@ -272,7 +272,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                                     onChange={(e) =>
                                                         updateException(idx, { date: e.target.value })
                                                     }
-                                                    className="rounded-md border border-border-default bg-white px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                                    className="rounded-md border border-border-default bg-surface-card px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
                                                     aria-label="Date de l'exception"
                                                 />
 
@@ -298,7 +298,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                                             onChange={(e) =>
                                                                 updateException(idx, { open: e.target.value })
                                                             }
-                                                            className="rounded-md border border-border-default bg-white px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                                            className="rounded-md border border-border-default bg-surface-card px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
                                                             aria-label="Heure d'ouverture exception"
                                                         />
                                                         <span className="text-xs text-text-secondary">à</span>
@@ -308,7 +308,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                                             onChange={(e) =>
                                                                 updateException(idx, { close: e.target.value })
                                                             }
-                                                            className="rounded-md border border-border-default bg-white px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                                            className="rounded-md border border-border-default bg-surface-card px-2 py-1.5 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
                                                             aria-label="Heure de fermeture exception"
                                                         />
                                                     </div>
