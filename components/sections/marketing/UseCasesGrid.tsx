@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState, useRef } from "react"
 import { ChevronRight, Utensils, Stethoscope, ShoppingBag, FerrisWheel } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { useMediaQuery } from "@/lib/hooks/use-media-query"
 
 type UseCase = {
     Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
@@ -108,6 +109,7 @@ const USE_CASES: UseCase[] = [
 export function UseCasesGrid({ id }: { id?: string }) {
     const [activeIndex, setActiveIndex] = useState(0)
     const scrollRef = useRef<HTMLDivElement>(null)
+    const isDesktop = useMediaQuery("(min-width: 768px)")
 
     const scrollTo = (index: number) => {
         if (!scrollRef.current) return
@@ -252,14 +254,16 @@ export function UseCasesGrid({ id }: { id?: string }) {
                             >
                                 {/* Image — desktop only */}
                                 <div className={cn(index % 2 !== 0 && "lg:order-2")}>
-                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
-                                        <Image
-                                            src={uc.imageSrc}
-                                            alt={`Illustration pour ${uc.sector}`}
-                                            width={600}
-                                            height={360}
-                                            className="h-auto w-full object-cover"
-                                        />
+                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] aspect-[600/360] bg-[#F8F9FA]">
+                                        {isDesktop && (
+                                            <Image
+                                                src={uc.imageSrc}
+                                                alt={`Illustration pour ${uc.sector}`}
+                                                width={600}
+                                                height={360}
+                                                className="h-auto w-full object-cover"
+                                            />
+                                        )}
                                     </div>
                                 </div>
 

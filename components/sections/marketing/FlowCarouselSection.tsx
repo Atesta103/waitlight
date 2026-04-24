@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Settings, QrCode, CheckCircle2, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { useMediaQuery } from "@/lib/hooks/use-media-query"
 import { MerchantDashboardMockup, ClientWidgetMockup } from "@/components/sections/marketing/HeroSection"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
@@ -188,6 +189,7 @@ const FLOW_STEPS = [
 export function FlowCarouselSection({ id }: { id?: string }) {
     const [currentStep, setCurrentStep] = useState(0)
     const [direction, setDirection] = useState(0)
+    const isDesktop = useMediaQuery("(min-width: 1024px)") // lg breakpoint
     
     // Auto-play option could be added here with useEffect, but keeping manual control for better UX
 
@@ -297,19 +299,21 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             {/* Decorative background circle */}
                             <div className="absolute w-[300px] h-[300px] rounded-full bg-white/40 blur-3xl" />
                             
-                            <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-                                <motion.div
-                                    key={currentStep}
-                                    custom={direction}
-                                    initial={{ x: direction > 0 ? 100 : -100, opacity: 0, scale: 0.95 }}
-                                    animate={{ x: 0, opacity: 1, scale: 1 }}
-                                    exit={{ x: direction < 0 ? 100 : -100, opacity: 0, scale: 0.95 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className="relative z-10 flex items-center justify-center w-full h-full"
-                                >
-                                    <CurrentMockup />
-                                </motion.div>
-                            </AnimatePresence>
+                            {isDesktop && (
+                                <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+                                    <motion.div
+                                        key={currentStep}
+                                        custom={direction}
+                                        initial={{ x: direction > 0 ? 100 : -100, opacity: 0, scale: 0.95 }}
+                                        animate={{ x: 0, opacity: 1, scale: 1 }}
+                                        exit={{ x: direction < 0 ? 100 : -100, opacity: 0, scale: 0.95 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                        className="relative z-10 flex items-center justify-center w-full h-full"
+                                    >
+                                        <CurrentMockup />
+                                    </motion.div>
+                                </AnimatePresence>
+                            )}
                         </div>
                     </div>
                 </div>
