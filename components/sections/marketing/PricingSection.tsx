@@ -93,9 +93,9 @@ export function PricingSection({ id }: { id?: string }) {
                     {/* Fine print */}
                     <p className="mt-5 text-center text-sm text-[#6B7280]">
                         Vous avez plusieurs établissements ?{" "}
-                        <a href="mailto:contact@waitlight.fr" className="text-[#4F46E5] font-medium hover:underline">
+                        <Link href="/contact" className="text-[#4F46E5] font-medium hover:underline">
                             Contactez-nous
-                        </a>{" "}
+                        </Link>{" "}
                         pour un tarif adapté.
                     </p>
                 </div>

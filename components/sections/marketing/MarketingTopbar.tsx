@@ -96,12 +96,13 @@ export function MarketingTopbar({ links }: MarketingTopbarProps) {
 
                         <div className="mt-6 border-t border-border-default pt-5">
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <a
-                                    href="mailto:contact@waitlight.fr"
+                                <Link
+                                    href="/contact"
+                                    onClick={closeMenu}
                                     className="rounded-lg border border-border-default px-3 py-2 text-center text-text-secondary transition-colors hover:bg-border-default/60 hover:text-text-primary"
                                 >
                                     Contact
-                                </a>
+                                </Link>
                                 <Link
                                     href="#cta-final"
                                     onClick={closeMenu}

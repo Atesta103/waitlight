@@ -17,6 +17,9 @@ export const CONTACT_SUBJECTS = [
 
 export type ContactSubject = (typeof CONTACT_SUBJECTS)[number]["value"]
 
+// Zod v4: z.enum() takes a plain tuple or uses .check() — use z.string() + refine for dynamic values
+const SUBJECT_VALUES = CONTACT_SUBJECTS.map((s) => s.value)
+
 export const ContactSchema = z.object({
     name: z
         .string()
@@ -26,22 +29,21 @@ export const ContactSchema = z.object({
         .string()
         .min(1, "L'adresse e-mail est requise.")
         .email("Adresse e-mail invalide."),
-    subject: z.enum(
-        CONTACT_SUBJECTS.map((s) => s.value) as [
-            ContactSubject,
-            ...ContactSubject[],
-        ],
-        { errorMap: () => ({ message: "Veuillez choisir un sujet." }) },
-    ),
+    subject: z
+        .string()
+        .refine(
+            (v): v is ContactSubject => SUBJECT_VALUES.includes(v as ContactSubject),
+            { message: "Veuillez choisir un sujet." },
+        ),
     message: z
         .string()
         .min(20, "Le message doit contenir au moins 20 caractères.")
         .max(2000, "Le message ne doit pas dépasser 2 000 caractères."),
-    consent: z.literal(true, {
-        errorMap: () => ({
+    consent: z
+        .boolean()
+        .refine((v) => v === true, {
             message: "Vous devez accepter la politique de confidentialité.",
         }),
-    }),
 })
 
 export type ContactInput = z.infer<typeof ContactSchema>
