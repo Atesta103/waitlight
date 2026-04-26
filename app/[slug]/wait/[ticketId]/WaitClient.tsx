@@ -68,8 +68,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const [alertsInitialized, setAlertsInitialized] = useState(false)
 
-    // Derive onboarding visibility from ticket status and initialization state
-    const showOnboarding = ticket?.status === "waiting" && !alertsInitialized
+
 
 
     // ── TanStack Query ────────────────────────────────────────────────────────
@@ -119,6 +118,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         enabled: !!ticket && ticket.status === "waiting",
         staleTime: 5000,
     })
+
+    // Derive onboarding visibility from ticket status and initialization state
+    const showOnboarding = ticket?.status === "waiting" && !alertsInitialized
 
     // ── Onboarding ────────────────────────────────────────────────────────────
 
