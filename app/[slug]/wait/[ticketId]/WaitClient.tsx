@@ -8,8 +8,9 @@ import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
-import type { ConnectionState } from "@/components/composed/ConnectionStatus"
-import { playHapticBuzz, playSound, type SoundChoice } from "@/lib/utils/notifications"
+import { ConnectionStatus, type ConnectionState } from "@/components/composed/ConnectionStatus"
+import { BellRing, Smartphone, MessageSquare } from "lucide-react"
+import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
 
 type NotificationChannels = {
     sound: boolean
@@ -65,6 +66,35 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [hasNotifiedApproaching, setHasNotifiedApproaching] = useState(false)
     const supabaseRef = useRef(createClient())
     const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const [alertsInitialized, setAlertsInitialized] = useState(false)
+    const [showOnboarding, setShowOnboarding] = useState(false)
+
+    // TANSTACK: Check if we need to show onboarding
+    useEffect(() => {
+        if (ticket?.status === "waiting" && !alertsInitialized) {
+            setShowOnboarding(true)
+        }
+    }, [ticket?.status, alertsInitialized])
+
+    const handleEnableAlerts = async () => {
+        // Unlock Web Audio (Must be inside user gesture)
+        await unlockAudio()
+        
+        // Request Push Notifications if supported
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+            try {
+                await Notification.requestPermission()
+            } catch (err) {
+                console.error("Erreur permission notifications:", err)
+            }
+        }
+
+        // Test haptic feedback
+        playHapticBuzz()
+        
+        setAlertsInitialized(true)
+        setShowOnboarding(false)
+    }
 
     // ── TanStack Query ────────────────────────────────────────────────────────
     // TANSTACK: Fetches ticket details. Tracks loading state and handles caching automatically.
@@ -374,6 +404,60 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 <DialogFooter>
                     <Button onClick={() => setAcknowledgedFlag(true)}>
                         J&apos;ai compris
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
+            <Dialog 
+                open={showOnboarding} 
+                onClose={() => {}} // Force user to click the button
+            >
+                <DialogHeader>Activer les alertes</DialogHeader>
+                <DialogContent>
+                    <div className="flex flex-col gap-5 py-2">
+                        <p className="text-sm text-text-secondary leading-relaxed">
+                            Pour être certain de ne pas rater votre tour, nous avons besoin d&apos;activer les alertes sonores et visuelles sur votre appareil.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <BellRing size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Alertes Sonores</span>
+                                    <span className="text-xs text-text-secondary">Un signal retentira à l&apos;appel</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <Smartphone size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Vibrations</span>
+                                    <span className="text-xs text-text-secondary">Sensation tactile (si supporté)</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <MessageSquare size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Notifications Push</span>
+                                    <span className="text-xs text-text-secondary">Bannière même écran éteint</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogFooter>
+                    <Button 
+                        onClick={handleEnableAlerts} 
+                        className="w-full h-12 text-base shadow-lg shadow-brand-primary/20"
+                    >
+                        Activer les alertes
                     </Button>
                 </DialogFooter>
             </Dialog>
