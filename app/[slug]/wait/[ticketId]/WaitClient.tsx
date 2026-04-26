@@ -9,7 +9,7 @@ import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
 import { type ConnectionState } from "@/components/composed/ConnectionStatus"
-import { BellRing, Smartphone, MessageSquare } from "lucide-react"
+import { BellRing, Smartphone, MessageSquare, AlertCircle } from "lucide-react"
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
 
 type NotificationChannels = {
@@ -439,6 +439,13 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                                     <span className="text-xs text-text-secondary">Bannière même écran éteint</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+                            <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+                            <p className="text-xs text-amber-900/80 leading-tight">
+                                <strong>Important :</strong> Pour entendre le signal, assurez-vous que votre téléphone n&apos;est pas en mode silencieux.
+                            </p>
                         </div>
                     </div>
                 </DialogContent>
