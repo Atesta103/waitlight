@@ -69,32 +69,6 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [alertsInitialized, setAlertsInitialized] = useState(false)
     const [showOnboarding, setShowOnboarding] = useState(false)
 
-    // TANSTACK: Check if we need to show onboarding
-    useEffect(() => {
-        if (ticket?.status === "waiting" && !alertsInitialized) {
-            setShowOnboarding(true)
-        }
-    }, [ticket?.status, alertsInitialized])
-
-    const handleEnableAlerts = async () => {
-        // Unlock Web Audio (Must be inside user gesture)
-        await unlockAudio()
-        
-        // Request Push Notifications if supported
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-            try {
-                await Notification.requestPermission()
-            } catch (err) {
-                console.error("Erreur permission notifications:", err)
-            }
-        }
-
-        // Test haptic feedback
-        playHapticBuzz()
-        
-        setAlertsInitialized(true)
-        setShowOnboarding(false)
-    }
 
     // ── TanStack Query ────────────────────────────────────────────────────────
     // TANSTACK: Fetches ticket details. Tracks loading state and handles caching automatically.
@@ -143,6 +117,34 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         enabled: !!ticket && ticket.status === "waiting",
         staleTime: 5000,
     })
+
+    // ── Onboarding ────────────────────────────────────────────────────────────
+    // TANSTACK: Check if we need to show onboarding
+    useEffect(() => {
+        if (ticket?.status === "waiting" && !alertsInitialized) {
+            setShowOnboarding(true)
+        }
+    }, [ticket?.status, alertsInitialized])
+
+    const handleEnableAlerts = async () => {
+        // Unlock Web Audio (Must be inside user gesture)
+        await unlockAudio()
+        
+        // Request Push Notifications if supported
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+            try {
+                await Notification.requestPermission()
+            } catch (err) {
+                console.error("Erreur permission notifications:", err)
+            }
+        }
+
+        // Test haptic feedback
+        playHapticBuzz()
+        
+        setAlertsInitialized(true)
+        setShowOnboarding(false)
+    }
 
     // ── Realtime subscription ─────────────────────────────────────────────────
     useEffect(() => {
