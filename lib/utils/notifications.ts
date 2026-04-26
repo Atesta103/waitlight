@@ -22,7 +22,7 @@ function makeCtx() {
     if (sharedCtx) return sharedCtx
 
     try {
-        const Ctx = window.AudioContext || (window as any).webkitAudioContext
+        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
         if (!Ctx) return null
         sharedCtx = new Ctx()
         return sharedCtx

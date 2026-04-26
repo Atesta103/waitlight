@@ -8,7 +8,7 @@ import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
-import { ConnectionStatus, type ConnectionState } from "@/components/composed/ConnectionStatus"
+import { type ConnectionState } from "@/components/composed/ConnectionStatus"
 import { BellRing, Smartphone, MessageSquare } from "lucide-react"
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
 
@@ -63,11 +63,13 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         useState<ConnectionState>("connected")
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
     const [calledReminderAcknowledged, setCalledReminderAcknowledged] = useState(false)
-    const [hasNotifiedApproaching, setHasNotifiedApproaching] = useState(false)
+    const hasNotifiedApproachingRef = useRef(false)
     const supabaseRef = useRef(createClient())
     const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const [alertsInitialized, setAlertsInitialized] = useState(false)
-    const [showOnboarding, setShowOnboarding] = useState(false)
+
+    // Derive onboarding visibility from ticket status and initialization state
+    const showOnboarding = ticket?.status === "waiting" && !alertsInitialized
 
 
     // ── TanStack Query ────────────────────────────────────────────────────────
@@ -119,12 +121,6 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     })
 
     // ── Onboarding ────────────────────────────────────────────────────────────
-    // TANSTACK: Check if we need to show onboarding
-    useEffect(() => {
-        if (ticket?.status === "waiting" && !alertsInitialized) {
-            setShowOnboarding(true)
-        }
-    }, [ticket?.status, alertsInitialized])
 
     const handleEnableAlerts = async () => {
         // Unlock Web Audio (Must be inside user gesture)
@@ -143,7 +139,6 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         playHapticBuzz()
         
         setAlertsInitialized(true)
-        setShowOnboarding(false)
     }
 
     // ── Realtime subscription ─────────────────────────────────────────────────
@@ -257,13 +252,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             }
         }
     }, [
-        ticket?.status,
-        ticket?.customer_name,
+        ticket,
         calledReminderAcknowledged,
-        merchant.settings.notification_channels.sound,
-        merchant.settings.notification_channels.vibrate,
-        merchant.settings.notification_channels.push,
-        merchant.settings.notification_sound,
+        merchant.settings,
     ])
 
     // Approaching notification
@@ -273,7 +264,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         // Approaching notification
         if (
             ticket.status === "waiting" &&
-            !hasNotifiedApproaching &&
+            !hasNotifiedApproachingRef.current &&
             position !== undefined &&
             estimatedWaitMinutes !== null
         ) {
@@ -288,7 +279,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             }
 
             if (isApproaching) {
-                setHasNotifiedApproaching(true)
+                hasNotifiedApproachingRef.current = true
                 const prefs = merchant.settings
 
                 if (prefs.notification_channels.sound) {
@@ -318,15 +309,10 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             }
         }
     }, [
-        ticket?.status,
-        ticket?.customer_name,
+        ticket,
         position,
         estimatedWaitMinutes,
-        hasNotifiedApproaching,
-        merchant.settings.notification_channels.sound,
-        merchant.settings.notification_channels.vibrate,
-        merchant.settings.notification_channels.push,
-        merchant.settings.notification_sound,
+        merchant.settings,
     ])
 
 
