@@ -516,7 +516,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                         <div className="flex flex-col h-full justify-center order-2 lg:order-1">
                             <AnimatePresence mode="wait">
                                 <motion.div
-                                    key={currentStep}
+                                    key={`${targetId}-${currentStep}`}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
@@ -564,7 +564,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             
                             <AnimatePresence mode="popLayout" initial={false} custom={direction}>
                                 <motion.div
-                                    key={currentStep}
+                                    key={`${targetId}-${currentStep}`}
                                     custom={direction}
                                     initial={{ x: direction > 0 ? 100 : -100, opacity: 0, scale: 0.95 }}
                                     animate={{ x: 0, opacity: 1, scale: 1 }}
