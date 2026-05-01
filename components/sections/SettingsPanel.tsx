@@ -37,10 +37,6 @@ import {
     RotateCcw,
     ShieldAlert,
     CalendarClock,
-    Hamburger,
-    Pizza,
-    Coffee,
-    Utensils,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -444,7 +440,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         merchantName: initialData.merchantName,
         slug: initialData.slug,
         logoUrl: initialData.logoUrl,
-        brand_color: initialData.brandColor,
+        brand_color: initialData.brandColor ?? "#4F46E5",
         font_family: initialData.fontFamily,
         border_radius: initialData.borderRadius,
         theme_pattern: initialData.themePattern,
@@ -705,7 +701,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             merchantName: initialData.merchantName,
             slug: initialData.slug,
             logoUrl: initialData.logoUrl,
-            brand_color: initialData.brandColor,
+            brand_color: initialData.brandColor ?? "#4F46E5",
             font_family: initialData.fontFamily,
             border_radius: initialData.borderRadius,
             theme_pattern: initialData.themePattern,
@@ -968,11 +964,17 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                     {identity.theme_pattern === "grid" && <div className="absolute inset-0 z-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />}
                                                     {identity.theme_pattern === "glow" && <div className="absolute inset-0 z-0 opacity-[0.12]" style={{ background: `radial-gradient(circle at 50% 0%, ${identity.brand_color ?? '#4F46E5'}, transparent 60%)` }} />}
                                                     {identity.theme_pattern?.startsWith("food_") && (
-                                                        <div className="absolute inset-0 z-10 flex items-center justify-center opacity-30" aria-hidden="true" style={{ color: identity.brand_color ?? '#111827' }}>
-                                                            {identity.theme_pattern === "food_burger" && <Hamburger size={40} />}
-                                                            {identity.theme_pattern === "food_pizza" && <Pizza size={40} />}
-                                                            {identity.theme_pattern === "food_coffee" && <Coffee size={40} />}
-                                                            {identity.theme_pattern === "food_cutlery" && <Utensils size={40} />}
+                                                        <div className="absolute inset-0 z-10 grid grid-cols-3 grid-rows-3 opacity-[0.15] pointer-events-none" aria-hidden="true">
+                                                            {Array.from({ length: 9 }).map((_, i) => (
+                                                                <div key={i} className="flex items-center justify-center">
+                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: identity.brand_color ?? '#4F46E5' }}>
+                                                                        {identity.theme_pattern === "food_burger" && <path fill="currentColor" d="M18.06 6.81C16.91 4.54 14.61 3 12 3S7.09 4.54 5.94 6.81C5.66 7.55 6.22 8.33 7.02 8.33h9.96c.8 0 1.36-.78 1.08-1.52zM4 11h16v2H4zm1 3h14v1.5c0 1.93-1.57 3.5-3.5 3.5h-7C6.57 19 5 17.43 5 15.5V14z" />}
+                                                                        {identity.theme_pattern === "food_pizza" && <><path fill="currentColor" d="m12 14-1 1" /><path fill="currentColor" d="m13.75 18.25-1.25 1.42" /><path fill="currentColor" d="M17.775 5.654a15.68 15.68 0 0 0-12.121 12.12" /><path fill="currentColor" d="M18.8 9.3a1 1 0 0 0 2.1 7.7" /><path fill="currentColor" d="M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z" /></>}
+                                                                        {identity.theme_pattern === "food_coffee" && <path fill="currentColor" d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />}
+                                                                        {identity.theme_pattern === "food_cutlery" && <path fill="currentColor" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.86 3.75 3.97V22h2.5v-9.03C11.34 12.86 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" />}
+                                                                    </svg>
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     )}
                                                     <div className="absolute bottom-1.5 left-0 right-0 flex justify-center">
