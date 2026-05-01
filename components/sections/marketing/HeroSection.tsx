@@ -1,14 +1,14 @@
 import Link from "next/link"
 import { ArrowRight, CheckCircle, Clock, BellRing, ChevronUp } from "lucide-react"
 
-export function MerchantDashboardMockup() {
+export function MerchantDashboardMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string } = {}) {
     return (
         <div className="w-[320px] sm:w-[380px] lg:w-[460px] rounded-[1.3rem] border border-[#E5E7EB] bg-white p-3 shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)]">
             <div className="rounded-[1rem] border border-[#E5E7EB] bg-[#F8F9FA] p-3">
                 <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                     <div>
                         <p className="text-[10px] uppercase tracking-wider text-[#6B7280]">Dashboard marchand</p>
-                        <p className="text-sm font-bold text-[#111827]">Le Bistrot du Coin</p>
+                        <p className="text-sm font-bold text-[#111827]">{businessName}</p>
                     </div>
                     <span className="rounded-full bg-[#DCFCE7] px-2 py-1 text-[10px] font-semibold text-[#15803D]">
                         Ouvert
@@ -173,12 +173,12 @@ export function PhoneMockup({ showNotification = true }: { showNotification?: bo
 }
 
 /** The raw UI of the customer view without the phone frame, for compact layout */
-export function ClientWidgetMockup({ showNotification = true }: { showNotification?: boolean } = {}) {
+export function ClientWidgetMockup({ showNotification = true, businessName = "Le Bistrot du Coin" }: { showNotification?: boolean; businessName?: string } = {}) {
     return (
         <div className="relative w-[320px] sm:w-[380px] bg-white rounded-[1.3rem] shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)] border border-[#E5E7EB] overflow-hidden">
             {/* App header */}
             <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
-                <div className="text-[10px] font-bold text-[#111827] uppercase tracking-widest text-center">Le Bistrot du Coin</div>
+                <div className="text-[10px] font-bold text-[#111827] uppercase tracking-widest text-center">{businessName}</div>
             </div>
 
             {/* Content area */}
@@ -253,7 +253,7 @@ export function ClientWidgetMockup({ showNotification = true }: { showNotificati
                             <BellRing size={28} className="text-white" />
                         </div>
                         <h3 className="text-lg font-black text-[#111827] mb-1">C&apos;est votre tour !</h3>
-                        <p className="text-xs text-[#6B7280] mb-5">Veuillez vous présenter au comptoir.</p>
+                        <p className="text-xs text-[#6B7280] mb-5">{businessName} vous attend.</p>
                         <button className="w-full bg-[#111827] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-[#374151] transition-colors">
                             J&apos;arrive
                         </button>
@@ -302,7 +302,7 @@ export function HeroSection({ id }: { id?: string }) {
                         {/* H1 */}
                         <h1
                             id="hero-heading"
-                            className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-[#111827] leading-[0.95]"
+                            className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-[#111827] leading-[0.95]"
                         >
                             L&apos;attente
                             <br />

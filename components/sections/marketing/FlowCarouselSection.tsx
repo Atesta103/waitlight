@@ -9,7 +9,7 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 // --- Mockups Components ---
 
-function SetupMockup() {
+function SetupMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
         <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
             <div className="bg-[#F8F9FA] px-5 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
@@ -21,7 +21,7 @@ function SetupMockup() {
                     <Settings size={16} className="text-[#6366F1]" />
                 </div>
             </div>
-            
+
             <div className="p-5 space-y-5">
                 {/* Brand Name */}
                 <div>
@@ -33,7 +33,7 @@ function SetupMockup() {
                         <input
                             type="text"
                             className="block w-full min-w-0 flex-1 rounded-none rounded-r-md border border-[#D1D5DB] px-3 py-2 text-xs text-[#111827] sm:text-sm"
-                            defaultValue="Le Bistrot du Coin"
+                            defaultValue={businessName}
                             readOnly
                             tabIndex={-1}
                         />
@@ -67,29 +67,36 @@ function SetupMockup() {
     )
 }
 
-function ScanMockup() {
+const SECTOR_SLUGS: Record<string, string> = {
+    restauration: "lebistrot",
+    sante: "dr-martin",
+    retail: "nova-sav",
+    event: "magic-park",
+}
+
+function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: string }) {
     return (
         <div className="pointer-events-none scale-75 sm:scale-90 origin-center">
-            <QRCodeDisplay slug="lebistrot" size={180} mockMode={true} />
+            <QRCodeDisplay slug={slug} size={180} mockMode={true} />
         </div>
     )
 }
 
-function WaitMockup() {
+function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
         <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
-            <ClientWidgetMockup showNotification={false} />
+            <ClientWidgetMockup showNotification={false} businessName={businessName} />
         </div>
     )
 }
 
-function CallMockup() {
+function CallMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
         <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px]">
             <div className="w-full rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
                 <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
                     <div>
-                    <h3 className="text-sm font-bold text-[#111827]">File active</h3>
+                    <h3 className="text-sm font-bold text-[#111827]">{businessName}</h3>
                     <p className="text-[10px] text-[#6B7280]">18 personnes en attente</p>
                 </div>
                 <div className="bg-[#DCFCE7] text-[#15803D] px-2 py-1 rounded text-[10px] font-bold">Ouvert</div>
@@ -123,27 +130,27 @@ function CallMockup() {
     )
 }
 
-function NotifyMockup() {
+function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
         <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
-            <ClientWidgetMockup showNotification={true} />
+            <ClientWidgetMockup showNotification={true} businessName={businessName} />
         </div>
     )
 }
 
-function StatsMockup() {
+function StatsMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
         <div className="pointer-events-none scale-[0.80] sm:scale-95 origin-center">
-            <MerchantDashboardMockup />
+            <MerchantDashboardMockup businessName={businessName} />
         </div>
     )
 }
 
 const TARGETS = [
-    { id: "restauration", label: "Restauration" },
-    { id: "sante", label: "Santé" },
-    { id: "retail", label: "Retail & SAV" },
-    { id: "event", label: "Événementiel & Loisirs" },
+    { id: "restauration", label: "Restauration", businessName: "Le Bistrot du Coin" },
+    { id: "sante", label: "Santé", businessName: "Cabinet Dr. Martin" },
+    { id: "retail", label: "Retail & SAV", businessName: "Nova SAV" },
+    { id: "event", label: "Événementiel & Loisirs", businessName: "Magic Park" },
 ]
 
 const TARGET_CONTENT = {
@@ -403,6 +410,9 @@ export function FlowCarouselSection({ id }: { id?: string }) {
 
     const stepData = FLOW_STEPS[currentStep]
     const CurrentMockup = stepData.Mockup
+    const currentTarget = TARGETS.find(t => t.id === targetId)
+    const businessName = currentTarget?.businessName ?? "Mon Établissement"
+    const slug = SECTOR_SLUGS[targetId] ?? targetId
 
     return (
         <section id={id} className="py-24 sm:py-32 bg-white relative overflow-hidden">
@@ -425,13 +435,20 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                 key={t.id}
                                 onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
                                 className={cn(
-                                    "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
+                                    "relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-150",
                                     targetId === t.id
-                                        ? "bg-white text-[#4F46E5] shadow-sm"
-                                        : "text-[#6B7280] hover:text-[#111827] hover:bg-white/50"
+                                        ? "text-[#4F46E5]"
+                                        : "text-[#6B7280] hover:text-[#111827]"
                                 )}
                             >
-                                {t.label}
+                                {targetId === t.id && (
+                                    <motion.span
+                                        layoutId="tab-pill"
+                                        className="absolute inset-0 rounded-full bg-white shadow-sm"
+                                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{t.label}</span>
                             </button>
                         ))}
                     </div>
@@ -555,7 +572,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     className="relative z-10 flex items-center justify-center w-full h-full"
                                 >
-                                    <CurrentMockup />
+                                    <CurrentMockup businessName={businessName} slug={slug} />
                                 </motion.div>
                             </AnimatePresence>
                         </div>

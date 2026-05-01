@@ -31,7 +31,7 @@ const USE_CASES: UseCase[] = [
         problem: "Des clients amassés devant le comptoir, des bipeurs coûteux qui se perdent.",
         solution: "Le client passe commande, scanne, puis reçoit un rappel navigateur quand son plat est prêt.",
         valueProp: "Vous réduisez l'encombrement du comptoir et gardez une file lisible même aux pics.",
-        imageSrc: "/marketing/usecase-restaurant-ai.png",
+        imageSrc: "/marketing/usecase-restaurant.jpg",
         bullets: [
             "Scan en 2 secondes après la commande",
             "Rappel discret quand le ticket arrive en tête",
@@ -50,7 +50,7 @@ const USE_CASES: UseCase[] = [
         problem: "Salles d'attente bondées, anxiogènes et propices à la propagation de virus.",
         solution: "Le patient s'enregistre, suit sa position et reçoit un rappel quand le praticien est prêt.",
         valueProp: "Vous lissez les flux d'arrivée et réduisez la sensation d'attente subie.",
-        imageSrc: "/marketing/usecase-health-ai.png",
+        imageSrc: "/marketing/usecase-health.jpg",
         bullets: [
             "Moins de densité dans les zones d'attente",
             "Information claire sur l'avancement de la file",
@@ -69,7 +69,7 @@ const USE_CASES: UseCase[] = [
         problem: "Plus de 45 minutes d'attente debout. Perte d'opportunités d'achat.",
         solution: "Ticket digital → shopping libre → notification dès qu'un conseiller est disponible.",
         valueProp: "Vous captez plus de passages finalisés et limitez la frustration en magasin.",
-        imageSrc: "/marketing/usecase-retail-ai.png",
+        imageSrc: "/marketing/usecase-retail.jpg",
         bullets: [
             "Retour en file au bon moment sans refaire la queue",
             "Visibilité des pics par tranche horaire",
@@ -88,7 +88,7 @@ const USE_CASES: UseCase[] = [
         problem: "Files interminables pour les attractions phares ou les food-trucks du festival.",
         solution: "File virtuelle + mini-jeux intégrés pour transformer l'attente en moment ludique.",
         valueProp: "Vous augmentez le confort visiteur tout en préservant la circulation globale.",
-        imageSrc: "/marketing/usecase-event-ai.png",
+        imageSrc: "/marketing/usecase-event.jpg",
         bullets: [
             "Files virtuelles sur plusieurs stands en parallèle",
             "Rappels envoyés au bon timing pour limiter les attroupements",
@@ -252,13 +252,12 @@ export function UseCasesGrid({ id }: { id?: string }) {
                             >
                                 {/* Image — desktop only */}
                                 <div className={cn(index % 2 !== 0 && "lg:order-2")}>
-                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
+                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] aspect-square relative">
                                         <Image
                                             src={uc.imageSrc}
                                             alt={`Illustration pour ${uc.sector}`}
-                                            width={600}
-                                            height={360}
-                                            className="h-auto w-full"
+                                            fill
+                                            className="object-cover"
                                             sizes="(max-width: 767px) 0px, (max-width: 1023px) 90vw, 600px"
                                         />
                                     </div>
