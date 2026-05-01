@@ -21,6 +21,7 @@ type CustomerWaitViewProps = {
     customerName: string
     slug: string
     ticketId: string
+    thankYouTitle?: string | null
     thankYouMessage?: string | null
     backgroundUrl?: string | null
     className?: string
@@ -35,6 +36,7 @@ function CustomerWaitView({
     customerName,
     slug,
     ticketId,
+    thankYouTitle,
     thankYouMessage,
     backgroundUrl,
     className,
@@ -54,7 +56,7 @@ function CustomerWaitView({
         <div className={cn("flex flex-col gap-6", className)}>
             {backgroundUrl && (
                 <div
-                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 dark:opacity-10 pointer-events-none"
+                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
                     style={{ backgroundImage: `url(${backgroundUrl})` }}
                 />
             )}
@@ -90,7 +92,7 @@ function CustomerWaitView({
                     >
                         <StatusBanner
                             variant="done"
-                            title="Merci !"
+                            title={thankYouTitle?.trim() || "Merci !"}
                             description={thankYouMessage || "Votre visite est terminée. Bonne journée !"}
                         />
                     </motion.div>

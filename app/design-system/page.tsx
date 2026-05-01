@@ -1113,7 +1113,6 @@ export default function DesignSystemPage() {
                         <SubSection title="DashboardHeader">
                             <DashboardHeader
                                 merchantName="Boulangerie Martin"
-                                merchantSlug="boulangerie-martin"
                                 isOpen={dashboardOpen}
                                 waitingCount={
                                     mockQueue.filter(
@@ -1233,6 +1232,7 @@ export default function DesignSystemPage() {
                                     maxCapacity: 20,
                                     welcomeMessage:
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
+                                    thankYouTitle: "Merci de votre visite !",
                                     thankYouMessage: "",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,

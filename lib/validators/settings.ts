@@ -76,5 +76,16 @@ export const QueueSettingsSchema = z.object({
     auto_close_enabled: z.boolean(),
 })
 
+/**
+ * Schema for updating the title shown on the completed-ticket banner.
+ * Validated by updateThankYouTitleAction.
+ */
+export const ThankYouTitleSchema = z
+    .string()
+    .max(80, "80 caractères maximum.")
+    .nullable()
+    .optional()
+
 export type MerchantIdentityInput = z.infer<typeof MerchantIdentitySchema>
 export type QueueSettingsInput = z.infer<typeof QueueSettingsSchema>
+export type ThankYouTitleInput = z.infer<typeof ThankYouTitleSchema>

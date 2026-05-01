@@ -49,7 +49,7 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
         <dialog
             ref={dialogRef}
             className={cn(
-                "m-auto w-full max-w-md rounded-lg border border-border-default bg-surface-card p-0 shadow-xl",
+                "m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-border-default bg-surface-card p-0 shadow-xl",
                 "backdrop:bg-surface-overlay",
                 "open:animate-in open:fade-in-0 open:zoom-in-95",
                 className,

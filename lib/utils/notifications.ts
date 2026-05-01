@@ -15,23 +15,41 @@ export const SOUND_LABELS: Record<SoundChoice, string> = {
     none: "Aucun son",
 }
 
+let sharedCtx: AudioContext | null = null
+
 function makeCtx() {
     if (typeof window === "undefined") return null
+    if (sharedCtx) return sharedCtx
+
     try {
-        return new (
-            window.AudioContext ||
-            (window as unknown as { webkitAudioContext: typeof AudioContext })
-                .webkitAudioContext
-        )()
+        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        if (!Ctx) return null
+        sharedCtx = new Ctx()
+        return sharedCtx
     } catch {
         return null
     }
+}
+
+/**
+ * Resumes the AudioContext to "unlock" sound playback.
+ * Must be called inside a user gesture (click/tap).
+ */
+export async function unlockAudio() {
+    const ctx = makeCtx()
+    if (ctx && ctx.state === "suspended") {
+        await ctx.resume()
+    }
+    return ctx?.state === "running"
 }
 
 export function playSound(choice: SoundChoice | string) {
     if (choice === "none" || !choice) return
     const ctx = makeCtx()
     if (!ctx) return
+    if (ctx.state === "suspended") {
+        void ctx.resume().catch(() => undefined)
+    }
     const now = ctx.currentTime
 
     type Note = {

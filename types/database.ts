@@ -228,6 +228,7 @@ export type Database = {
           notifications_enabled: boolean
           qr_regenerated_at: string | null
           schedule: Json | null
+          thank_you_title: string | null
           thank_you_message: string | null
           welcome_message: string | null
         }
@@ -244,6 +245,7 @@ export type Database = {
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
           schedule?: Json | null
+          thank_you_title?: string | null
           thank_you_message?: string | null
           welcome_message?: string | null
         }
@@ -260,6 +262,7 @@ export type Database = {
           notifications_enabled?: boolean
           qr_regenerated_at?: string | null
           schedule?: Json | null
+          thank_you_title?: string | null
           thank_you_message?: string | null
           welcome_message?: string | null
         }

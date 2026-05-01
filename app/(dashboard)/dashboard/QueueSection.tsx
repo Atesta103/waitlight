@@ -1,11 +1,9 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Maximize2 } from "lucide-react"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"
 import { QueueList } from "@/components/sections/QueueList"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
-import { Button } from "@/components/ui/Button"
 import { toggleQueueOpenAction, getQueueAction } from "@/lib/actions/queue"
 import type { QueueItem } from "@/lib/actions/queue"
 
@@ -83,10 +81,10 @@ export function QueueSection({
         <div className="flex flex-col gap-6">
             <DashboardHeader
                 merchantName={merchantName}
-                merchantSlug={merchantSlug}
                 isOpen={isOpen}
                 waitingCount={waitingCount}
                 onToggleOpen={(v) => toggleMutation.mutate(v)}
+                isUpdatingOpenState={toggleMutation.isPending}
             />
 
             {!isOpen && (
@@ -110,22 +108,6 @@ export function QueueSection({
                     {/* Right — QR code panel */}
                     <div className="flex flex-col items-center gap-3">
                         <QRCodeDisplay slug={merchantSlug} size={220} />
-                        <a
-                            href={`/qr?slug=${encodeURIComponent(merchantSlug)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full"
-                        >
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full"
-                                aria-label="Afficher le QR code en plein écran dans un nouvel onglet"
-                            >
-                                <Maximize2 size={14} aria-hidden="true" />
-                                Plein écran
-                            </Button>
-                        </a>
                     </div>
                 </div>
             )}

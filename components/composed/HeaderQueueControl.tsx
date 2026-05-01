@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QrCode, Play } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { toggleQueueOpenAction } from "@/lib/actions/queue"
 import { cn } from "@/lib/utils/cn"
 
@@ -20,7 +19,6 @@ export function HeaderQueueControl({
     merchantId,
     mode = "desktop",
 }: HeaderQueueControlProps) {
-    const router = useRouter()
     const queryClient = useQueryClient()
 
     // TANSTACK: Reads the global "queue-status" state shared with QueueSection.
@@ -43,10 +41,6 @@ export function HeaderQueueControl({
             // TANSTACK: Rollback on error
             queryClient.setQueryData(["queue-status", merchantId], false)
         },
-        onSuccess: () => {
-            // Redirect to QR display
-            router.push("/dashboard/qr-display")
-        },
         onSettled: () => {
             // Note: We deliberately do not invalidateQueries here because the queryFn
             // resolves to the static initialIsOpen prop. Invalidating would immediately
@@ -58,7 +52,7 @@ export function HeaderQueueControl({
     const isMobile = mode === "mobile"
 
     const controlClasses = cn(
-        "inline-flex items-center rounded-xl bg-brand-primary font-semibold shadow-sm transition-all",
+        "inline-flex cursor-pointer items-center rounded-xl bg-brand-primary font-semibold shadow-sm transition-all",
         "text-[var(--color-text-on-primary)] hover:text-[var(--color-text-on-primary)]",
         "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
         "disabled:opacity-50",
@@ -84,9 +78,7 @@ export function HeaderQueueControl({
                     </span>
                 ) : (
                     <>
-                        <span className="hidden sm:inline">
-                            Ouvrir la file et afficher le QR Code
-                        </span>
+                        <span className="hidden sm:inline">Ouvrir la file</span>
                         <span className="sm:hidden">Ouvrir</span>
                     </>
                 )}
@@ -98,13 +90,14 @@ export function HeaderQueueControl({
         <Link
             href="/dashboard/qr-display"
             className={controlClasses}
+            aria-label="Voir le QR code en plein écran"
         >
             <QrCode size={isMobile ? 16 : 18} aria-hidden="true" />
             {isMobile ? (
                 <span>Voir le QR</span>
             ) : (
                 <>
-                    <span className="hidden sm:inline">Afficher le QR Code</span>
+                    <span className="hidden sm:inline">Voir le QR</span>
                     <span className="sm:hidden">QR Code</span>
                 </>
             )}

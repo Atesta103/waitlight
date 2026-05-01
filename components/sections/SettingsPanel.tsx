@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
 import { SlugInput } from "@/components/composed/SlugInput"
+import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
 import { cn } from "@/lib/utils/cn"
 import { duration, ease } from "@/lib/utils/motion"
 import {
@@ -44,6 +45,7 @@ import {
     deleteLogoAction,
     resetAvgPrepTimeAction,
     updateThankYouMessageAction,
+    updateThankYouTitleAction,
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
@@ -68,6 +70,7 @@ type SettingsData = {
     defaultPrepTimeMin: number
     maxCapacity: number
     welcomeMessage: string
+    thankYouTitle: string
     thankYouMessage: string
     notificationsEnabled: boolean
     autoCloseEnabled: boolean
@@ -452,6 +455,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [queue, setQueue] = useState({
         maxCapacity: initialData.maxCapacity,
         welcomeMessage: initialData.welcomeMessage,
+        thankYouTitle: initialData.thankYouTitle,
         thankYouMessage: initialData.thankYouMessage,
         notificationsEnabled: initialData.notificationsEnabled,
         autoCloseEnabled: initialData.autoCloseEnabled,
@@ -542,6 +546,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             const isDirty =
                 next.maxCapacity !== initialData.maxCapacity ||
                 next.welcomeMessage !== initialData.welcomeMessage ||
+                next.thankYouTitle !== initialData.thankYouTitle ||
                 next.thankYouMessage !== initialData.thankYouMessage ||
                 next.notificationsEnabled !== initialData.notificationsEnabled ||
                 next.autoCloseEnabled !== initialData.autoCloseEnabled
@@ -716,6 +721,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 auto_close_enabled: queue.autoCloseEnabled,
             })
 
+            if (queue.thankYouTitle !== initialData.thankYouTitle) {
+                await updateThankYouTitleAction(queue.thankYouTitle || null)
+            }
+
             // Also save the thank you message (separate action)
             if (queue.thankYouMessage !== initialData.thankYouMessage) {
                 await updateThankYouMessageAction(queue.thankYouMessage || null)
@@ -733,6 +742,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         setQueue({
             maxCapacity: initialData.maxCapacity,
             welcomeMessage: initialData.welcomeMessage,
+            thankYouTitle: initialData.thankYouTitle,
             thankYouMessage: initialData.thankYouMessage,
             notificationsEnabled: initialData.notificationsEnabled,
             autoCloseEnabled: initialData.autoCloseEnabled,
@@ -969,7 +979,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                             Aperçu
                                                         </span>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1035,43 +1045,81 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         >
                             <Card>
                                 <CardContent>
-                                    <div className="flex flex-col gap-5 pt-1">
-                                        <Input
-                                            label="Capacité maximale"
-                                            type="number"
-                                            min={1}
-                                            max={500}
-                                            value={queue.maxCapacity}
-                                            onChange={(e) =>
-                                                updateQueue(
-                                                    "maxCapacity",
-                                                    Number(e.target.value),
-                                                )
-                                            }
-                                            hint="Au-delà, les nouveaux clients ne peuvent plus rejoindre."
-                                        />
-                                        <Textarea
-                                            label="Message d'accueil"
-                                            value={queue.welcomeMessage}
-                                            onChange={(e) =>
-                                                updateQueue(
-                                                    "welcomeMessage",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            hint="Affiché sur la page client après le scan du QR code."
-                                        />
-                                        <Textarea
-                                            label="Message de remerciement"
-                                            value={queue.thankYouMessage}
-                                            onChange={(e) =>
-                                                updateQueue(
-                                                    "thankYouMessage",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            hint="Affiché lorsque le client a été servi. Laissez vide pour le message par défaut."
-                                        />
+                                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+                                        <div className="flex flex-col gap-5 pt-1">
+                                            <Input
+                                                label="Capacité maximale"
+                                                type="number"
+                                                min={1}
+                                                max={500}
+                                                value={queue.maxCapacity}
+                                                onChange={(e) =>
+                                                    updateQueue(
+                                                        "maxCapacity",
+                                                        Number(e.target.value),
+                                                    )
+                                                }
+                                                hint="Au-delà, les nouveaux clients ne peuvent plus rejoindre."
+                                            />
+                                            <Textarea
+                                                label="Message d'accueil"
+                                                value={queue.welcomeMessage}
+                                                onChange={(e) =>
+                                                    updateQueue(
+                                                        "welcomeMessage",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                hint="Affiché sur la page client après le scan du QR code."
+                                            />
+                                            <Input
+                                                label="Titre de remerciement"
+                                                value={queue.thankYouTitle}
+                                                onChange={(e) =>
+                                                    updateQueue(
+                                                        "thankYouTitle",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                hint="Affiché lorsque le ticket passe en terminé. Laissez vide pour 'Merci !'."
+                                            />
+                                            <Textarea
+                                                label="Message de remerciement"
+                                                value={queue.thankYouMessage}
+                                                onChange={(e) =>
+                                                    updateQueue(
+                                                        "thankYouMessage",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                hint="Affiché lorsque le client a été servi. Laissez vide pour le message par défaut."
+                                            />
+                                        </div>
+
+                                        <div className="rounded-2xl border border-border-default bg-surface-base p-4 shadow-sm">
+                                            <div className="mb-4 flex flex-col gap-1">
+                                                <h3 className="text-sm font-semibold text-text-primary">
+                                                    Aperçu client
+                                                </h3>
+                                                <p className="text-sm text-text-secondary">
+                                                    Voici ce que verra le client une fois servi.
+                                                </p>
+                                            </div>
+                                            <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card p-3">
+                                                <CustomerWaitView
+                                                    status="done"
+                                                    position={null}
+                                                    totalWaiting={null}
+                                                    estimatedWaitMinutes={null}
+                                                    connectionState="connected"
+                                                    customerName="Marie"
+                                                    slug={initialData.slug}
+                                                    ticketId="preview"
+                                                    thankYouTitle={queue.thankYouTitle}
+                                                    thankYouMessage={queue.thankYouMessage}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1144,13 +1192,6 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                     Notifications &amp; automatisations
                                                 </p>
                                             </div>
-                                            <ToggleRow
-                                                icon={BellRing}
-                                                label="Notifications push clients"
-                                                description="Envoie une notification au client lorsqu'il est appelé."
-                                                checked={queue.notificationsEnabled}
-                                                onChange={(v) => updateQueue("notificationsEnabled", v)}
-                                            />
                                             <ToggleRow
                                                 icon={Zap}
                                                 label="Fermeture automatique"
@@ -1237,7 +1278,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         >
                             <Card>
                                 <CardContent>
-                                    <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-end">
+                                    <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
                                         <div>
                                             <p className="text-sm font-medium text-text-primary">
                                                 Temps de préparation moyen

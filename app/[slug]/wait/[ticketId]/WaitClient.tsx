@@ -8,7 +8,16 @@ import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
-import type { ConnectionState } from "@/components/composed/ConnectionStatus"
+import { type ConnectionState } from "@/components/composed/ConnectionStatus"
+import { BellRing, Smartphone, MessageSquare, AlertCircle } from "lucide-react"
+import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
+
+type NotificationChannels = {
+    sound: boolean
+    vibrate: boolean
+    toast: boolean
+    push: boolean
+}
 
 type Merchant = {
     id: string
@@ -19,12 +28,13 @@ type Merchant = {
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
     settings: {
-        notification_channels: Record<string, boolean>
-        notification_sound: string
+        notification_channels: NotificationChannels
+        notification_sound: SoundChoice
         approaching_position_enabled: boolean
         approaching_position_threshold: number
         approaching_time_enabled: boolean
         approaching_time_threshold_min: number
+        thank_you_title: string | null
         thank_you_message: string | null
     }
 }
@@ -52,9 +62,14 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
-    const [hasNotifiedApproaching, setHasNotifiedApproaching] = useState(false)
-    const [hasNotifiedCalled, setHasNotifiedCalled] = useState(false)
+    const [calledReminderAcknowledged, setCalledReminderAcknowledged] = useState(false)
+    const hasNotifiedApproachingRef = useRef(false)
     const supabaseRef = useRef(createClient())
+    const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const [alertsInitialized, setAlertsInitialized] = useState(false)
+
+
+
 
     // ── TanStack Query ────────────────────────────────────────────────────────
     // TANSTACK: Fetches ticket details. Tracks loading state and handles caching automatically.
@@ -103,6 +118,30 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         enabled: !!ticket && ticket.status === "waiting",
         staleTime: 5000,
     })
+
+    // Derive onboarding visibility from ticket status and initialization state
+    const showOnboarding = ticket?.status === "waiting" && !alertsInitialized
+
+    // ── Onboarding ────────────────────────────────────────────────────────────
+
+    const handleEnableAlerts = async () => {
+        // Unlock Web Audio (Must be inside user gesture)
+        await unlockAudio()
+        
+        // Request Push Notifications if supported
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+            try {
+                await Notification.requestPermission()
+            } catch (err) {
+                console.error("Erreur permission notifications:", err)
+            }
+        }
+
+        // Test haptic feedback
+        playHapticBuzz()
+        
+        setAlertsInitialized(true)
+    }
 
     // ── Realtime subscription ─────────────────────────────────────────────────
     useEffect(() => {
@@ -167,33 +206,67 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     useEffect(() => {
         if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
 
-        // Wait to make sure notifications logic works in the client, but for now we just import the sound
-        const triggerNotification = async () => {
-            const { playSound, playHapticBuzz } = await import("@/lib/utils/notifications")
+        if (calledReminderTimerRef.current) {
+            clearInterval(calledReminderTimerRef.current)
+            calledReminderTimerRef.current = null
+        }
+
+        if (ticket.status !== "called" || calledReminderAcknowledged) {
+            return
+        }
+
+        const triggerReminder = () => {
             const prefs = merchant.settings
-            
+
             if (prefs.notification_channels.sound) {
                 playSound(prefs.notification_sound)
             }
+
             if (prefs.notification_channels.vibrate) {
-                playHapticBuzz()
+                if ("vibrate" in navigator) {
+                    navigator.vibrate([250, 80, 250, 80, 500])
+                } else {
+                    playHapticBuzz()
+                }
             }
-            
-            // In a real PWA we'd trigger a native push or a toast.
-            // For now, we rely on the CustomerWaitView displaying the status change.
+
+            if (
+                prefs.notification_channels.push &&
+                typeof window !== "undefined" &&
+                "Notification" in window &&
+                Notification.permission === "granted"
+            ) {
+                new Notification("C'est votre tour !", {
+                    body: `${ticket.customer_name}, présentez-vous au comptoir.`,
+                    icon: "/favicon.svg",
+                    tag: "waitlight-turn",
+                })
+            }
         }
 
-        // Called notification
-        if (ticket.status === "called" && !hasNotifiedCalled) {
-            setHasNotifiedCalled(true)
-            triggerNotification()
-            return
+        triggerReminder()
+        calledReminderTimerRef.current = setInterval(triggerReminder, 2500)
+
+        return () => {
+            if (calledReminderTimerRef.current) {
+                clearInterval(calledReminderTimerRef.current)
+                calledReminderTimerRef.current = null
+            }
         }
+    }, [
+        ticket,
+        calledReminderAcknowledged,
+        merchant.settings,
+    ])
+
+    // Approaching notification
+    useEffect(() => {
+        if (!ticket || ticket.status === "done" || ticket.status === "cancelled") return
 
         // Approaching notification
         if (
             ticket.status === "waiting" &&
-            !hasNotifiedApproaching &&
+            !hasNotifiedApproachingRef.current &&
             position !== undefined &&
             estimatedWaitMinutes !== null
         ) {
@@ -208,11 +281,41 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             }
 
             if (isApproaching) {
-                setHasNotifiedApproaching(true)
-                triggerNotification()
+                hasNotifiedApproachingRef.current = true
+                const prefs = merchant.settings
+
+                if (prefs.notification_channels.sound) {
+                    playSound(prefs.notification_sound)
+                }
+
+                if (prefs.notification_channels.vibrate) {
+                    if ("vibrate" in navigator) {
+                        navigator.vibrate([250, 80, 250, 80, 500])
+                    } else {
+                        playHapticBuzz()
+                    }
+                }
+
+                if (
+                    prefs.notification_channels.push &&
+                    typeof window !== "undefined" &&
+                    "Notification" in window &&
+                    Notification.permission === "granted"
+                ) {
+                    new Notification("Vous approchez du comptoir", {
+                        body: `${ticket.customer_name}, votre tour approche.`,
+                        icon: "/favicon.svg",
+                        tag: "waitlight-approaching",
+                    })
+                }
             }
         }
-    }, [ticket, position, estimatedWaitMinutes, hasNotifiedApproaching, hasNotifiedCalled, merchant.settings])
+    }, [
+        ticket,
+        position,
+        estimatedWaitMinutes,
+        merchant.settings,
+    ])
 
 
     if (ticketNotFound) {
@@ -255,9 +358,27 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 customerName={ticket.customer_name}
                 slug={merchant.slug}
                 ticketId={ticketId}
+                thankYouTitle={merchant.settings.thank_you_title}
                 thankYouMessage={merchant.settings.thank_you_message}
                 backgroundUrl={merchant.background_url}
             />
+
+            {ticket.status === "called" && !calledReminderAcknowledged && (
+                <Dialog open onClose={() => setCalledReminderAcknowledged(true)}>
+                    <DialogHeader>C&apos;est votre tour</DialogHeader>
+                    <DialogContent>
+                        <p className="text-sm text-text-secondary">
+                            Les rappels vont se répéter toutes les quelques secondes jusqu&apos;à ce
+                            que vous confirmiez avoir compris qu&apos;il faut aller chercher votre commande.
+                        </p>
+                    </DialogContent>
+                    <DialogFooter>
+                        <Button onClick={() => setCalledReminderAcknowledged(true)}>
+                            J&apos;ai compris, j&apos;y vais
+                        </Button>
+                    </DialogFooter>
+                </Dialog>
+            )}
 
             <Dialog 
                 open={showModerationWarning} 
@@ -273,6 +394,67 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 <DialogFooter>
                     <Button onClick={() => setAcknowledgedFlag(true)}>
                         J&apos;ai compris
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
+            <Dialog 
+                open={showOnboarding} 
+                onClose={() => {}} // Force user to click the button
+            >
+                <DialogHeader>Activer les alertes</DialogHeader>
+                <DialogContent>
+                    <div className="flex flex-col gap-5 py-2">
+                        <p className="text-sm text-text-secondary leading-relaxed">
+                            Pour être certain de ne pas rater votre tour, nous avons besoin d&apos;activer les alertes sonores et visuelles sur votre appareil.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <BellRing size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Alertes Sonores</span>
+                                    <span className="text-xs text-text-secondary">Un signal retentira à l&apos;appel</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <Smartphone size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Vibrations</span>
+                                    <span className="text-xs text-text-secondary">Sensation tactile (si supporté)</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-base border border-border-default">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+                                    <MessageSquare size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-text-primary">Notifications Push</span>
+                                    <span className="text-xs text-text-secondary">Bannière même écran éteint</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+                            <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+                            <p className="text-xs text-amber-900/80 leading-tight">
+                                <strong>Important :</strong> Pour entendre le signal, assurez-vous que votre téléphone n&apos;est pas en mode silencieux.
+                            </p>
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogFooter>
+                    <Button 
+                        onClick={handleEnableAlerts} 
+                        className="w-full h-12 text-base shadow-lg shadow-brand-primary/20"
+                    >
+                        Activer les alertes
                     </Button>
                 </DialogFooter>
             </Dialog>

@@ -38,6 +38,7 @@ export default async function SlugLayout({ children, params }: SlugLayoutProps) 
             <main 
                 className="flex min-h-dvh flex-col items-center justify-center bg-surface-base px-4 py-8 relative overflow-hidden"
                 style={{ 
+                    colorScheme: "light",
                     fontFamily: `var(--font-brand)`,
                     '--color-brand-primary': brandColor,
                     '--color-text-on-primary': contrast === 'white' ? '#FFFFFF' : '#000000',
@@ -54,33 +55,33 @@ export default async function SlugLayout({ children, params }: SlugLayoutProps) 
             >
                 {/* Base Color Tint */}
                 <div 
-                    className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+                    className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
                     style={{ backgroundColor: 'var(--color-brand-primary)' }}
                 />
 
                 {/* Background patterns */}
                 {pattern === "dots" && (
                     <div 
-                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
                         style={{ backgroundImage: "radial-gradient(var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "24px 24px" }}
                     />
                 )}
                 {pattern === "grid" && (
                     <div 
-                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.02] dark:opacity-[0.04]"
+                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.02]"
                         style={{ backgroundImage: "linear-gradient(var(--color-text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-primary) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
                     />
                 )}
                 {pattern === "glow" && (
                     <div 
-                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.10] dark:opacity-[0.15]"
+                        className="fixed inset-0 z-0 pointer-events-none opacity-[0.10]"
                         style={{ background: `radial-gradient(circle at 50% 0%, var(--color-brand-primary), transparent 60%)` }}
                     />
                 )}
                 
                 {/* Thematic Icon Patterns */}
                 {pattern.startsWith("food_") && (
-                    <svg className="fixed inset-0 z-0 pointer-events-none w-full h-full opacity-[0.03] dark:opacity-[0.05] text-text-primary" aria-hidden="true">
+                    <svg className="fixed inset-0 z-0 pointer-events-none w-full h-full opacity-[0.03] text-text-primary" aria-hidden="true">
                         <defs>
                             <pattern id={`theme-motif-${pattern}`} x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
                                 {pattern === "food_burger" && (
