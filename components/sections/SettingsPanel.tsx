@@ -980,7 +980,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                             Aperçu
                                                         </span>
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
