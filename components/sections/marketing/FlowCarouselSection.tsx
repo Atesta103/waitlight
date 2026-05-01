@@ -74,7 +74,7 @@ const SECTOR_SLUGS: Record<string, string> = {
     event: "magic-park",
 }
 
-function ScanMockup({ businessName = "Le Bistrot du Coin", slug = "lebistrot" }: { businessName?: string; slug?: string }) {
+function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: string }) {
     return (
         <div className="pointer-events-none scale-75 sm:scale-90 origin-center">
             <QRCodeDisplay slug={slug} size={180} mockMode={true} />
