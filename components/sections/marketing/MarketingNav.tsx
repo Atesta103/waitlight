@@ -51,14 +51,30 @@ export function MarketingNav() {
                             window.scrollTo({ top: 0, behavior: "smooth" })
                         }
                     }}
-                    className="flex items-center gap-2 font-bold text-lg tracking-tight text-[#111827]"
+                    className="flex items-center gap-2.5 font-bold text-lg tracking-tight text-[#111827]"
                 >
-                    <span
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#6366F1] text-white text-sm font-black"
+                    <svg
+                        width="36"
+                        height="36"
+                        viewBox="0 0 36 36"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                         aria-hidden="true"
                     >
-                        W
-                    </span>
+                        <rect width="36" height="36" rx="10" fill="url(#wl-grad)" />
+
+                        {/* 3 lignes de longueurs décroissantes = file d'attente */}
+                        <rect x="8" y="10" width="20" height="3" rx="1.5" fill="white" />
+                        <rect x="8" y="16.5" width="14" height="3" rx="1.5" fill="white" />
+                        <rect x="8" y="23" width="8"  height="3" rx="1.5" fill="white" />
+
+                        <defs>
+                            <linearGradient id="wl-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                                <stop stopColor="#818CF8" />
+                                <stop offset="1" stopColor="#4F46E5" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
                     Wait-Light
                 </Link>
 
