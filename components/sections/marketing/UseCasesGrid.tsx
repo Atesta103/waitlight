@@ -19,6 +19,8 @@ type UseCase = {
     iconClass: string
     iconBgClass: string
     badgeClass: string
+    color: string
+    colorLight: string
 }
 
 const USE_CASES: UseCase[] = [
@@ -40,6 +42,8 @@ const USE_CASES: UseCase[] = [
         iconClass: "text-[#D97706]",
         iconBgClass: "bg-[#FFFBEB]",
         badgeClass: "text-[#D97706]",
+        color: "#D97706",
+        colorLight: "#FFFBEB",
     },
     {
         Icon: Stethoscope,
@@ -59,6 +63,8 @@ const USE_CASES: UseCase[] = [
         iconClass: "text-[#059669]",
         iconBgClass: "bg-[#ECFDF5]",
         badgeClass: "text-[#059669]",
+        color: "#059669",
+        colorLight: "#ECFDF5",
     },
     {
         Icon: ShoppingBag,
@@ -78,6 +84,8 @@ const USE_CASES: UseCase[] = [
         iconClass: "text-[#4F46E5]",
         iconBgClass: "bg-[#EEF2FF]",
         badgeClass: "text-[#4F46E5]",
+        color: "#4F46E5",
+        colorLight: "#EEF2FF",
     },
     {
         Icon: FerrisWheel,
@@ -97,6 +105,8 @@ const USE_CASES: UseCase[] = [
         iconClass: "text-[#DB2777]",
         iconBgClass: "bg-[#FDF2F8]",
         badgeClass: "text-[#DB2777]",
+        color: "#DB2777",
+        colorLight: "#FDF2F8",
     },
 ]
 
@@ -173,10 +183,22 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                 className={cn(
                                     "w-[82vw] max-w-[340px] flex-shrink-0 snap-center rounded-3xl border bg-white p-5 flex flex-col transition-all duration-300",
                                     i === activeIndex
-                                        ? "border-[#6366F1] shadow-[0_4px_24px_rgba(99,102,241,0.12)]"
+                                        ? "shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
                                         : "border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.04)] opacity-75 scale-[0.97]"
                                 )}
+                            style={i === activeIndex ? { borderColor: uc.color, borderWidth: 1 } : undefined}
                             >
+                                {/* Mini illustration */}
+                                <div className="w-full h-24 rounded-xl overflow-hidden mb-4 flex-shrink-0">
+                                    <Image
+                                        src={uc.imageSrc}
+                                        alt={`Illustration ${uc.sector}`}
+                                        width={340}
+                                        height={96}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", uc.iconBgClass)}>
                                         <uc.Icon size={22} className={uc.iconClass} aria-hidden={true} />
@@ -221,12 +243,8 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                 aria-selected={i === activeIndex}
                                 aria-label={`Aller à ${uc.sector}`}
                                 onClick={() => scrollTo(i)}
-                                className={cn(
-                                    "rounded-full transition-all duration-300",
-                                    i === activeIndex
-                                        ? "w-6 h-2.5 bg-[#6366F1]"
-                                        : "w-2.5 h-2.5 bg-[#D1D5DB] hover:bg-[#A5B4FC]"
-                                )}
+                                className={cn("rounded-full transition-all duration-300", i === activeIndex ? "w-6 h-2.5" : "w-2.5 h-2.5 bg-[#D1D5DB]")}
+                                style={i === activeIndex ? { backgroundColor: USE_CASES[i].color } : undefined}
                             />
                         ))}
                     </div>
@@ -293,8 +311,8 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                     <ul className="mt-4 space-y-2">
                                         {uc.bullets.map((bullet) => (
                                             <li key={bullet} className="flex items-start gap-2.5 text-sm text-[#374151]">
-                                                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-[#EEF2FF] flex items-center justify-center">
-                                                    <svg className="w-3 h-3 text-[#4F46E5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: uc.colorLight }}>
+                                                    <svg className="w-3 h-3" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </span>
@@ -303,7 +321,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                         ))}
                                     </ul>
 
-                                    <p className="mt-4 rounded-xl bg-[#EEF2FF] px-4 py-3 text-sm font-medium text-[#4338CA]">
+                                    <p className="mt-4 rounded-xl px-4 py-3 text-sm font-medium" style={{ backgroundColor: uc.colorLight, color: uc.color }}>
                                         {uc.valueProp}
                                     </p>
                                 </div>

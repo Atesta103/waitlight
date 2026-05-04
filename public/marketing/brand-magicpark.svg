@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- White background -->
+  <rect width="512" height="512" fill="white"/>
+
+  <!-- Ferris wheel icon — centered, upper half -->
+  <!-- Outer ring -->
+  <circle cx="256" cy="185" r="100" stroke="#DB2777" stroke-width="12" fill="none"/>
+  <!-- Spokes x6 -->
+  <line x1="256" y1="85"  x2="256" y2="285" stroke="#DB2777" stroke-width="7" stroke-linecap="round"/>
+  <line x1="169" y1="135" x2="343" y2="235" stroke="#DB2777" stroke-width="7" stroke-linecap="round"/>
+  <line x1="169" y1="235" x2="343" y2="135" stroke="#DB2777" stroke-width="7" stroke-linecap="round"/>
+  <!-- Center hub -->
+  <circle cx="256" cy="185" r="16" fill="#DB2777"/>
+  <circle cx="256" cy="185" r="8"  fill="white"/>
+  <!-- Gondolas (6 capsules at rim) -->
+  <rect x="243" y="72"  width="26" height="18" rx="9" fill="#DB2777"/>
+  <rect x="243" y="280" width="26" height="18" rx="9" fill="#DB2777"/>
+  <rect x="330" y="122" width="26" height="18" rx="9" fill="#FBCFE8" transform="rotate(60 343 131)"/>
+  <rect x="156" y="122" width="26" height="18" rx="9" fill="#FBCFE8" transform="rotate(-60 169 131)"/>
+  <rect x="330" y="222" width="26" height="18" rx="9" fill="#FBCFE8" transform="rotate(-60 343 231)"/>
+  <rect x="156" y="222" width="26" height="18" rx="9" fill="#FBCFE8" transform="rotate(60 169 231)"/>
+  <!-- Support legs -->
+  <line x1="256" y1="285" x2="206" y2="340" stroke="#DB2777" stroke-width="8" stroke-linecap="round"/>
+  <line x1="256" y1="285" x2="306" y2="340" stroke="#DB2777" stroke-width="8" stroke-linecap="round"/>
+  <line x1="186" y1="340" x2="326" y2="340" stroke="#DB2777" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- MAGIC text -->
+  <text x="256" y="392" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="400" fill="#5B0524" text-anchor="middle" letter-spacing="8">MAGIC</text>
+  <!-- PARK text (larger, brand color) -->
+  <text x="256" y="450" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#DB2777" text-anchor="middle" letter-spacing="6">PARK</text>
+  <!-- Tagline -->
+  <text x="256" y="480" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#DB2777" text-anchor="middle" letter-spacing="3" opacity="0.7">PARCS · FESTIVALS · LOISIRS</text>
+</svg>
