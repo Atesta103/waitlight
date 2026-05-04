@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton"
 import { cn } from "@/lib/utils/cn"
 import { listItem } from "@/lib/utils/motion"
 import { createClient } from "@/lib/supabase/client"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 import {
     getQueueAction,
     callTicketAction,
@@ -24,6 +25,7 @@ import type { ConnectionState } from "@/components/composed/ConnectionStatus"
 type QueueListProps = {
     merchantId: string
     initialItems?: QueueItem[]
+    businessType?: string | null
     className?: string
 }
 
@@ -35,10 +37,12 @@ type QueueListProps = {
 function QueueList({
     merchantId,
     initialItems = [],
+    businessType,
     className,
 }: QueueListProps) {
     const prefersReduced = useReducedMotion()
     const queryClient = useQueryClient()
+    const wording = getBusinessWording(businessType)
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const audioRef = useRef<AudioContext | null>(null)
@@ -59,20 +63,20 @@ function QueueList({
 
     // ── Mutations with optimistic updates ─────────────────────────────────────
     // Defined before keyboard shortcut callback to avoid reference-before-init.
-    
+
     // TANSTACK: useMutation manages server actions and side-effects.
     const callMutation = useMutation({
         mutationFn: (id: string) => callTicketAction({ id }),
         onMutate: async (id) => {
             // TANSTACK: 1. Cancel background refetches to prevent them overwriting our update
             await queryClient.cancelQueries({ queryKey: ["queue", merchantId] })
-            
+
             // TANSTACK: 2. Snapshot the current cache to use as a fallback on error
             const prev = queryClient.getQueryData<QueueItem[]>([
                 "queue",
                 merchantId,
             ])
-            
+
             // TANSTACK: 3. Optimistically update the cache to make the UI feel instant
             queryClient.setQueryData<QueueItem[]>(
                 ["queue", merchantId],
@@ -312,15 +316,19 @@ function QueueList({
             {/* Live queue counter for screen readers */}
             <div aria-live="polite" aria-atomic="true" className="sr-only">
                 {waitingItems.length === 0
-                    ? "Aucun client en attente"
-                    : `${waitingItems.length} client${waitingItems.length > 1 ? "s" : ""} en attente`}
+                    ? `Aucun ${wording.singular} en attente`
+                    : `${waitingItems.length} ${
+                          waitingItems.length > 1
+                              ? wording.plural
+                              : wording.singular
+                      } en attente`}
             </div>
 
             {displayItems.length === 0 ? (
                 <EmptyState
                     icon={<Users size={32} />}
                     title="La file est vide"
-                    description="Aucun client n'attend pour le moment."
+                    description={`Aucun ${wording.singular} n'attend pour le moment.`}
                 />
             ) : (
                 <div role="list" className="flex flex-col gap-3">
@@ -347,6 +355,7 @@ function QueueList({
                                 <TicketCard
                                     id={item.id}
                                     customerName={item.customer_name}
+                                    entrySource={item.entry_source}
                                     status={item.status}
                                     position={item.displayPosition}
                                     joinedAt={item.joined_at}

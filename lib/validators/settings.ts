@@ -5,6 +5,7 @@
  * Zod schemas for merchant settings form inputs.
  */
 import { z } from "zod"
+import { BusinessTypeSchema } from "@/lib/validators/business"
 
 /**
  * Schema for updating the merchant identity section:
@@ -16,6 +17,7 @@ export const MerchantIdentitySchema = z.object({
         .string()
         .min(1, "Le nom de l'établissement est requis.")
         .max(100, "100 caractères maximum."),
+    business_type: BusinessTypeSchema,
     slug: z
         .string()
         .min(3, "Le slug doit contenir au minimum 3 caractères.")
@@ -45,7 +47,16 @@ export const MerchantIdentitySchema = z.object({
         .optional()
         .nullable(),
     theme_pattern: z
-        .enum(["none", "dots", "grid", "glow", "food_burger", "food_pizza", "food_coffee", "food_cutlery"])
+        .enum([
+            "none",
+            "dots",
+            "grid",
+            "glow",
+            "food_burger",
+            "food_pizza",
+            "food_coffee",
+            "food_cutlery",
+        ])
         .default("none")
         .optional()
         .nullable(),

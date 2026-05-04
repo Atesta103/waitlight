@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
 import { ProgressBar } from "@/components/ui/ProgressBar"
+import { Select } from "@/components/ui/Select"
 import { SlugInput } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
+import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
 import {
     Store,
     Link,
@@ -19,6 +21,7 @@ import {
 
 type OnboardingData = {
     name: string
+    businessType: BusinessType
     slug: string
     maxCapacity: number
     welcomeMessage: string
@@ -46,6 +49,7 @@ function OnboardingForm({
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
         name: "",
+        businessType: "retail",
         slug: "",
         maxCapacity: 20,
         welcomeMessage: "",
@@ -61,6 +65,8 @@ function OnboardingForm({
             if (!data.name.trim()) newErrors.name = "Le nom est obligatoire."
             if (data.name.length > 100)
                 newErrors.name = "100 caractères maximum."
+            if (!data.businessType)
+                newErrors.businessType = "Le type d'activité est requis."
         }
 
         if (step === 1) {
@@ -161,6 +167,28 @@ function OnboardingForm({
                                     }))
                                 }
                                 error={errors.name}
+                            />
+                            <Select
+                                label="Type d'activité"
+                                value={data.businessType}
+                                onChange={(e) =>
+                                    setData((d) => ({
+                                        ...d,
+                                        businessType: BusinessTypeSchema.parse(
+                                            e.target.value,
+                                        ),
+                                    }))
+                                }
+                                options={[
+                                    { value: "food", label: "Alimentaire" },
+                                    { value: "healthcare", label: "Santé" },
+                                    { value: "retail", label: "Commerce" },
+                                    {
+                                        value: "public_service",
+                                        label: "Administration / services",
+                                    },
+                                ]}
+                                error={errors.businessType}
                             />
                         </div>
                     ) : step === 1 ? (

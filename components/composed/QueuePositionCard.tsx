@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/Skeleton"
 import { StatusBanner } from "./StatusBanner"
 import { Clock, ChevronUp, CalendarClock, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 type QueuePositionCardProps = {
     /** 1-based position (1 = next to be called, 0 = "it's your turn") */
@@ -15,6 +16,7 @@ type QueuePositionCardProps = {
     totalWaiting: number | null
     /** estimated wait in minutes */
     estimatedMinutes: number | null
+    businessType?: string | null
     className?: string
 }
 
@@ -89,9 +91,11 @@ function QueuePositionCard({
     position,
     totalWaiting,
     estimatedMinutes,
+    businessType,
     className,
 }: QueuePositionCardProps) {
     const prefersReduced = useReducedMotion()
+    const wording = getBusinessWording(businessType)
     const prevPositionRef = useRef<number | null>(null)
     const [showAdvance, setShowAdvance] = useState(false)
     const [direction, setDirection] = useState<1 | -1>(1)
@@ -309,8 +313,8 @@ function QueuePositionCard({
                 {/* Label */}
                 <p className="text-sm font-medium text-text-secondary">
                     {aheadCount === 1
-                        ? "1 personne devant vous"
-                        : `${aheadCount} personnes devant vous`}
+                        ? `1 ${wording.singular} devant vous`
+                        : `${aheadCount} ${wording.plural} devant vous`}
                 </p>
 
                 {/* Wait time + estimated clock time */}
@@ -335,7 +339,7 @@ function QueuePositionCard({
                 {/* Queue depth label */}
                 {totalWaiting > 1 && (
                     <p className="text-xs text-text-disabled">
-                        {totalWaiting} personnes au total
+                        {totalWaiting} {wording.plural} au total
                     </p>
                 )}
             </div>

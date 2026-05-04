@@ -5,13 +5,20 @@ import { Avatar } from "@/components/ui/Avatar"
 import { Button } from "@/components/ui/Button"
 import { Dropdown } from "@/components/ui/Dropdown"
 import { cn } from "@/lib/utils/cn"
-import { PhoneCall, X, CheckCircle2, MoreVertical, ShieldAlert } from "lucide-react"
+import {
+    PhoneCall,
+    X,
+    CheckCircle2,
+    MoreVertical,
+    ShieldAlert,
+} from "lucide-react"
 
 type TicketStatus = "waiting" | "called" | "done" | "cancelled"
 
 type TicketCardProps = {
     id: string
     customerName: string
+    entrySource?: "qr" | "manual"
     status: TicketStatus
     position?: number
     joinedAt: string
@@ -25,6 +32,7 @@ type TicketCardProps = {
 function TicketCard({
     id,
     customerName,
+    entrySource,
     status,
     position,
     joinedAt,
@@ -47,7 +55,7 @@ function TicketCard({
                 "relative flex items-center justify-between gap-4 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                 // Mise en avant si appelé
                 status === "called" &&
-                "border-status-called/30 bg-status-called-bg ring-1 ring-inset ring-status-called/50 shadow-sm",
+                    "border-status-called/30 bg-status-called-bg ring-1 ring-inset ring-status-called/50 shadow-sm",
                 className,
             )}
         >
@@ -59,7 +67,7 @@ function TicketCard({
                             "flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-surface-base text-base sm:text-lg font-bold shadow-sm border border-border-default",
                             status === "called"
                                 ? "border-status-called/30 text-status-called"
-                                : "text-text-primary"
+                                : "text-text-primary",
                         )}
                     >
                         #{position}
@@ -69,12 +77,21 @@ function TicketCard({
                 )}
 
                 <div className="flex min-w-0 flex-col">
-                    <p className="truncate text-base font-semibold text-text-primary">
-                        {customerName}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-base font-semibold text-text-primary">
+                            {customerName}
+                        </p>
+                        {entrySource === "manual" && (
+                            <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold text-brand-primary">
+                                Ajout manuel
+                            </span>
+                        )}
+                    </div>
                     <p className="mt-0.5 text-xs sm:text-sm font-medium text-text-secondary">
                         {status === "waiting" ? "Attente depuis " : "Appelé à "}
-                        <span className="font-semibold text-text-primary">{formattedTime}</span>
+                        <span className="font-semibold text-text-primary">
+                            {formattedTime}
+                        </span>
                     </p>
                 </div>
             </div>
@@ -111,34 +128,49 @@ function TicketCard({
                 )}
 
                 {/* Option "Annuler" et "Signaler" masquées dans le Menu Dropdown */}
-                {(onCancel || onReportName) && (status === "waiting" || status === "called") && (
-                    <Dropdown
-                        align="right"
-                        trigger={
-                            <Button
-                                variant="ghost"
-                                size="md"
-                                className="flex h-10 w-10 items-center justify-center px-0 text-text-secondary hover:text-text-primary"
-                                aria-label="Plus d'options"
-                            >
-                                <MoreVertical size={18} />
-                            </Button>
-                        }
-                        items={[
-                            ...(onCancel ? [{
-                                label: "Annuler le ticket",
-                                icon: <X size={16} />,
-                                variant: "destructive" as const,
-                                onClick: () => onCancel(id),
-                            }] : []),
-                            ...(onReportName && customerName !== "…" && !customerName.startsWith("Client-") ? [{
-                                label: "Signaler le prénom",
-                                icon: <ShieldAlert size={16} />,
-                                onClick: () => onReportName(id, customerName),
-                            }] : [])
-                        ]}
-                    />
-                )}
+                {(onCancel || onReportName) &&
+                    (status === "waiting" || status === "called") && (
+                        <Dropdown
+                            align="right"
+                            trigger={
+                                <Button
+                                    variant="ghost"
+                                    size="md"
+                                    className="flex h-10 w-10 items-center justify-center px-0 text-text-secondary hover:text-text-primary"
+                                    aria-label="Plus d'options"
+                                >
+                                    <MoreVertical size={18} />
+                                </Button>
+                            }
+                            items={[
+                                ...(onCancel
+                                    ? [
+                                          {
+                                              label: "Annuler le ticket",
+                                              icon: <X size={16} />,
+                                              variant: "destructive" as const,
+                                              onClick: () => onCancel(id),
+                                          },
+                                      ]
+                                    : []),
+                                ...(onReportName &&
+                                customerName !== "…" &&
+                                !customerName.startsWith("Client-")
+                                    ? [
+                                          {
+                                              label: "Signaler le prénom",
+                                              icon: <ShieldAlert size={16} />,
+                                              onClick: () =>
+                                                  onReportName(
+                                                      id,
+                                                      customerName,
+                                                  ),
+                                          },
+                                      ]
+                                    : []),
+                            ]}
+                        />
+                    )}
             </div>
         </Card>
     )

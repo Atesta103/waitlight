@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { JoinForm } from "@/components/composed/JoinForm"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { joinQueueAction } from "@/lib/actions/queue"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 import { QrCode, Store, Sparkles } from "lucide-react"
 
 type Merchant = {
@@ -14,6 +15,7 @@ type Merchant = {
     slug: string
     is_open: boolean
     logo_url: string | null
+    business_type: string
 }
 
 type Settings = {
@@ -31,6 +33,7 @@ const STORAGE_KEY_PREFIX = "waitlight_ticket_"
 
 function JoinClient({ merchant, settings, token }: JoinClientProps) {
     const router = useRouter()
+    const wording = getBusinessWording(merchant.business_type)
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [checkedStorage, setCheckedStorage] = useState(false)
@@ -109,8 +112,8 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                         Scannez le QR code
                     </h1>
                     <p className="text-sm text-text-secondary">
-                        Présentez-vous au comptoir et scannez le QR code affiché
-                        pour rejoindre la file d&apos;attente.
+                        Présentez-vous au {wording.serviceDesk} et scannez le QR code affiché
+                        pour {wording.joinCta.toLowerCase()}.
                     </p>
                 </div>
 
@@ -124,7 +127,7 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
             <StatusBanner
                 variant="closed"
                 title="File d'attente fermée"
-                description={`${merchant.name} n'accepte pas de nouveaux clients pour le moment.`}
+                description={`${merchant.name} n'accepte pas de nouveaux ${wording.plural} pour le moment.`}
             />
         )
     }
@@ -177,7 +180,7 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                         </div>
                     ) : (
                         <p className="text-sm text-text-secondary">
-                            Rejoignez la file d&apos;attente
+                            {wording.joinCta}
                         </p>
                     )}
 
@@ -189,7 +192,12 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
 
             {/* Join form */}
             <Card>
-                <JoinForm onSubmit={handleSubmit} isLoading={isLoading} slug={merchant.slug} />
+                <JoinForm
+                    onSubmit={handleSubmit}
+                    isLoading={isLoading}
+                    slug={merchant.slug}
+                    businessType={merchant.business_type}
+                />
             </Card>
 
             {/* Server error */}

@@ -59,12 +59,14 @@ export async function checkSlugAvailabilityAction(
  */
 export async function createMerchantAction(formData: {
     name: string
+    businessType: string
     slug: string
     maxCapacity: number
     welcomeMessage: string
 }): Promise<{ error: string } | never> {
     const parsed = OnboardingSchema.safeParse({
         name: formData.name,
+        business_type: formData.businessType,
         slug: formData.slug,
         max_capacity: formData.maxCapacity,
         welcome_message: formData.welcomeMessage || undefined,
@@ -105,6 +107,7 @@ export async function createMerchantAction(formData: {
     const { error: merchantError } = await supabase.from("merchants").insert({
         id: user.id,
         name: parsed.data.name,
+        business_type: parsed.data.business_type,
         slug: parsed.data.slug,
         is_open: false,
     })

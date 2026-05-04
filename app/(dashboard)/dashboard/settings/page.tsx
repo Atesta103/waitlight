@@ -43,6 +43,7 @@ export default async function SettingsPage() {
             <SettingsPanel
                 initialData={{
                     merchantName: merchant.name,
+                    businessType: merchant.business_type,
                     slug: merchant.slug,
                     logoUrl: merchant.logo_url,
                     brandColor: merchant.brand_color,
@@ -61,10 +62,13 @@ export default async function SettingsPage() {
                     schedule: settings.schedule,
                     notificationChannels: settings.notification_channels,
                     notificationSound: settings.notification_sound,
-                    approachingPositionEnabled: settings.approaching_position_enabled,
-                    approachingPositionThreshold: settings.approaching_position_threshold,
+                    approachingPositionEnabled:
+                        settings.approaching_position_enabled,
+                    approachingPositionThreshold:
+                        settings.approaching_position_threshold,
                     approachingTimeEnabled: settings.approaching_time_enabled,
-                    approachingTimeThresholdMin: settings.approaching_time_threshold_min,
+                    approachingTimeThresholdMin:
+                        settings.approaching_time_threshold_min,
                 }}
             />
         </div>

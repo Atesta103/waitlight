@@ -8,6 +8,7 @@ import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { QR_ROTATION_INTERVAL_MS } from "@/lib/utils/qr-config"
 import { generateQrTokenAction } from "@/lib/actions/qr"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
 const REFRESH_INTERVAL_MS = QR_ROTATION_INTERVAL_MS
@@ -15,6 +16,7 @@ const TOTAL_S = REFRESH_INTERVAL_MS / 1000
 
 type QRCodeDisplayProps = {
     slug: string
+    businessType?: string | null
     baseUrl?: string
     /** Pixel size of the QR code. Default 220. */
     size?: number
@@ -26,11 +28,13 @@ type QRCodeDisplayProps = {
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
     slug,
+    businessType,
     baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
     size = 220,
     className,
     mockMode = false,
 }: QRCodeDisplayProps) {
+    const wording = getBusinessWording(businessType)
     const [token, setToken] = useState<string | null>(null)
     const [fetchedAt, setFetchedAt] = useState<number | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
@@ -145,7 +149,7 @@ function QRCodeDisplay({
             {/* ── Header ──────────────────────────────────────────────────── */}
             <div className="flex flex-col items-center gap-0.5 border-b border-border-default px-6 py-4">
                 <p className={cn("text-center text-sm font-semibold", mockMode ? "text-[#111827]" : "text-text-primary")}>
-                    Scannez pour rejoindre la file d&apos;attente
+                    Scannez pour {wording.joinCta.toLowerCase()}
                 </p>
                 <p className={cn("text-xs", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>{slug}</p>
             </div>

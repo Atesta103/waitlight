@@ -31,6 +31,14 @@ export default async function GamesLayout(props: {
             .single()
         : { data: null }
 
+    const { data: merchant } = ticket
+        ? await supabase
+            .from("merchants")
+            .select("business_type")
+            .eq("id", ticket.merchant_id)
+            .single()
+        : { data: null }
+
     const rawChannels = settings?.notification_channels as
         | Partial<MerchantNotificationChannels>
         | null
@@ -52,6 +60,7 @@ export default async function GamesLayout(props: {
                     customerName={ticket.customer_name}
                     notificationChannels={notificationChannels}
                     notificationSound={notificationSound}
+                    businessType={merchant?.business_type}
                 />
             )}
             {props.children}

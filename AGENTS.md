@@ -186,3 +186,20 @@ _(empty — populate as the project progresses)_
 | [`doc/api/qr-token.md`](./doc/api/qr-token.md)                             | QR token utility — HMAC-SHA256 sign/verify (generated)               |
 | [`doc/api/validators/`](./doc/api/validators/)                             | Zod schemas per domain — auth, queue, settings, onboarding (generated)|
 | [`doc/postgres-features.md`](./doc/postgres-features.md)                 | Syntaxe des fonctionnalités natives Postgres (RLS, Triggers, RPC) avancées |
+
+## graphify
+
+This project has a graphify knowledge graph at .graphify/.
+
+Rules:
+- Before answering architecture or codebase questions, read .graphify/GRAPH_REPORT.md for god nodes and community structure
+- If .graphify/wiki/index.md exists, navigate it instead of reading raw files
+- In Codex, the reliable explicit skill invocation is `$graphify ...`; do not rely on `/graphify ...`
+- `$graphify ...` is a Codex skill trigger, not a Bash subcommand like `graphify .`
+- A successful TypeScript-backed Codex build should leave `.graphify/.graphify_runtime.json` with `runtime: typescript`
+- If .graphify/graph.json is missing but graphify-out/graph.json exists, run `graphify migrate-state --dry-run` first; if tracked legacy artifacts are reported, ask before using the recommended `git mv -f graphify-out .graphify` and commit message
+- If .graphify/needs_update exists or .graphify/branch.json has stale=true, warn before relying on semantic results and run the graphify skill with --update when appropriate
+- If the user asks to build, update, query, path, or explain the graph, use the installed `graphify` skill instead of ad-hoc file traversal
+- Before deep graph traversal, prefer `graphify summary --graph .graphify/graph.json` for compact first-hop orientation
+- For review impact on changed files, use `graphify review-delta --graph .graphify/graph.json` instead of generic traversal
+- After modifying code files in this session, run `npx graphify hook-rebuild` to keep the graph current

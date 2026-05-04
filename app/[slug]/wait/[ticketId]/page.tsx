@@ -25,6 +25,7 @@ export default async function WaitPage({ params }: WaitPageProps) {
         .from("merchants")
         .select(`
             id, name, slug, background_url, default_prep_time_min, calculated_avg_prep_time,
+            business_type,
             settings!inner(
                 notification_channels,
                 notification_sound,
@@ -48,6 +49,7 @@ export default async function WaitPage({ params }: WaitPageProps) {
         name: data.name,
         slug: data.slug,
         background_url: data.background_url,
+        business_type: data.business_type,
         default_prep_time_min: data.default_prep_time_min,
         calculated_avg_prep_time: data.calculated_avg_prep_time,
         settings: Array.isArray(data.settings) ? data.settings[0] : data.settings

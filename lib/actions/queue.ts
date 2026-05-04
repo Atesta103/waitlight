@@ -14,11 +14,12 @@ import {
     TicketIdSchema,
     ToggleQueueSchema,
     JoinQueueSchema,
+    CreateManualTicketSchema,
     type TicketIdInput,
     type ToggleQueueInput,
     type JoinQueueInput,
+    type CreateManualTicketInput,
 } from "@/lib/validators/queue"
-
 
 /**
  * A live ticket in the queue (only `waiting` and `called` statuses are returned
@@ -28,6 +29,7 @@ export type QueueItem = {
     id: string
     merchant_id: string
     customer_name: string
+    entry_source: "qr" | "manual"
     status: "waiting" | "called" | "done" | "cancelled"
     joined_at: string
     called_at: string | null
@@ -67,7 +69,7 @@ export async function getQueueAction(): Promise<
     const { data, error } = await supabase
         .from("queue_items")
         .select(
-            "id, merchant_id, customer_name, status, joined_at, called_at, done_at",
+            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at",
         )
         .eq("merchant_id", user.id)
         .in("status", ["waiting", "called"])
@@ -78,6 +80,90 @@ export async function getQueueAction(): Promise<
     }
 
     return { data: (data ?? []) as QueueItem[] }
+}
+
+/**
+ * Create a manual ticket from the merchant dashboard.
+ * Validates input, enforces merchant ownership, and checks capacity.
+ */
+export async function createManualTicketAction(
+    input: CreateManualTicketInput,
+): Promise<{ data: QueueItem } | { error: string }> {
+    const parsed = CreateManualTicketSchema.safeParse(input)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { data: settings, error: settingsError } = await supabase
+        .from("settings")
+        .select("max_capacity")
+        .eq("merchant_id", user.id)
+        .single()
+
+    if (settingsError || !settings) {
+        console.error(
+            "[createManualTicketAction] settings fetch failed:",
+            settingsError,
+        )
+        return { error: "Impossible de vérifier la capacité de la file." }
+    }
+
+    if (settings) {
+        const { count, error: countError } = await supabase
+            .from("queue_items")
+            .select("*", { count: "exact", head: true })
+            .eq("merchant_id", user.id)
+            .in("status", ["waiting", "called"])
+
+        if (countError) {
+            console.error(
+                "[createManualTicketAction] capacity count failed:",
+                countError,
+            )
+            return { error: "Impossible de vérifier la capacité de la file." }
+        }
+
+        if ((count ?? 0) >= settings.max_capacity) {
+            return {
+                error: "La file d'attente est pleine. Veuillez réessayer plus tard.",
+            }
+        }
+    }
+
+    const { data: ticket, error: insertError } = await supabase
+        .from("queue_items")
+        .insert({
+            merchant_id: user.id,
+            customer_name: parsed.data.customerName,
+            status: "waiting",
+            name_flagged: false,
+            entry_source: "manual",
+        })
+        .select(
+            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at",
+        )
+        .single()
+
+    if (insertError || !ticket) {
+        console.error(
+            "[createManualTicketAction] DB insert failed:",
+            insertError,
+        )
+        return { error: "Impossible d'ajouter ce ticket. Veuillez réessayer." }
+    }
+
+    return { data: ticket as QueueItem }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -292,10 +378,14 @@ export async function toggleQueueOpenAction(
  */
 export async function joinQueueAction(
     input: JoinQueueInput,
-): Promise<{ data: { ticketId: string; merchantId: string } } | { error: string }> {
+): Promise<
+    { data: { ticketId: string; merchantId: string } } | { error: string }
+> {
     const parsed = JoinQueueSchema.safeParse(input)
     if (!parsed.success) {
-        return { error: parsed.error.issues[0]?.message ?? "Données invalides." }
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
     }
 
     const { customerName, token, slug } = parsed.data
@@ -351,7 +441,9 @@ export async function joinQueueAction(
             .in("status", ["waiting", "called"])
 
         if ((count ?? 0) >= settings.max_capacity) {
-            return { error: "La file d'attente est pleine. Veuillez réessayer plus tard." }
+            return {
+                error: "La file d'attente est pleine. Veuillez réessayer plus tard.",
+            }
         }
     }
 
@@ -363,6 +455,7 @@ export async function joinQueueAction(
             customer_name: customerName,
             status: "waiting",
             name_flagged: false,
+            entry_source: "qr",
         })
         .select("id")
         .single()
@@ -379,7 +472,10 @@ export async function joinQueueAction(
 export async function reportTicketNameAction(
     ticketId: string,
     offendingName: string,
-): Promise<{ data: { id: string; customer_name: string; name_flagged: boolean } } | { error: string }> {
+): Promise<
+    | { data: { id: string; customer_name: string; name_flagged: boolean } }
+    | { error: string }
+> {
     // Validate inputs
     const ticketUuidParsed = z.string().uuid().safeParse(ticketId)
     if (!ticketUuidParsed.success) {
@@ -421,8 +517,13 @@ export async function reportTicketNameAction(
             .single()
 
         if (updateError) {
-            console.error("[reportTicketNameAction] update failed:", updateError)
-            return { error: "Impossible de signaler ce prénom. Veuillez réessayer." }
+            console.error(
+                "[reportTicketNameAction] update failed:",
+                updateError,
+            )
+            return {
+                error: "Impossible de signaler ce prénom. Veuillez réessayer.",
+            }
         }
         return { data: updatedTicket }
     } catch (err: unknown) {
@@ -438,7 +539,10 @@ export async function reportTicketNameAction(
  * @param name - The customer name to check.
  * @param slug - The merchant slug, used to look up the merchant_id.
  */
-export async function checkNameAction(name: string, slug?: string): Promise<{ isBanned: boolean }> {
+export async function checkNameAction(
+    name: string,
+    slug?: string,
+): Promise<{ isBanned: boolean }> {
     if (!name) return { isBanned: false }
     const supabase = await createClient()
     const normalised = name.toLowerCase().trim()

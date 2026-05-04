@@ -19,6 +19,7 @@ const meta = {
     args: {
         initialData: {
             merchantName: "Boulangerie Martin",
+            businessType: "retail",
             slug: "boulangerie-martin",
             logoUrl: null,
             brandColor: "#4F46E5",
@@ -27,7 +28,8 @@ const meta = {
             themePattern: "none",
             defaultPrepTimeMin: 5,
             maxCapacity: 20,
-            welcomeMessage: "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
+            welcomeMessage:
+                "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
             thankYouTitle: "Merci pour votre visite !",
             thankYouMessage: "",
             notificationsEnabled: true,
@@ -35,7 +37,12 @@ const meta = {
             calculatedAvgPrepTime: 8,
             avgPrepComputedAt: "2026-03-24T10:00:00Z",
             schedule: null,
-            notificationChannels: { sound: true, vibrate: true, toast: true, push: true },
+            notificationChannels: {
+                sound: true,
+                vibrate: true,
+                toast: true,
+                push: true,
+            },
             notificationSound: "arpeggio",
             approachingPositionEnabled: false,
             approachingPositionThreshold: 3,
@@ -54,6 +61,7 @@ export const WithLogo: Story = {
     args: {
         initialData: {
             merchantName: "Café de la Place",
+            businessType: "food",
             slug: "cafe-de-la-place",
             logoUrl: "https://api.dicebear.com/9.x/shapes/svg?seed=cafe",
             brandColor: "#4F46E5",
@@ -70,7 +78,12 @@ export const WithLogo: Story = {
             calculatedAvgPrepTime: null,
             avgPrepComputedAt: null,
             schedule: null,
-            notificationChannels: { sound: true, vibrate: false, toast: true, push: false },
+            notificationChannels: {
+                sound: true,
+                vibrate: false,
+                toast: true,
+                push: false,
+            },
             notificationSound: "chime",
             approachingPositionEnabled: true,
             approachingPositionThreshold: 2,

@@ -6,16 +6,25 @@ import { Button } from "@/components/ui/Button"
 import { Checkbox } from "@/components/ui/Checkbox"
 import { cn } from "@/lib/utils/cn"
 import { checkNameAction } from "@/lib/actions/queue"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 type JoinFormProps = {
     onSubmit: (data: { customerName: string; consent: boolean }) => void
     isLoading?: boolean
     /** Merchant slug — used for per-merchant name ban filtering */
     slug?: string
+    businessType?: string | null
     className?: string
 }
 
-function JoinForm({ onSubmit, isLoading = false, slug, className }: JoinFormProps) {
+function JoinForm({
+    onSubmit,
+    isLoading = false,
+    slug,
+    businessType,
+    className,
+}: JoinFormProps) {
+    const wording = getBusinessWording(businessType)
     const [customerName, setCustomerName] = useState("")
     const [consent, setConsent] = useState(false)
     const [errors, setErrors] = useState<{ name?: string; consent?: string }>(
@@ -85,7 +94,7 @@ function JoinForm({ onSubmit, isLoading = false, slug, className }: JoinFormProp
             noValidate
         >
             <Input
-                label="Votre prénom ou surnom"
+                label={`Prénom ou surnom du ${wording.singular}`}
                 placeholder="Ex : Marie"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
@@ -96,7 +105,7 @@ function JoinForm({ onSubmit, isLoading = false, slug, className }: JoinFormProp
             />
 
             <Checkbox
-                label="En rejoignant cette file, j'accepte que mon prénom soit utilisé pour m'appeler. Il sera supprimé automatiquement à la fin de la session."
+                label={`En rejoignant cette file, j'accepte que mon prénom soit utilisé pour m'appeler. Il sera supprimé automatiquement à la fin de la session.`}
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
                 error={errors.consent}
@@ -109,7 +118,7 @@ function JoinForm({ onSubmit, isLoading = false, slug, className }: JoinFormProp
                 size="lg"
                 className="w-full"
             >
-                Rejoindre la file
+                {wording.joinCta}
             </Button>
         </form>
     )

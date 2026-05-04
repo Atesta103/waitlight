@@ -16,6 +16,7 @@ import {
     type MerchantIdentityInput,
     type QueueSettingsInput,
 } from "@/lib/validators/settings"
+import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rate-limit constants
@@ -56,6 +57,7 @@ export type MerchantSettingsData = {
     merchant: {
         id: string
         name: string
+        business_type: BusinessType
         slug: string
         logo_url: string | null
         background_url: string | null
@@ -119,13 +121,13 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
         .select(
-            "id, name, slug, logo_url, background_url, brand_color, font_family, border_radius, theme_pattern, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
+            "id, name, business_type, slug, logo_url, background_url, brand_color, font_family, border_radius, theme_pattern, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
         )
         .eq("id", user.id)
         .single()
 
     if (merchantError || !merchant) {
-        console.error("Merchant fetch error", merchantError);
+        console.error("Merchant fetch error", merchantError)
         return { error: "Commerce introuvable." }
     }
 
@@ -146,6 +148,9 @@ export async function getMerchantSettingsAction(): Promise<
             merchant: {
                 id: merchant.id,
                 name: merchant.name,
+                business_type:
+                    BusinessTypeSchema.safeParse(merchant.business_type).data ??
+                    "retail",
                 slug: merchant.slug,
                 logo_url: merchant.logo_url,
                 background_url: merchant.background_url,
@@ -168,12 +173,22 @@ export async function getMerchantSettingsAction(): Promise<
                 notifications_enabled: settings.notifications_enabled,
                 auto_close_enabled: settings.auto_close_enabled,
                 schedule: (settings.schedule as ScheduleData) ?? null,
-                notification_channels: (settings.notification_channels as NotificationChannels) ?? { sound: true, vibrate: true, toast: true, push: true },
+                notification_channels:
+                    (settings.notification_channels as NotificationChannels) ?? {
+                        sound: true,
+                        vibrate: true,
+                        toast: true,
+                        push: true,
+                    },
                 notification_sound: settings.notification_sound ?? "arpeggio",
-                approaching_position_enabled: settings.approaching_position_enabled ?? false,
-                approaching_position_threshold: settings.approaching_position_threshold ?? 3,
-                approaching_time_enabled: settings.approaching_time_enabled ?? false,
-                approaching_time_threshold_min: settings.approaching_time_threshold_min ?? 5,
+                approaching_position_enabled:
+                    settings.approaching_position_enabled ?? false,
+                approaching_position_threshold:
+                    settings.approaching_position_threshold ?? 3,
+                approaching_time_enabled:
+                    settings.approaching_time_enabled ?? false,
+                approaching_time_threshold_min:
+                    settings.approaching_time_threshold_min ?? 5,
             },
         },
     }
@@ -255,6 +270,7 @@ export async function updateMerchantIdentityAction(
         .from("merchants")
         .update({
             name: parsed.data.name,
+            business_type: parsed.data.business_type,
             slug: parsed.data.slug,
             logo_url: parsed.data.logo_url ?? null,
             brand_color: parsed.data.brand_color ?? "#4F46E5",
@@ -331,8 +347,6 @@ export async function updateQueueSettingsAction(
 
     return { data: null }
 }
-
-
 
 /**
  * Remove the merchant's logo from Supabase Storage and clear `logo_url`.
@@ -493,7 +507,7 @@ export async function getBannedWordsAction(): Promise<
         .order("created_at", { ascending: false })
 
     if (error) {
-        console.error("[getBannedWordsAction] DB error:", error);
+        console.error("[getBannedWordsAction] DB error:", error)
         return { error: "Impossible de charger les mots bannis." }
     }
 
@@ -541,7 +555,9 @@ export async function addBannedWordAction(
         if (error.code === "23505") {
             return { error: "Ce mot est déjà dans la liste." }
         }
-        return { error: `Erreur ${error.code ?? "inconnue"} : ${error.message ?? "Impossible d'ajouter ce mot."}` }
+        return {
+            error: `Erreur ${error.code ?? "inconnue"} : ${error.message ?? "Impossible d'ajouter ce mot."}`,
+        }
     }
 
     return { data }
@@ -706,12 +722,15 @@ export async function updateNotificationPreferencesAction(
     const { error } = await supabase
         .from("settings")
         .update({
-            notification_channels: input.notification_channels as unknown as string,
+            notification_channels:
+                input.notification_channels as unknown as string,
             notification_sound: input.notification_sound,
             approaching_position_enabled: input.approaching_position_enabled,
-            approaching_position_threshold: input.approaching_position_threshold,
+            approaching_position_threshold:
+                input.approaching_position_threshold,
             approaching_time_enabled: input.approaching_time_enabled,
-            approaching_time_threshold_min: input.approaching_time_threshold_min,
+            approaching_time_threshold_min:
+                input.approaching_time_threshold_min,
         })
         .eq("merchant_id", user.id)
 
@@ -755,7 +774,9 @@ export async function deleteBackgroundAction(): Promise<
             .from("merchant-backgrounds")
             .remove(paths)
         if (removeError) {
-            return { error: "Erreur lors de la suppression de l'image de fond." }
+            return {
+                error: "Erreur lors de la suppression de l'image de fond.",
+            }
         }
     }
 

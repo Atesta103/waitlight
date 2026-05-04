@@ -3,10 +3,12 @@
 import { Toggle } from "@/components/ui/Toggle"
 import { Badge } from "@/components/ui/Badge"
 import { cn } from "@/lib/utils/cn"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 import { Users, Store } from "lucide-react"
 
 type DashboardHeaderProps = {
     merchantName: string
+    businessType?: string | null
     isOpen: boolean
     waitingCount: number
     onToggleOpen: (isOpen: boolean) => void
@@ -16,12 +18,15 @@ type DashboardHeaderProps = {
 
 function DashboardHeader({
     merchantName,
+    businessType,
     isOpen,
     waitingCount,
     onToggleOpen,
     isUpdatingOpenState = false,
     className,
 }: DashboardHeaderProps) {
+    const wording = getBusinessWording(businessType)
+
     return (
         <header
             className={cn(
@@ -63,10 +68,10 @@ function DashboardHeader({
                     <Users size={14} aria-hidden="true" />
                     <span>
                         {waitingCount === 0
-                            ? "Aucun client"
+                            ? `Aucun ${wording.singular}`
                             : waitingCount === 1
-                              ? "1 client"
-                              : `${waitingCount} clients`}
+                              ? `1 ${wording.singular}`
+                              : `${waitingCount} ${wording.plural}`}
                     </span>
                 </div>
 

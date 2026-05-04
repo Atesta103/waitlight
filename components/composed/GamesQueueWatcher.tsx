@@ -11,6 +11,7 @@ import {
     type SoundChoice,
 } from "@/lib/utils/notifications"
 import { createClient } from "@/lib/supabase/client"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 type ToastItem = {
     id: string
@@ -37,6 +38,10 @@ type GamesQueueWatcherProps = {
     customerName: string
     notificationChannels: MerchantNotificationChannels
     notificationSound: SoundChoice
+    businessType?: string | null
+    initialTicket?: TicketData
+    initialPosition?: number
+    disableRealtime?: boolean
 }
 
 function GamesQueueWatcher({
@@ -45,8 +50,14 @@ function GamesQueueWatcher({
     customerName,
     notificationChannels,
     notificationSound,
+    businessType,
+    initialTicket,
+    initialPosition,
+    disableRealtime = false,
 }: GamesQueueWatcherProps) {
     const queryClient = useQueryClient()
+    const wording = getBusinessWording(businessType)
+    const serviceDesk = wording.serviceDesk
     const supabaseRef = useRef(createClient())
     const [toasts, setToasts] = useState<ToastItem[]>([])
     const toastIdRef = useRef(0)
@@ -68,6 +79,7 @@ function GamesQueueWatcher({
 
     const { data: ticket } = useQuery<TicketData>({
         queryKey: ["ticket", ticketId],
+        initialData: initialTicket,
         queryFn: async () => {
             const supabase = supabaseRef.current
             const { data, error } = await supabase
@@ -83,6 +95,7 @@ function GamesQueueWatcher({
 
     const { data: position } = useQuery({
         queryKey: ["position", ticketId],
+        initialData: initialPosition,
         queryFn: async () => {
             const supabase = supabaseRef.current
             const { data, error } = await supabase.rpc("get_position", { ticket_id: ticketId })
@@ -95,6 +108,8 @@ function GamesQueueWatcher({
     const displayCustomerName = ticket?.customer_name?.trim() || customerName?.trim() || "Votre commande"
 
     useEffect(() => {
+        if (disableRealtime) return
+
         const supabase = supabaseRef.current
         const channel = supabase
             .channel(`games_queue:${merchantId}`)
@@ -116,7 +131,7 @@ function GamesQueueWatcher({
         return () => {
             void supabase.removeChannel(channel)
         }
-    }, [merchantId, ticketId, queryClient])
+    }, [merchantId, ticketId, queryClient, disableRealtime])
 
     useEffect(() => {
         if (ticket?.status !== "called" || hasNotifiedCalledRef.current) return
@@ -139,7 +154,7 @@ function GamesQueueWatcher({
             addToast(
                 "called",
                 "C'est votre tour !",
-                `${displayCustomerName}, présentez-vous au comptoir.`,
+                `${displayCustomerName}, présentez-vous au ${serviceDesk}.`,
             )
         }
 
@@ -150,7 +165,7 @@ function GamesQueueWatcher({
             Notification.permission === "granted"
         ) {
             new Notification("C'est votre tour !", {
-                body: `${displayCustomerName}, présentez-vous au comptoir.`,
+                body: `${displayCustomerName}, présentez-vous au ${serviceDesk}.`,
                 icon: "/favicon.svg",
                 tag: "waitlight-turn",
             })
@@ -161,6 +176,7 @@ function GamesQueueWatcher({
         notificationChannels,
         notificationSound,
         addToast,
+        serviceDesk,
     ])
 
     useEffect(() => {

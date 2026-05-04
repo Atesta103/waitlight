@@ -23,7 +23,7 @@ export default async function DashboardPage() {
     // Fetch merchant profile (name, slug, open state)
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open")
+        .select("id, name, slug, is_open, business_type")
         .eq("id", user!.id)
         .single()
 
@@ -39,6 +39,7 @@ export default async function DashboardPage() {
         <QueueSection
             merchantId={merchant.id}
             merchantName={merchant.name}
+            businessType={merchant.business_type}
             merchantSlug={merchant.slug}
             initialIsOpen={merchant.is_open}
             initialItems={initialItems}

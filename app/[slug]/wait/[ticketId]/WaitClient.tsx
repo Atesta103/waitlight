@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button"
 import { type ConnectionState } from "@/components/composed/ConnectionStatus"
 import { BellRing, Smartphone, MessageSquare, AlertCircle } from "lucide-react"
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 type NotificationChannels = {
     sound: boolean
@@ -24,6 +25,7 @@ type Merchant = {
     name: string
     slug: string
     background_url: string | null
+    business_type: string
     default_prep_time_min: number
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
@@ -59,6 +61,8 @@ const STORAGE_KEY_PREFIX = "waitlight_ticket_"
 
 function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const queryClient = useQueryClient()
+    const wording = getBusinessWording(merchant.business_type)
+    const serviceDesk = wording.serviceDesk
     const [connectionState, setConnectionState] =
         useState<ConnectionState>("connected")
     const [acknowledgedFlag, setAcknowledgedFlag] = useState(false)
@@ -237,7 +241,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 Notification.permission === "granted"
             ) {
                 new Notification("C'est votre tour !", {
-                    body: `${ticket.customer_name}, présentez-vous au comptoir.`,
+                    body: `${ticket.customer_name}, présentez-vous au ${serviceDesk}.`,
                     icon: "/favicon.svg",
                     tag: "waitlight-turn",
                 })
@@ -253,11 +257,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 calledReminderTimerRef.current = null
             }
         }
-    }, [
-        ticket,
-        calledReminderAcknowledged,
-        merchant.settings,
-    ])
+    }, [ticket, calledReminderAcknowledged, merchant.settings, serviceDesk])
 
     // Approaching notification
     useEffect(() => {
@@ -302,7 +302,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                     "Notification" in window &&
                     Notification.permission === "granted"
                 ) {
-                    new Notification("Vous approchez du comptoir", {
+                new Notification(`Vous approchez du ${serviceDesk}`, {
                         body: `${ticket.customer_name}, votre tour approche.`,
                         icon: "/favicon.svg",
                         tag: "waitlight-approaching",
@@ -310,12 +310,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 }
             }
         }
-    }, [
-        ticket,
-        position,
-        estimatedWaitMinutes,
-        merchant.settings,
-    ])
+    }, [ticket, position, estimatedWaitMinutes, merchant.settings, serviceDesk])
 
 
     if (ticketNotFound) {
@@ -361,6 +356,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 thankYouTitle={merchant.settings.thank_you_title}
                 thankYouMessage={merchant.settings.thank_you_message}
                 backgroundUrl={merchant.background_url}
+                businessType={merchant.business_type}
             />
 
             {ticket.status === "called" && !calledReminderAcknowledged && (

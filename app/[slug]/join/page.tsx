@@ -19,7 +19,7 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
 
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, logo_url")
+        .select("id, name, slug, is_open, logo_url, business_type")
         .eq("slug", slug)
         .single()
 

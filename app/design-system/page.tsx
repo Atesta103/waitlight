@@ -1131,6 +1131,7 @@ export default function DesignSystemPage() {
                                     merchant_id:
                                         "00000000-0000-0000-0000-000000000001",
                                     customer_name: i.customerName,
+                                    entry_source: "qr" as const,
                                     status: i.status,
                                     joined_at: i.joinedAt,
                                     called_at: null,
@@ -1222,6 +1223,7 @@ export default function DesignSystemPage() {
                             <SettingsPanel
                                 initialData={{
                                     merchantName: "Boulangerie Martin",
+                                    businessType: "food",
                                     slug: "boulangerie-martin",
                                     logoUrl: null,
                                     brandColor: "#4F46E5",
