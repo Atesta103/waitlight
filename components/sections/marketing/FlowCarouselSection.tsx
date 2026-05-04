@@ -11,7 +11,7 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 function SetupMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
-        <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
+        <div className="pointer-events-none scale-[0.65] sm:scale-[0.85] lg:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
             <div className="bg-[#F8F9FA] px-5 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-bold text-[#111827]">Paramètres de la file</h3>
@@ -76,7 +76,7 @@ const SECTOR_SLUGS: Record<string, string> = {
 
 function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: string }) {
     return (
-        <div className="pointer-events-none scale-75 sm:scale-90 origin-center">
+        <div className="pointer-events-none scale-[0.55] sm:scale-75 lg:scale-90 origin-center">
             <QRCodeDisplay slug={slug} size={180} mockMode={true} />
         </div>
     )
@@ -84,7 +84,7 @@ function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: stri
 
 function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
-        <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
+        <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={false} businessName={businessName} />
         </div>
     )
@@ -92,7 +92,7 @@ function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: st
 
 function CallMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
-        <div className="pointer-events-none scale-[0.85] sm:scale-100 origin-center w-full max-w-[380px]">
+        <div className="pointer-events-none scale-[0.65] sm:scale-[0.85] lg:scale-100 origin-center w-full max-w-[380px]">
             <div className="w-full rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
                 <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
                     <div>
@@ -132,7 +132,7 @@ function CallMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: st
 
 function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
-        <div className="pointer-events-none scale-[0.80] sm:scale-90 origin-center flex items-center justify-center">
+        <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={true} businessName={businessName} />
         </div>
     )
@@ -140,7 +140,7 @@ function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: 
 
 function StatsMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
     return (
-        <div className="pointer-events-none scale-[0.80] sm:scale-95 origin-center">
+        <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-95 origin-center">
             <MerchantDashboardMockup businessName={businessName} />
         </div>
     )
@@ -428,36 +428,56 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                 </div>
 
                 {/* Target Tabs */}
-                <div className="flex justify-center mb-10">
-                    <div className="inline-flex items-center p-1 bg-[#EEF2FF] rounded-full overflow-x-auto max-w-full no-scrollbar">
+                <div className="mb-10">
+                    {/* Mobile: 2×2 grid */}
+                    <div className="grid grid-cols-2 gap-2 sm:hidden">
                         {TARGETS.map(t => (
                             <button
                                 key={t.id}
                                 onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
                                 className={cn(
-                                    "relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-150",
+                                    "relative px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-center",
                                     targetId === t.id
-                                        ? "text-[#4F46E5]"
-                                        : "text-[#6B7280] hover:text-[#111827]"
+                                        ? "bg-[#4F46E5] text-white shadow-md shadow-[#6366F1]/25"
+                                        : "bg-[#EEF2FF] text-[#6B7280] hover:text-[#111827] hover:bg-[#E0E7FF]"
                                 )}
                             >
-                                {targetId === t.id && (
-                                    <motion.span
-                                        layoutId="tab-pill"
-                                        className="absolute inset-0 rounded-full bg-white shadow-sm"
-                                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                                    />
-                                )}
-                                <span className="relative z-10">{t.label}</span>
+                                {t.label}
                             </button>
                         ))}
+                    </div>
+                    {/* sm+: pill row */}
+                    <div className="hidden sm:flex justify-center">
+                        <div className="inline-flex items-center p-1 bg-[#EEF2FF] rounded-full">
+                            {TARGETS.map(t => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
+                                    className={cn(
+                                        "relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-150",
+                                        targetId === t.id
+                                            ? "text-[#4F46E5]"
+                                            : "text-[#6B7280] hover:text-[#111827]"
+                                    )}
+                                >
+                                    {targetId === t.id && (
+                                        <motion.span
+                                            layoutId="tab-pill"
+                                            className="absolute inset-0 rounded-full bg-white shadow-sm"
+                                            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                        />
+                                    )}
+                                    <span className="relative z-10">{t.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 <div className="bg-[#F8F9FA] rounded-[2rem] border border-[#E5E7EB] p-6 sm:p-10 lg:p-12 relative">
                     
                     {/* ── Progressive fill bars ── */}
-                    <div className="flex items-center gap-2 sm:gap-3 mb-10">
+                    <div className="flex items-end gap-1.5 sm:gap-3 mb-8">
                         {FLOW_STEPS.map((step, idx) => {
                             const isActive = idx === currentStep
                             const isDone = idx < currentStep
@@ -466,41 +486,40 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                 <button
                                     key={step.id}
                                     onClick={() => handleManualNav(idx)}
-                                    className="group relative flex-1 flex flex-col items-center gap-1.5 focus-visible:outline-none"
+                                    className="group relative flex-1 flex flex-col items-center gap-1 focus-visible:outline-none min-w-0"
                                     aria-label={`Étape ${idx + 1}: ${step.title}`}
                                     aria-current={isActive ? "step" : undefined}
                                 >
-                                    {/* Step label — visible on sm+ */}
+                                    {/* Step number — sm+ only */}
                                     <span className={cn(
-                                        "hidden sm:block text-[10px] font-semibold tracking-wide transition-colors",
-                                        isActive
-                                            ? "text-[#111827]"
-                                            : isDone
-                                              ? "text-[#6366F1]"
-                                              : "text-[#9CA3AF] group-hover:text-[#6B7280]",
+                                        "hidden sm:block text-[10px] font-semibold tracking-wide transition-colors mb-0.5",
+                                        isActive ? "text-[#111827]" : isDone ? "text-[#6366F1]" : "text-[#9CA3AF] group-hover:text-[#6B7280]",
                                     )}>
                                         {idx + 1}
                                     </span>
 
                                     {/* Bar track */}
-                                    <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden mt-1">
-                                        {/* Fill */}
+                                    <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
                                         <div
                                             className={cn(
                                                 "absolute inset-y-0 left-0 rounded-full transition-[width]",
-                                                isDone
-                                                    ? "bg-[#6366F1] w-full"
-                                                    : isActive
-                                                      ? "bg-[#6366F1]"
-                                                      : "bg-transparent w-0",
+                                                isDone ? "bg-[#6366F1] w-full" : isActive ? "bg-[#6366F1]" : "bg-transparent w-0",
                                             )}
                                             style={isActive ? { width: `${progress * 100}%`, transition: "width 50ms linear" } : undefined}
                                         />
                                     </div>
 
-                                    {/* Side indicator dot -> Text */}
+                                    {/* Mobile: colored dot only */}
+                                    <span
+                                        className={cn(
+                                            "mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-opacity sm:hidden",
+                                            step.side === 'merchant' ? "bg-[#10B981]" : "bg-[#6366F1]",
+                                            !isActive && !isDone && "opacity-30"
+                                        )}
+                                    />
+                                    {/* Desktop: text label */}
                                     <span className={cn(
-                                        "text-[9px] font-bold tracking-wider uppercase mt-1 transition-colors",
+                                        "hidden sm:block text-[9px] font-bold tracking-wider uppercase mt-1 transition-colors",
                                         step.side === 'merchant' ? "text-[#10B981]" : "text-[#6366F1]",
                                         !isActive && !isDone && "opacity-40"
                                     )}>
@@ -558,7 +577,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                         </div>
 
                         {/* Right: Mockup Carousel — pointer-events-none to prevent interaction distraction */}
-                        <div className="hidden lg:flex relative w-full h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2 pointer-events-none select-none">
+                        <div className="flex relative w-full h-[280px] sm:h-[380px] lg:h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2 pointer-events-none select-none">
                             {/* Decorative background circle */}
                             <div className="absolute w-[300px] h-[300px] rounded-full bg-white/40 blur-3xl" />
                             
