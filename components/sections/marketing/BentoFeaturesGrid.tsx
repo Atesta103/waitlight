@@ -204,33 +204,18 @@ export function LiveStatsBoard() {
 /** Visual logos for white-label card — real PNG images */
 function BrandLogos() {
     const brands = [
-        {
-            name: "Bistrot Auguste",
-            subtitle: "Restauration",
-            imageSrc: "/marketing/brand-bistro.png",
-        },
-        {
-            name: "Clinique Bellevue",
-            subtitle: "Santé",
-            imageSrc: "/marketing/brand-clinic.png",
-        },
-        {
-            name: "Nova SAV",
-            subtitle: "Retail & SAV",
-            imageSrc: "/marketing/brand-sav.png",
-        },
-        {
-            name: "Magic Park",
-            subtitle: "Parcs d'attractions & festivals",
-            imageSrc: "/marketing/usecase-event-ai.png",
-        },
+        { name: "Bistrot Auguste",   subtitle: "Restauration",                  imageSrc: "/marketing/brand-bistro.png",    color: "#D97706", colorLight: "#FFFBEB" },
+        { name: "Clinique Bellevue", subtitle: "Santé",                          imageSrc: "/marketing/brand-clinic.png",    color: "#059669", colorLight: "#ECFDF5" },
+        { name: "Nova SAV",          subtitle: "Retail & SAV",                   imageSrc: "/marketing/brand-sav.png",       color: "#4F46E5", colorLight: "#EEF2FF" },
+        { name: "Magic Park",        subtitle: "Parcs d'attractions & festivals", imageSrc: "/marketing/brand-magicpark.svg", color: "#DB2777", colorLight: "#FDF2F8" },
     ]
 
     return (
         <div className="flex flex-col gap-2">
             {brands.map((brand) => (
-                <div key={brand.name} className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-[#E5E7EB]">
-                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#E5E7EB] flex-shrink-0">
+                <div key={brand.name} className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-[#E5E7EB] overflow-hidden relative">
+                    <div className="absolute left-0 inset-y-0 w-1 rounded-l-xl" style={{ backgroundColor: brand.color }} />
+                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#E5E7EB] flex-shrink-0 ml-2">
                         <Image
                             src={brand.imageSrc}
                             alt={`Logo ${brand.name}`}
@@ -241,7 +226,7 @@ function BrandLogos() {
                     </div>
                     <div>
                         <div className="text-sm font-semibold text-[#111827]">{brand.name}</div>
-                        <div className="text-xs text-[#6B7280]">{brand.subtitle}</div>
+                        <div className="text-xs font-medium" style={{ color: brand.color }}>{brand.subtitle}</div>
                     </div>
                 </div>
             ))}
@@ -422,8 +407,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                 Votre logo, votre couleur. Vos clients ne voient que vous.
                             </p>
                         </div>
-                        {/* Brand logos hidden on mobile to save space */}
-                        <div className="hidden sm:block mt-4">
+                        <div className="mt-4">
                             <BrandLogos />
                         </div>
                     </BentoCard>
@@ -437,8 +421,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                                 Suivez votre file par heure, votre temps moyen et vos pics sur la même vue.
                             </p>
                         </div>
-                        {/* Stats board hidden on mobile to save space */}
-                        <div className="hidden sm:block mt-4">
+                        <div className="mt-4">
                             <LiveStatsBoard />
                         </div>
                     </BentoCard>
