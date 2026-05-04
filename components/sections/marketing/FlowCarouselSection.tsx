@@ -9,7 +9,11 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 // --- Mockups Components ---
 
-function SetupMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
+function SetupMockup({ businessName = "Le Bistrot du Coin", brandColor = "#D97706" }: { businessName?: string; brandColor?: string }) {
+    const palette = ["#D97706", "#059669", "#DB2777", "#4F46E5", "#111827"]
+    const selectedIdx = palette.includes(brandColor) ? palette.indexOf(brandColor) : 0
+    const displayPalette = selectedIdx === 0 ? palette : [brandColor, ...palette.filter(c => c !== brandColor)]
+
     return (
         <div className="pointer-events-none scale-[0.65] sm:scale-[0.85] lg:scale-100 origin-center w-full max-w-[380px] rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden">
             <div className="bg-[#F8F9FA] px-5 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
@@ -17,13 +21,12 @@ function SetupMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: s
                     <h3 className="text-sm font-bold text-[#111827]">Paramètres de la file</h3>
                     <p className="text-[10px] text-[#6B7280] mt-0.5">Personnalisez l&apos;expérience de vos clients</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center">
-                    <Settings size={16} className="text-[#6366F1]" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                    <Settings size={16} style={{ color: brandColor }} />
                 </div>
             </div>
 
             <div className="p-5 space-y-5">
-                {/* Brand Name */}
                 <div>
                     <label className="block text-[11px] font-semibold text-[#374151] mb-1.5">Nom de l&apos;établissement</label>
                     <div className="flex rounded-md shadow-sm">
@@ -40,25 +43,30 @@ function SetupMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: s
                     </div>
                 </div>
 
-                {/* Brand Color */}
                 <div>
                     <label className="block text-[11px] font-semibold text-[#374151] mb-2">Couleur principale</label>
                     <div className="flex gap-3">
-                        {['#6366F1', '#10B981', '#F43F5E', '#F59E0B', '#111827'].map((color, i) => (
-                            <div key={i} className={cn("w-8 h-8 rounded-full relative shadow-sm border border-black/10", i===0 && "ring-2 ring-offset-2 ring-[#6366F1]")} style={{ backgroundColor: color }}>
+                        {displayPalette.map((color, i) => (
+                            <div
+                                key={i}
+                                className="w-8 h-8 rounded-full relative shadow-sm border border-black/10"
+                                style={{
+                                    backgroundColor: color,
+                                    ...(i === 0 ? { outline: `2px solid ${color}`, outlineOffset: "2px" } : {}),
+                                }}
+                            >
                                 {i === 0 && <span className="absolute inset-0 flex items-center justify-center"><CheckCircle2 size={14} className="text-white drop-shadow-md" /></span>}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* QR Code Action */}
                 <div className="pt-2 flex justify-end gap-3">
                     <span className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-semibold text-[#374151] shadow-sm flex items-center gap-1.5">
                         <QrCode size={14} />
                         Voir le QR Code
                     </span>
-                    <span className="px-4 py-2 bg-[#111827] text-white rounded-lg text-xs font-semibold shadow-sm">
+                    <span className="px-4 py-2 text-white rounded-lg text-xs font-semibold shadow-sm" style={{ backgroundColor: brandColor }}>
                         Enregistrer
                     </span>
                 </div>
@@ -74,7 +82,7 @@ const SECTOR_SLUGS: Record<string, string> = {
     event: "magic-park",
 }
 
-function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: string }) {
+function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: string; brandColor?: string }) {
     return (
         <div className="pointer-events-none scale-[0.55] sm:scale-75 lg:scale-90 origin-center">
             <QRCodeDisplay slug={slug} size={180} mockMode={true} />
@@ -82,7 +90,7 @@ function ScanMockup({ slug = "lebistrot" }: { businessName?: string; slug?: stri
     )
 }
 
-function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
+function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string; brandColor?: string }) {
     return (
         <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={false} businessName={businessName} />
@@ -90,47 +98,47 @@ function WaitMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: st
     )
 }
 
-function CallMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
+function CallMockup({ businessName = "Le Bistrot du Coin", brandColor = "#D97706" }: { businessName?: string; brandColor?: string }) {
     return (
         <div className="pointer-events-none scale-[0.65] sm:scale-[0.85] lg:scale-100 origin-center w-full max-w-[380px]">
             <div className="w-full rounded-[1rem] bg-white p-4 shadow-xl border border-[#E5E7EB]">
                 <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5E7EB]">
                     <div>
-                    <h3 className="text-sm font-bold text-[#111827]">{businessName}</h3>
-                    <p className="text-[10px] text-[#6B7280]">18 personnes en attente</p>
+                        <h3 className="text-sm font-bold text-[#111827]">{businessName}</h3>
+                        <p className="text-[10px] text-[#6B7280]">18 personnes en attente</p>
+                    </div>
+                    <div className="bg-[#DCFCE7] text-[#15803D] px-2 py-1 rounded text-[10px] font-bold">Ouvert</div>
                 </div>
-                <div className="bg-[#DCFCE7] text-[#15803D] px-2 py-1 rounded text-[10px] font-bold">Ouvert</div>
-            </div>
-            
-            <div className="space-y-2">
-                <div className="flex items-center justify-between bg-[#F9FAFB] p-3 rounded-lg border border-[#E5E7EB]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm border border-[#E5E7EB]">42</div>
-                        <div>
-                            <p className="text-xs font-bold text-[#111827]">Thomas D.</p>
-                            <p className="text-[10px] text-[#6B7280]">Attends depuis 8 min</p>
+
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between bg-[#F9FAFB] p-3 rounded-lg border border-[#E5E7EB]">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm border border-[#E5E7EB]">42</div>
+                            <div>
+                                <p className="text-xs font-bold text-[#111827]">Thomas D.</p>
+                                <p className="text-[10px] text-[#6B7280]">Attends depuis 8 min</p>
+                            </div>
+                        </div>
+                        <span className="text-white px-3 py-1.5 rounded-md text-[10px] font-bold shadow-sm flex items-center gap-1" style={{ backgroundColor: brandColor }}>
+                            <BellRing size={12} className="animate-pulse" />
+                            Appeler
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-[#E5E7EB] opacity-60">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-[#F3F4F6] rounded-full flex items-center justify-center font-bold text-sm">43</div>
+                            <div>
+                                <p className="text-xs font-bold text-[#111827]">Marie L.</p>
+                            </div>
                         </div>
                     </div>
-                    <span className="bg-[#6366F1] text-white px-3 py-1.5 rounded-md text-[10px] font-bold shadow-sm flex items-center gap-1 relative overflow-hidden">
-                        <BellRing size={12} className="animate-pulse" />
-                        Appeler
-                    </span>
-                </div>
-                <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-[#E5E7EB] opacity-60">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#F3F4F6] rounded-full flex items-center justify-center font-bold text-sm">43</div>
-                        <div>
-                            <p className="text-xs font-bold text-[#111827]">Marie L.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
         </div>
     )
 }
 
-function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
+function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string; brandColor?: string }) {
     return (
         <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-90 origin-center flex items-center justify-center">
             <ClientWidgetMockup showNotification={true} businessName={businessName} />
@@ -138,7 +146,7 @@ function NotifyMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: 
     )
 }
 
-function StatsMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string }) {
+function StatsMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string; brandColor?: string }) {
     return (
         <div className="pointer-events-none scale-[0.60] sm:scale-75 lg:scale-95 origin-center">
             <MerchantDashboardMockup businessName={businessName} />
@@ -147,10 +155,10 @@ function StatsMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: s
 }
 
 const TARGETS = [
-    { id: "restauration", label: "Restauration", businessName: "Le Bistrot du Coin" },
-    { id: "sante", label: "Santé", businessName: "Cabinet Dr. Martin" },
-    { id: "retail", label: "Retail & SAV", businessName: "Nova SAV" },
-    { id: "event", label: "Événementiel & Loisirs", businessName: "Magic Park" },
+    { id: "restauration", label: "Restauration",          businessName: "Le Bistrot du Coin",  brandColor: "#D97706", colorLight: "#FFFBEB", colorBorder: "#FDE68A" },
+    { id: "sante",        label: "Santé",                 businessName: "Cabinet Dr. Martin",  brandColor: "#059669", colorLight: "#ECFDF5", colorBorder: "#A7F3D0" },
+    { id: "retail",       label: "Retail & SAV",          businessName: "Nova SAV",            brandColor: "#4F46E5", colorLight: "#EEF2FF", colorBorder: "#C7D2FE" },
+    { id: "event",        label: "Événementiel & Loisirs", businessName: "Magic Park",         brandColor: "#DB2777", colorLight: "#FDF2F8", colorBorder: "#FBCFE8" },
 ]
 
 const TARGET_CONTENT = {
@@ -412,6 +420,9 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     const CurrentMockup = stepData.Mockup
     const currentTarget = TARGETS.find(t => t.id === targetId)
     const businessName = currentTarget?.businessName ?? "Mon Établissement"
+    const brandColor = currentTarget?.brandColor ?? "#4F46E5"
+    const colorLight = currentTarget?.colorLight ?? "#EEF2FF"
+    const colorBorder = currentTarget?.colorBorder ?? "#C7D2FE"
     const slug = SECTOR_SLUGS[targetId] ?? targetId
 
     return (
@@ -435,12 +446,12 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             <button
                                 key={t.id}
                                 onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
-                                className={cn(
-                                    "relative px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-center",
+                                className="relative px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-center"
+                                style={
                                     targetId === t.id
-                                        ? "bg-[#4F46E5] text-white shadow-md shadow-[#6366F1]/25"
-                                        : "bg-[#EEF2FF] text-[#6B7280] hover:text-[#111827] hover:bg-[#E0E7FF]"
-                                )}
+                                        ? { backgroundColor: t.brandColor, color: "#fff" }
+                                        : { backgroundColor: t.colorLight, color: "#6B7280" }
+                                }
                             >
                                 {t.label}
                             </button>
@@ -448,17 +459,13 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                     </div>
                     {/* sm+: pill row */}
                     <div className="hidden sm:flex justify-center">
-                        <div className="inline-flex items-center p-1 bg-[#EEF2FF] rounded-full">
+                        <div className="inline-flex items-center p-1 rounded-full transition-colors duration-500" style={{ backgroundColor: colorLight }}>
                             {TARGETS.map(t => (
                                 <button
                                     key={t.id}
                                     onClick={() => handleTargetChange(t.id as keyof typeof TARGET_CONTENT)}
-                                    className={cn(
-                                        "relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-150",
-                                        targetId === t.id
-                                            ? "text-[#4F46E5]"
-                                            : "text-[#6B7280] hover:text-[#111827]"
-                                    )}
+                                    className="relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-150"
+                                    style={targetId === t.id ? { color: t.brandColor } : { color: "#6B7280" }}
                                 >
                                     {targetId === t.id && (
                                         <motion.span
@@ -491,39 +498,36 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                     aria-current={isActive ? "step" : undefined}
                                 >
                                     {/* Step number — sm+ only */}
-                                    <span className={cn(
-                                        "hidden sm:block text-[10px] font-semibold tracking-wide transition-colors mb-0.5",
-                                        isActive ? "text-[#111827]" : isDone ? "text-[#6366F1]" : "text-[#9CA3AF] group-hover:text-[#6B7280]",
-                                    )}>
+                                    <span
+                                        className="hidden sm:block text-[10px] font-semibold tracking-wide mb-0.5 transition-colors"
+                                        style={{ color: isActive ? "#111827" : isDone ? brandColor : "#9CA3AF" }}
+                                    >
                                         {idx + 1}
                                     </span>
 
                                     {/* Bar track */}
                                     <div className="relative w-full h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
                                         <div
-                                            className={cn(
-                                                "absolute inset-y-0 left-0 rounded-full transition-[width]",
-                                                isDone ? "bg-[#6366F1] w-full" : isActive ? "bg-[#6366F1]" : "bg-transparent w-0",
-                                            )}
-                                            style={isActive ? { width: `${progress * 100}%`, transition: "width 50ms linear" } : undefined}
+                                            className="absolute inset-y-0 left-0 rounded-full"
+                                            style={{
+                                                width: isDone ? "100%" : isActive ? `${progress * 100}%` : "0%",
+                                                backgroundColor: isDone || isActive ? brandColor : "transparent",
+                                                transition: isActive ? "width 50ms linear" : undefined,
+                                            }}
                                         />
                                     </div>
 
                                     {/* Mobile: colored dot only */}
                                     <span
-                                        className={cn(
-                                            "mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-opacity sm:hidden",
-                                            step.side === 'merchant' ? "bg-[#10B981]" : "bg-[#6366F1]",
-                                            !isActive && !isDone && "opacity-30"
-                                        )}
+                                        className={cn("mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-opacity sm:hidden", !isActive && !isDone && "opacity-30")}
+                                        style={{ backgroundColor: step.side === "merchant" ? "#10B981" : brandColor }}
                                     />
                                     {/* Desktop: text label */}
-                                    <span className={cn(
-                                        "hidden sm:block text-[9px] font-bold tracking-wider uppercase mt-1 transition-colors",
-                                        step.side === 'merchant' ? "text-[#10B981]" : "text-[#6366F1]",
-                                        !isActive && !isDone && "opacity-40"
-                                    )}>
-                                        {step.side === 'merchant' ? 'Commerçant' : 'Client'}
+                                    <span
+                                        className={cn("hidden sm:block text-[9px] font-bold tracking-wider uppercase mt-1 transition-colors", !isActive && !isDone && "opacity-40")}
+                                        style={{ color: step.side === "merchant" ? "#10B981" : brandColor }}
+                                    >
+                                        {step.side === "merchant" ? "Commerçant" : "Client"}
                                     </span>
                                 </button>
                             )
@@ -542,10 +546,10 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                     transition={{ duration: 0.3 }}
                                 >
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-4 bg-white border border-[#E5E7EB] shadow-sm">
-                                        {stepData.side === 'merchant' ? (
+                                        {stepData.side === "merchant" ? (
                                             <><span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" /> Côté Marchand</>
                                         ) : (
-                                            <><span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" /> Côté Client</>
+                                            <><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }} /> Côté Client</>
                                         )}
                                     </div>
                                     <h3 className="text-2xl sm:text-3xl font-black text-[#111827] mb-4">
@@ -566,9 +570,10 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={handleNext}
-                                    className="w-12 h-12 rounded-full bg-[#111827] flex items-center justify-center text-white hover:bg-[#374151] shadow-md transition-all"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md transition-all"
+                                    style={{ backgroundColor: brandColor }}
                                     aria-label="Étape suivante"
                                 >
                                     <ChevronRight size={20} />
@@ -576,8 +581,11 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             </div>
                         </div>
 
-                        {/* Right: Mockup Carousel — pointer-events-none to prevent interaction distraction */}
-                        <div className="flex relative w-full h-[280px] sm:h-[380px] lg:h-[450px] items-center justify-center rounded-[1.5rem] bg-[#EEF2FF] border border-[#E0E7FF] overflow-hidden order-1 lg:order-2 pointer-events-none select-none">
+                        {/* Right: Mockup Carousel */}
+                        <div
+                            className="flex relative w-full h-[280px] sm:h-[380px] lg:h-[450px] items-center justify-center rounded-[1.5rem] overflow-hidden order-1 lg:order-2 pointer-events-none select-none transition-colors duration-500"
+                            style={{ backgroundColor: colorLight, border: `1px solid ${colorBorder}` }}
+                        >
                             {/* Decorative background circle */}
                             <div className="absolute w-[300px] h-[300px] rounded-full bg-white/40 blur-3xl" />
                             
@@ -591,7 +599,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     className="relative z-10 flex items-center justify-center w-full h-full"
                                 >
-                                    <CurrentMockup businessName={businessName} slug={slug} />
+                                    <CurrentMockup businessName={businessName} slug={slug} brandColor={brandColor} />
                                 </motion.div>
                             </AnimatePresence>
                         </div>
