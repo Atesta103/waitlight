@@ -10,7 +10,6 @@ import {
     Plus,
     X,
     Save,
-    Loader2,
     CalendarClock,
 } from "lucide-react"
 import type { ScheduleData, WeeklyScheduleDay, ScheduleException } from "@/lib/actions/settings"
@@ -351,11 +350,7 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                         disabled={isSaving}
                         isLoading={isSaving}
                     >
-                        {isSaving ? (
-                            <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                            <Save size={16} />
-                        )}
+                        {isSaving ? null : <Save size={16} />}
                         Enregistrer les horaires
                     </Button>
                 </div>

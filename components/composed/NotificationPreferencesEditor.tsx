@@ -13,7 +13,6 @@ import {
     MessageSquare,
     BellRing,
     Save,
-    Loader2,
     Target,
     Clock,
     CheckCircle2,
@@ -364,11 +363,7 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                         disabled={isSaving}
                         isLoading={isSaving}
                     >
-                        {isSaving ? (
-                            <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                            <Save size={16} />
-                        )}
+                        {isSaving ? null : <Save size={16} />}
                         Enregistrer
                     </Button>
                 </div>

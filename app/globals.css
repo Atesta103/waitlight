@@ -160,6 +160,22 @@
   100% { background-position: -200% center; }
 }
 
+@keyframes waitlight-loader {
+  0%, 100% {
+    opacity: 0.22;
+    transform: scaleY(0.72);
+  }
+  45%, 55% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.animate-waitlight-loader {
+  animation: waitlight-loader 900ms ease-in-out infinite;
+  transform-origin: center;
+}
+
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,

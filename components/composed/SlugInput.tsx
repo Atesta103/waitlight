@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useId } from "react"
+import { Spinner } from "@/components/ui/Spinner"
 import { cn } from "@/lib/utils/cn"
-import { Check, X, Loader2 } from "lucide-react"
+import { Check, X } from "lucide-react"
 
 type SlugStatus = "idle" | "checking" | "available" | "taken"
 
@@ -84,10 +85,10 @@ function SlugInput({
     const statusIcon = {
         idle: null,
         checking: (
-            <Loader2
-                size={16}
-                className="animate-spin text-text-secondary"
-                aria-hidden="true"
+            <Spinner
+                size="sm"
+                className="text-text-secondary"
+                label="Vérification du slug"
             />
         ),
         available: (

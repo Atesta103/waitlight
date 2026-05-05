@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef } from "react"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "./Spinner"
 import { buttonVariants, buttonSizes, getButtonClasses } from "./button-classes"
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -31,11 +31,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 {...props}
             >
                 {isLoading ? (
-                    <Loader2
-                        className="animate-spin"
-                        aria-hidden="true"
-                        size={18}
-                    />
+                    <Spinner size="sm" label="Chargement" className="text-current" />
                 ) : null}
                 {children}
             </button>

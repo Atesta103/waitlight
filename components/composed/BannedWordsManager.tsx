@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { Spinner } from "@/components/ui/Spinner"
 import { cn } from "@/lib/utils/cn"
-import { Plus, X, Search, ShieldAlert, Loader2 } from "lucide-react"
+import { Plus, X, Search, ShieldAlert } from "lucide-react"
 import {
     getBannedWordsAction,
     addBannedWordAction,
@@ -158,7 +159,11 @@ function BannedWordsManager({ className }: BannedWordsManagerProps) {
             {/* Word list */}
             {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 size={20} className="animate-spin text-text-secondary" />
+                    <Spinner
+                        size="md"
+                        className="text-text-secondary"
+                        label="Chargement des mots bannis"
+                    />
                 </div>
             ) : filteredWords.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-10 text-center rounded-2xl border border-dashed border-border-default bg-surface-base/50">
@@ -187,7 +192,11 @@ function BannedWordsManager({ className }: BannedWordsManagerProps) {
                                 aria-label={`Supprimer "${word.word}"`}
                             >
                                 {removingIds.has(word.id) ? (
-                                    <Loader2 size={12} className="animate-spin" />
+                                    <Spinner
+                                        size="sm"
+                                        className="scale-75 text-current"
+                                        label="Suppression du mot"
+                                    />
                                 ) : (
                                     <X size={12} strokeWidth={2.5} />
                                 )}

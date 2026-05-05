@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
-import { ProgressBar } from "@/components/ui/ProgressBar"
+import { ActiveLine } from "@/components/ui/ActiveLine"
 import { Select } from "@/components/ui/Select"
 import { SlugInput, type SlugStatus } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
@@ -116,6 +116,7 @@ function OnboardingForm({
         <div className={cn("flex flex-col gap-6", className)}>
             {/* Stepper */}
             <div className="flex flex-col gap-3">
+                <ActiveLine value={step + 1} max={STEPS.length} label="Progression de l'onboarding" />
                 <div className="flex items-center justify-between">
                     {STEPS.map((s, i) => {
                         const Icon = s.icon
@@ -153,13 +154,12 @@ function OnboardingForm({
                                     {s.label}
                                 </span>
                                 {i < STEPS.length - 1 ? (
-                                    <div className="mx-2 h-px flex-1 bg-border-default" />
+                                    <div className="mx-2 h-px flex-1 bg-border-default sm:hidden" />
                                 ) : null}
                             </div>
                         )
                     })}
                 </div>
-                <ProgressBar value={step + 1} max={STEPS.length} size="sm" />
             </div>
 
             {/* Step content */}

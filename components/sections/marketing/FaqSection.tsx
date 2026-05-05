@@ -17,7 +17,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Comment fonctionne l'essai gratuit ?",
-        answer: "L'essai dure 14 jours et vous accédez à toutes les fonctionnalités de Waitlight. À l'issue des 14 jours, votre abonnement commence automatiquement.",
+        answer: "L'essai dure 14 jours et vous accédez à toutes les fonctionnalités de WaitLight. À l'issue des 14 jours, votre abonnement commence automatiquement.",
     },
     {
         question: "Y a-t-il un plan gratuit permanent ?",

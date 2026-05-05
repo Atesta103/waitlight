@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle2, Loader2, AlertCircle, Send, ChevronDown } from "lucide-react"
+import { CheckCircle2, AlertCircle, Send, ChevronDown } from "lucide-react"
+import { Spinner } from "@/components/ui/Spinner"
 import { cn } from "@/lib/utils/cn"
 import { CONTACT_SUBJECTS, ContactSchema, type ContactInput } from "@/lib/validators/contact"
 import { sendContactMessageAction } from "@/lib/actions/contact"
@@ -306,7 +307,11 @@ export function ContactForm() {
                 )}
             >
                 {status === "loading" ? (
-                    <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                    <Spinner
+                        size="sm"
+                        className="text-current"
+                        label="Envoi du message"
+                    />
                 ) : (
                     <Send size={16} aria-hidden="true" />
                 )}
