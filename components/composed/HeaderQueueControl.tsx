@@ -89,6 +89,8 @@ export function HeaderQueueControl({
     return (
         <Link
             href="/dashboard/qr-display"
+            target="_blank"
+            rel="noopener noreferrer"
             className={controlClasses}
             aria-label="Voir le QR code en plein écran"
         >

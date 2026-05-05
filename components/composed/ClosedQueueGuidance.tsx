@@ -3,11 +3,12 @@
 import Link from "next/link"
 import {
     BarChart2,
+    BellRing,
     CheckCircle2,
     Palette,
     Play,
     QrCode,
-    Sparkles,
+    Settings2,
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
@@ -22,29 +23,53 @@ type ClosedQueueGuidanceProps = {
 const ACTIONS = [
     {
         title: "Afficher le QR code",
-        description: "Préparez l'écran que vos clients scanneront à l'accueil.",
+        description: "Ouvrez l'écran plein format dans un nouvel onglet.",
         href: "/dashboard/qr-display",
         icon: QrCode,
+        target: "_blank",
     },
     {
-        title: "Personnaliser l'expérience",
-        description: "Logo, couleurs, messages et capacité de votre file.",
-        href: "/dashboard/settings",
+        title: "Personnaliser l'apparence",
+        description: "Logo, couleurs, thème et rendu côté client.",
+        href: "/dashboard/settings#display",
         icon: Palette,
+        target: undefined,
     },
     {
-        title: "Consulter les analytiques",
-        description: "Suivez les volumes, temps d'attente et pics d'activité.",
-        href: "/analytics",
-        icon: BarChart2,
+        title: "Régler la file",
+        description: "Capacité, messages client et options d'accueil.",
+        href: "/dashboard/settings#queue",
+        icon: Settings2,
+        target: undefined,
     },
 ] as const
 
 const CHECKLIST = [
-    "Ouvrir la file quand vous êtes prêt à recevoir du monde",
-    "Afficher le QR code sur une tablette ou une affiche",
-    "Personnaliser les couleurs et le message client",
-    "Suivre les premiers passages dans les analytiques",
+    "Vérifier le logo et les couleurs visibles par les clients",
+    "Ajuster la capacité et le message affiché au scan",
+    "Configurer les notifications si vous les utilisez",
+    "Ouvrir la file quand l'équipe est prête à recevoir du monde",
+] as const
+
+const SETTINGS_LINKS = [
+    {
+        title: "Identité client",
+        description: "Nom, logo, couleur et thème de l'expérience.",
+        href: "/dashboard/settings#identity",
+        icon: Palette,
+    },
+    {
+        title: "Notifications",
+        description: "Canaux, son et alerte avant le passage.",
+        href: "/dashboard/settings#notification-prefs",
+        icon: BellRing,
+    },
+    {
+        title: "Analytiques",
+        description: "Suivre les volumes dès les premiers passages.",
+        href: "/analytics",
+        icon: BarChart2,
+    },
 ] as const
 
 function ClosedQueueGuidance({
@@ -64,9 +89,6 @@ function ClosedQueueGuidance({
             <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="flex flex-col gap-5">
                     <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5">
-                        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary text-text-inverse">
-                            <Play size={18} aria-hidden="true" />
-                        </div>
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
                             File en pause
                         </p>
@@ -79,7 +101,7 @@ function ClosedQueueGuidance({
                         <p className="mt-2 max-w-xl text-sm text-text-secondary">
                             Les {customerLabelPlural} ne peuvent pas rejoindre
                             pour l&apos;instant. Ouvrez la file quand votre équipe
-                            est prête, puis affichez le QR code à l&apos;accueil.
+                            est prête à recevoir de nouveaux tickets.
                         </p>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <Button
@@ -105,6 +127,8 @@ function ClosedQueueGuidance({
                                 <Link
                                     key={action.href}
                                     href={action.href}
+                                    target={action.target}
+                                    rel={action.target ? "noopener noreferrer" : undefined}
                                     className="group rounded-lg border border-border-default bg-surface-base p-4 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
                                 >
                                     <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-surface-card text-brand-primary">
@@ -125,13 +149,13 @@ function ClosedQueueGuidance({
                 <aside className="flex flex-col gap-4 rounded-lg border border-border-default bg-surface-base p-4 sm:p-5">
                     <div>
                         <div className="mb-3 flex items-center gap-2">
-                            <Sparkles
+                            <CheckCircle2
                                 size={16}
-                                className="text-brand-primary"
+                                className="text-feedback-success"
                                 aria-hidden="true"
                             />
                             <h3 className="text-sm font-semibold text-text-primary">
-                                Avant le premier scan
+                                Avant d&apos;ouvrir
                             </h3>
                         </div>
                         <ul className="space-y-2.5">
@@ -152,27 +176,33 @@ function ClosedQueueGuidance({
                     </div>
 
                     <div className="border-t border-border-default pt-4">
-                        <div className="mb-3 flex items-center gap-2">
-                            <QrCode
-                                size={16}
-                                className="text-brand-primary"
-                                aria-hidden="true"
-                            />
-                            <h3 className="text-sm font-semibold text-text-primary">
-                                Préparer l&apos;accueil
-                            </h3>
+                        <h3 className="mb-3 text-sm font-semibold text-text-primary">
+                            Raccourcis utiles
+                        </h3>
+                        <div className="grid gap-2">
+                            {SETTINGS_LINKS.map((link) => {
+                                const Icon = link.icon
+                                return (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className="group flex gap-3 rounded-lg border border-border-default bg-surface-card p-3 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                    >
+                                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface-base text-brand-primary">
+                                            <Icon size={15} aria-hidden="true" />
+                                        </span>
+                                        <span>
+                                            <span className="block text-sm font-medium text-text-primary">
+                                                {link.title}
+                                            </span>
+                                            <span className="mt-0.5 block text-xs text-text-secondary">
+                                                {link.description}
+                                            </span>
+                                        </span>
+                                    </Link>
+                                )
+                            })}
                         </div>
-                        <p className="mb-3 text-sm text-text-secondary">
-                            Affichez le QR code sur une tablette ou un écran
-                            avant d&apos;ouvrir la file. Les premiers clients
-                            pourront scanner dès que vous passez en ouvert.
-                        </p>
-                        <Link
-                            href="/dashboard/qr-display"
-                            className="inline-flex h-10 items-center justify-center rounded-md border border-border-default bg-surface-card px-3 text-sm font-medium text-text-primary transition-colors hover:bg-border-default/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                        >
-                            Afficher le QR code
-                        </Link>
                     </div>
                 </aside>
             </div>
