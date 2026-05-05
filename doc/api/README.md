@@ -1,8 +1,8 @@
-**Wait-Light Backend API**
+**WaitLight Backend API**
 
 ***
 
-# Wait-Light Backend API
+# WaitLight Backend API
 
 ## Modules
 
@@ -94,11 +94,11 @@ Next.js Middleware (named `proxy` to avoid Next.js file naming ambiguity).
 1. Refresh the Supabase session cookie so Server Components always see the latest auth state.
 2. Protect `(dashboard)` + `/onboarding` routes — redirect unauthenticated users to `/login`.
 3. Redirect authenticated users away from auth pages to `/dashboard`.
-4. Redirect `/` to either `/dashboard` (authed) or `/login` (unauthed).
+4. Leave `/` publicly accessible (marketing landing page).
 
 | Route pattern | Authed | Unauthed |
 |---|---|---|
-| `/` | → `/dashboard` | → `/login` |
+| `/` | pass | pass |
 | `/dashboard/**`, `/onboarding` | pass | → `/login?redirectTo={path}` |
 | `/login`, `/register`, etc. | → `/dashboard` | pass |
 
@@ -114,21 +114,6 @@ Edit here to tune timing without hunting across multiple files.
 | Module | Description |
 | ------ | ------ |
 | [qr-config](qr-config.md) | - |
-
-### Utilities
-
-Client-side time-slot token validation for the rotating QR code.
-
-**Strategy:** the merchant dashboard generates a time-slotted integer token:
-`token = Math.floor(Date.now() / QR_REFRESH_INTERVAL_MS)`.
-The token is embedded in the join URL as `/{slug}/join?t={token}`.
-
-**Grace period:** when the QR rotates, the previous slot is still accepted
-for {@link QR_GRACE_MS} ms to cover customers who scanned just before rotation.
-
-| Module | Description |
-| ------ | ------ |
-| [qr-token](qr-token.md) | - |
 
 ### Validators
 

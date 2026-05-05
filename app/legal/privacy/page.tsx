@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-    title: "Politique de Confidentialité — Wait-Light",
-    description: "Politique de confidentialité et traitement des données personnelles du service Wait-Light.",
+    title: "Politique de Confidentialité — WaitLight",
+    description: "Politique de confidentialité et traitement des données personnelles du service WaitLight.",
 }
 
 export default function PrivacyPage() {
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-3">1. Qui sommes-nous ?</h2>
                     <p>
-                        Wait-Light est un service de file d&apos;attente digitale édité et exploité en France. En tant
+                        WaitLight est un service de file d&apos;attente digitale édité et exploité en France. En tant
                         que responsable de traitement, nous nous engageons à protéger vos données personnelles
                         conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679)
                         et à la loi Informatique et Libertés.
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
                         </li>
                         <li>
                             <strong>Données de facturation</strong> : gérées par notre prestataire de paiement
-                            (Stripe) — Wait-Light ne stocke jamais les données de carte bancaire.
+                            (Stripe) — WaitLight ne stocke jamais les données de carte bancaire.
                         </li>
                         <li>
                             <strong>Données analytiques agrégées</strong> : nombre de tickets, temps moyen de passage,
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-3">4. Hébergement et sous-traitants</h2>
                     <p>
-                        Wait-Light utilise <strong>Supabase</strong> (hébergé sur AWS eu-west-3 — région Paris) comme
+                        WaitLight utilise <strong>Supabase</strong> (hébergé sur AWS eu-west-3 — région Paris) comme
                         infrastructure de base de données et d&apos;authentification. Les données sont chiffrées en
                         transit (TLS 1.3) et au repos.
                     </p>
@@ -175,7 +175,7 @@ export default function PrivacyPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-3">7. Cookies</h2>
                     <p>
-                        Wait-Light utilise uniquement des cookies strictement nécessaires au fonctionnement du Service
+                        WaitLight utilise uniquement des cookies strictement nécessaires au fonctionnement du Service
                         (session d&apos;authentification). Aucun cookie publicitaire ou de traçage tiers n&apos;est
                         déposé sur votre navigateur. Aucun consentement n&apos;est requis pour ces cookies
                         fonctionnels.

@@ -15,7 +15,7 @@
 
 ## Business Value
 
-Le site vitrine est le premier point de contact des futurs commerçants (merchants) avec Wait-Light. Inspiré du site **Medvi** (Bento Grid, Glassmorphism, typographie XXL), il doit convaincre en quelques secondes via un design premium et des démonstrations visuelles directes. Une structure « One-Page » fluide maximise le taux de conversion et réduit le taux de rebond.
+Le site vitrine est le premier point de contact des futurs commerçants (merchants) avec WaitLight. Inspiré du site **Medvi** (Bento Grid, Glassmorphism, typographie XXL), il doit convaincre en quelques secondes via un design premium et des démonstrations visuelles directes. Une structure « One-Page » fluide maximise le taux de conversion et réduit le taux de rebond.
 
 ---
 
@@ -63,7 +63,7 @@ box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 
 ### 3.1 Navigation (`MarketingNav`)
 
-- Logo Wait-Light à **gauche**.
+- Logo WaitLight à **gauche**.
 - Liens d'ancre au **centre** : Fonctionnalités · Tarifs · FAQ.
 - Bouton `"Connexion"` (variant `ghost`) à **droite** + bouton `"Démarrer"` (variant `primary`) optionnel.
 - Navigation sticky transparente qui obtient un fond blanc semi-opaque avec `backdrop-blur` au scroll.
@@ -177,7 +177,7 @@ MarketingFooter.tsx       ← Footer légal
 - `app/page.tsx` : Server Component. Zéro fetch client.
 - `next/image` obligatoire pour le mockup du Hero et la case « Marque blanche ».
 - `generateMetadata` dans `app/page.tsx` :
-  - Title : `"Wait-Light — La file d'attente digitale pour votre commerce"`
+  - Title : `"WaitLight — La file d'attente digitale pour votre commerce"`
   - Description : cibler « file d'attente digitale », « logiciel file d'attente »
   - OpenGraph : image du mockup Hero
 

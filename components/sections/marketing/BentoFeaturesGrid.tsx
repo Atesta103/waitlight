@@ -298,7 +298,7 @@ function LargePhoneMockup() {
 
 /**
  * Bento Grid features section.
- * 6-card glass grid showcasing Wait-Light capabilities.
+ * 6-card glass grid showcasing WaitLight capabilities.
  */
 export function BentoFeaturesGrid({ id }: { id?: string }) {
     return (

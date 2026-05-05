@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { OnboardingClient } from "./OnboardingClient"
 
 export const metadata: Metadata = {
-    title: "Configurer mon établissement — Wait-Light",
+    title: "Configurer mon établissement — WaitLight",
     description:
         "Créez votre profil marchand et configurez votre file d'attente.",
 }

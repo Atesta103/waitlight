@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / actions/auth
+[WaitLight Backend API](../README.md) / actions/auth
 
 # actions/auth
 
@@ -20,7 +20,7 @@ function forgotPasswordAction(formData): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/auth.ts:206](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L206)
+Defined in: [lib/actions/auth.ts:206](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L206)
 
 Send a password-reset email to the given address.
 
@@ -62,7 +62,7 @@ function loginAction(formData): Promise<{
 }>;
 ```
 
-Defined in: [lib/actions/auth.ts:87](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L87)
+Defined in: [lib/actions/auth.ts:87](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L87)
 
 Sign in an existing merchant with email and password.
 
@@ -107,7 +107,7 @@ function oauthSignInAction(provider): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/auth.ts:48](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L48)
+Defined in: [lib/actions/auth.ts:48](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L48)
 
 Initiate an OAuth sign-in flow with a social provider.
 
@@ -154,7 +154,7 @@ function registerAction(formData): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/auth.ts:145](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L145)
+Defined in: [lib/actions/auth.ts:145](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L145)
 
 Create a new merchant account with email and password.
 
@@ -187,7 +187,7 @@ function resetPasswordAction(formData): Promise<{
 }>;
 ```
 
-Defined in: [lib/actions/auth.ts:246](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L246)
+Defined in: [lib/actions/auth.ts:246](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L246)
 
 Update the authenticated user's password after the magic-link reset flow.
 
@@ -221,7 +221,7 @@ Redirects to `/login?reset=success` on success.
 function signOutAction(): Promise<void>;
 ```
 
-Defined in: [lib/actions/auth.ts:282](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/auth.ts#L282)
+Defined in: [lib/actions/auth.ts:282](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/auth.ts#L282)
 
 Sign out the current user.
 

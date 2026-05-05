@@ -156,7 +156,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                         <span className="text-[#6366F1] sm:ml-2">adapté à vos clients.</span>
                     </h2>
                     <p className="mt-4 text-base md:text-lg text-[#374151] max-w-lg mx-auto">
-                        Wait-Light s&apos;adapte à chaque contexte où l&apos;attente freine l&apos;expérience client.
+                        WaitLight s&apos;adapte à chaque contexte où l&apos;attente freine l&apos;expérience client.
                     </p>
                 </div>
 
@@ -303,7 +303,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                             {uc.problem}
                                         </p>
                                         <p className="mt-2 text-sm text-[#374151] leading-relaxed">
-                                            <span className="font-semibold text-[#111827]">Solution Wait-Light : </span>
+                                            <span className="font-semibold text-[#111827]">Solution WaitLight : </span>
                                             {uc.solution}
                                         </p>
                                     </div>

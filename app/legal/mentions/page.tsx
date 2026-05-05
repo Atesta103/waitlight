@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-    title: "Mentions Légales — Wait-Light",
-    description: "Mentions légales du service Wait-Light, logiciel de file d'attente digitale.",
+    title: "Mentions Légales — WaitLight",
+    description: "Mentions légales du service WaitLight, logiciel de file d'attente digitale.",
 }
 
 export default function MentionsPage() {
@@ -26,7 +26,7 @@ export default function MentionsPage() {
                     <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-2">
                         <div className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-2">
                             <span className="text-[#6B7280] font-medium">Dénomination</span>
-                            <span className="text-[#111827] font-semibold">Wait-Light</span>
+                            <span className="text-[#111827] font-semibold">WaitLight</span>
 
                             <span className="text-[#6B7280] font-medium">Forme juridique</span>
                             <span>Projet étudiant — YNOV Campus</span>
@@ -62,7 +62,7 @@ export default function MentionsPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-4">2. Directeur de la publication</h2>
                     <p>
-                        Le directeur de la publication est le responsable du projet Wait-Light au sein de
+                        Le directeur de la publication est le responsable du projet WaitLight au sein de
                         l&apos;établissement YNOV Campus.
                     </p>
                 </section>
@@ -102,7 +102,7 @@ export default function MentionsPage() {
                     <p>
                         L&apos;ensemble des contenus présents sur le site waitlight.fr (textes, graphismes, logos,
                         icônes, images, code source, interface utilisateur) est la propriété exclusive de
-                        Wait-Light et est protégé par les lois françaises et internationales applicables en matière
+                        WaitLight et est protégé par les lois françaises et internationales applicables en matière
                         de propriété intellectuelle.
                     </p>
                     <p className="mt-3">
@@ -152,7 +152,7 @@ export default function MentionsPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-4">6. Cookies</h2>
                     <p>
-                        Wait-Light utilise uniquement des cookies strictement nécessaires au bon fonctionnement du
+                        WaitLight utilise uniquement des cookies strictement nécessaires au bon fonctionnement du
                         Service (maintien de la session d&apos;authentification). Ces cookies ne nécessitent pas
                         votre consentement conformément à l&apos;article 82 de la loi Informatique et Libertés.
                     </p>

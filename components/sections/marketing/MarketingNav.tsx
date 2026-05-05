@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, Menu, X } from "lucide-react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 import { cn } from "@/lib/utils/cn"
 
 const NAV_LINKS = [
@@ -51,31 +52,9 @@ export function MarketingNav() {
                             window.scrollTo({ top: 0, behavior: "smooth" })
                         }
                     }}
-                    className="flex items-center gap-2.5 font-bold text-lg tracking-tight text-[#111827]"
+                    className="flex items-center"
                 >
-                    <svg
-                        width="36"
-                        height="36"
-                        viewBox="0 0 36 36"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                    >
-                        <rect width="36" height="36" rx="10" fill="url(#wl-grad)" />
-
-                        {/* 3 lignes de longueurs décroissantes = file d'attente */}
-                        <rect x="8" y="10" width="20" height="3" rx="1.5" fill="white" />
-                        <rect x="8" y="16.5" width="14" height="3" rx="1.5" fill="white" />
-                        <rect x="8" y="23" width="8"  height="3" rx="1.5" fill="white" />
-
-                        <defs>
-                            <linearGradient id="wl-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-                                <stop stopColor="#818CF8" />
-                                <stop offset="1" stopColor="#4F46E5" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    Wait-Light
+                    <BrandLogo />
                 </Link>
 
                 <button
@@ -111,7 +90,7 @@ export function MarketingNav() {
                             className="absolute right-0 top-0 h-full w-full max-w-sm border-l border-border-default bg-white p-6 shadow-xl"
                         >
                         <div className="flex items-center justify-between">
-                            <p className="text-lg font-bold tracking-tight text-[#111827]">Wait-Light</p>
+                            <BrandLogo />
                             <button
                                 type="button"
                                 aria-label="Fermer"

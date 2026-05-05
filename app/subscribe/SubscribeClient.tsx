@@ -93,7 +93,7 @@ export function SubscribeClient({ error, subscription }: Props) {
                 {/* Header */}
                 <div className="mb-8 text-center">
                     <h1 className="text-3xl font-bold text-text-primary">
-                        Wait-Light
+                        WaitLight
                     </h1>
                     <p className="mt-2 text-text-secondary">
                         Gérez votre file d&apos;attente sans effort

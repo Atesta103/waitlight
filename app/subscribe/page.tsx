@@ -5,8 +5,8 @@ import { isActiveStatus } from "@/lib/subscription-status"
 import { SubscribeClient } from "./SubscribeClient"
 
 export const metadata: Metadata = {
-    title: "Abonnement — Wait-Light",
-    description: "Activez votre accès Wait-Light avec un abonnement Stripe sécurisé.",
+    title: "Abonnement — WaitLight",
+    description: "Activez votre accès WaitLight avec un abonnement Stripe sécurisé.",
 }
 
 type SearchParams = Promise<{ error?: string }>

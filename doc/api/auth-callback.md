@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](README.md)
+[**WaitLight Backend API**](README.md)
 
 ***
 
-[Wait-Light Backend API](README.md) / auth-callback
+[WaitLight Backend API](README.md) / auth-callback
 
 # auth-callback
 
@@ -14,7 +14,7 @@
 function GET(request): Promise<NextResponse<unknown>>;
 ```
 
-Defined in: [app/auth/callback/route.ts:44](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/app/auth/callback/route.ts#L44)
+Defined in: [app/auth/callback/route.ts:44](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/app/auth/callback/route.ts#L44)
 
 Auth callback Route Handler.
 

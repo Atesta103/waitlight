@@ -13,7 +13,7 @@ type FaqItem = {
 const FAQ_ITEMS: FaqItem[] = [
     {
         question: "Mes clients doivent-ils télécharger une application ?",
-        answer: "Non. Wait-Light fonctionne entièrement dans le navigateur web. Vos clients scannent le QR Code avec leur appareil photo et accèdent immédiatement à leur file d'attente — aucune installation, aucun compte requis.",
+        answer: "Non. WaitLight fonctionne entièrement dans le navigateur web. Vos clients scannent le QR Code avec leur appareil photo et accèdent immédiatement à leur file d'attente — aucune installation, aucun compte requis.",
     },
     {
         question: "Comment fonctionne l'essai gratuit ?",
@@ -21,7 +21,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Y a-t-il un plan gratuit permanent ?",
-        answer: "Non. Wait-Light propose un seul plan à 29 €/mois par établissement, précédé d'un essai gratuit de 14 jours. Ce modèle nous permet de vous offrir un support prioritaire et toutes les fonctionnalités sans restriction.",
+        answer: "Non. WaitLight propose un seul plan à 29 €/mois par établissement, précédé d'un essai gratuit de 14 jours. Ce modèle nous permet de vous offrir un support prioritaire et toutes les fonctionnalités sans restriction.",
     },
     {
         question: "Comment mes clients sont-ils notifiés quand c'est leur tour ?",
@@ -29,7 +29,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Puis-je personnaliser l'interface avec mon logo et mes couleurs ?",
-        answer: "Oui, c'est inclus dans le plan. Vous pouvez uploader votre logo, choisir votre couleur principale et votre police. Vos clients voient uniquement votre marque — Wait-Light reste invisible.",
+        answer: "Oui, c'est inclus dans le plan. Vous pouvez uploader votre logo, choisir votre couleur principale et votre police. Vos clients voient uniquement votre marque — WaitLight reste invisible.",
     },
     {
         question: "Comment est calculé le temps d'attente estimé ?",
@@ -41,7 +41,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Mes données et celles de mes clients sont-elles sécurisées ?",
-        answer: "Oui. Wait-Light est hébergé sur Supabase, avec chiffrement en transit, des politiques de sécurité au niveau des lignes et une architecture où les clients ne collectent aucun compte. Nous respectons le RGPD et ne collectons que le strict minimum (prénom pour la file d'attente).",
+        answer: "Oui. WaitLight est hébergé sur Supabase, avec chiffrement en transit, des politiques de sécurité au niveau des lignes et une architecture où les clients ne collectent aucun compte. Nous respectons le RGPD et ne collectons que le strict minimum (prénom pour la file d'attente).",
     },
 ]
 

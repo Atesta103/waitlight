@@ -1,4 +1,4 @@
-# Wait-Light — Agent Engineering Rules
+# WaitLight — Agent Engineering Rules
 
 > **READ THIS ENTIRE FILE BEFORE WRITING A SINGLE LINE OF CODE.**
 > Applies to every AI agent: GitHub Copilot, Claude, Gemini, ChatGPT, Cursor, and any future model.
@@ -8,7 +8,7 @@
 
 ## 0. Project Context
 
-Wait-Light is a SaaS virtual queue app ("Scan & Go"). Two user surfaces:
+WaitLight is a SaaS virtual queue app ("Scan & Go"). Two user surfaces:
 
 - **Merchant** (authenticated) — manages the queue from `/dashboard`
 - **Customer** (anonymous) — joins via QR Code, tracks position on `/[slug]/wait/[ticketId]`

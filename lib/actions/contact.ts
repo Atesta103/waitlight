@@ -35,7 +35,7 @@ function buildHtml(input: ContactInput): string {
 <head><meta charset="UTF-8" /></head>
 <body style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;color:#111827;background:#fff">
   <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #6366F1">
-    <span style="font-size:22px;font-weight:900;color:#111827">Wait-Light</span>
+    <span style="font-size:22px;font-weight:900;color:#111827">WaitLight</span>
     <span style="margin-left:8px;font-size:13px;color:#6B7280">Contact & Support</span>
   </div>
 
@@ -100,7 +100,7 @@ export async function sendContactMessageAction(
     }
 
     const { error } = await resend.emails.send({
-        from: "Wait-Light Contact <no-reply@waitlight.fr>",
+        from: "WaitLight Contact <no-reply@waitlight.fr>",
         to: SUPPORT_EMAIL,
         replyTo: `${name} <${email}>`,
         subject: `[Contact] ${subjectLabel(subject)} — ${name}`,

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 export const metadata: Metadata = {
-    title: "Affichage QR — Wait-Light",
+    title: "Affichage QR — WaitLight",
 }
 
 /**

@@ -35,7 +35,7 @@ In `app/[slug]/layout.tsx` (for the customer view) and potentially dashboard, re
 `--font-brand: ${font_family}`
 `--radius-brand: ${border_radius}`
 
-Given we use Tailwind CSS, our `tailwind.config.ts` or `globals.css` must map these CSS variables to Tailwind classes instead of hardcoded values. Wait-Light provides only web-optimized typography to avoid performance degradation.
+Given we use Tailwind CSS, our `tailwind.config.ts` or `globals.css` must map these CSS variables to Tailwind classes instead of hardcoded values. WaitLight provides only web-optimized typography to avoid performance degradation.
 
 ### Constraints
 - Typography choices must be explicitly limited by the platform (e.g. 5-10 pre-selected, web-safe, Next.js optimized Google fonts using `next/font/google`). Custom font uploads are not allowed.

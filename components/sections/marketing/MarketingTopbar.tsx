@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ChevronRight, Menu, X } from "lucide-react"
 import { useState } from "react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 
 type MarketingTopbarProps = {
     links: Array<{
@@ -23,9 +24,9 @@ export function MarketingTopbar({ links }: MarketingTopbarProps) {
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-20 lg:px-8">
                 <Link
                     href="#hero"
-                    className="text-lg font-semibold tracking-tight text-text-primary font-[var(--font-poppins)]"
+                    className="flex items-center"
                 >
-                    Wait-Light
+                    <BrandLogo />
                 </Link>
 
                 <button
@@ -50,9 +51,7 @@ export function MarketingTopbar({ links }: MarketingTopbarProps) {
 
                     <aside className="absolute right-0 top-0 h-full w-full max-w-md border-l border-border-default bg-surface-card p-6 shadow-xl">
                         <div className="flex items-center justify-between">
-                            <p className="text-lg font-semibold tracking-tight text-text-primary font-[var(--font-poppins)]">
-                                Wait-Light
-                            </p>
+                            <BrandLogo />
                             <button
                                 type="button"
                                 aria-label="Fermer"

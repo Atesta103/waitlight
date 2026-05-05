@@ -91,7 +91,7 @@ function PushCard({ name }: { name: string }) {
             <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                        Wait-Light
+                        WaitLight
                     </span>
                     <span className="text-[10px] tabular-nums text-zinc-400">
                         maintenant
@@ -561,7 +561,7 @@ function NotificationSandbox({
                                 d&apos;adresse → <strong>Notifications</strong>{" "}
                                 → <strong>Autoriser</strong>. Sur mobile&nbsp;:
                                 Réglages → Navigateur → Notifications →
-                                Wait-Light → Autoriser.
+                                WaitLight → Autoriser.
                             </p>
                         </div>
                     </motion.div>

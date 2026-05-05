@@ -434,7 +434,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                         Un parcours sans friction.
                     </h2>
                     <p className="mt-6 text-lg leading-8 text-[#4B5563]">
-                        Découvrez comment Wait-Light fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
+                        Découvrez comment WaitLight fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
                     </p>
                 </div>
 

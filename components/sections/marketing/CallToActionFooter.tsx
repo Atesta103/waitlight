@@ -41,7 +41,7 @@ export function CallToActionFooter({ id }: CallToActionFooterProps) {
                 </div>
 
                 <footer className="mt-8 flex flex-col gap-2 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-                    <p>© {new Date().getFullYear()} Wait-Light</p>
+                    <p>© {new Date().getFullYear()} WaitLight</p>
                     <div className="flex flex-wrap gap-4">
                         <Link href="/register" className="transition-colors hover:text-text-primary">
                             Démarrer

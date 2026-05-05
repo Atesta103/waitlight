@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 
 type AuthLayoutProps = {
     children: ReactNode
@@ -35,9 +36,11 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
             {/* Header / Brand */}
             <div className="relative z-10 mb-8 flex flex-col items-center text-center">
-                <h1 className="mb-2 text-4xl font-bold tracking-tight text-brand-primary md:text-5xl">
-                    WaitLight
-                </h1>
+                <BrandLogo
+                    markClassName="h-12 w-12"
+                    textClassName="text-4xl text-brand-primary md:text-5xl"
+                    className="mb-2"
+                />
                 <p className="max-w-xs text-lg font-medium text-brand-primary opacity-80 md:max-w-sm md:text-xl">
                     Gérez votre file d&apos;attente sans effort
                 </p>
@@ -50,4 +53,3 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         </div>
     )
 }
-

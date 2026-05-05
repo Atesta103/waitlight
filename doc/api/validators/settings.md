@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / validators/settings
+[WaitLight Backend API](../README.md) / validators/settings
 
 # validators/settings
 
@@ -14,7 +14,7 @@
 type MerchantIdentityInput = z.infer<typeof MerchantIdentitySchema>;
 ```
 
-Defined in: [lib/validators/settings.ts:79](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/settings.ts#L79)
+Defined in: [lib/validators/settings.ts:100](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L100)
 
 ***
 
@@ -24,7 +24,17 @@ Defined in: [lib/validators/settings.ts:79](https://github.com/Atesta103/waitlig
 type QueueSettingsInput = z.infer<typeof QueueSettingsSchema>;
 ```
 
-Defined in: [lib/validators/settings.ts:80](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/settings.ts#L80)
+Defined in: [lib/validators/settings.ts:101](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L101)
+
+***
+
+### ThankYouTitleInput
+
+```ts
+type ThankYouTitleInput = z.infer<typeof ThankYouTitleSchema>;
+```
+
+Defined in: [lib/validators/settings.ts:102](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L102)
 
 ## Variables
 
@@ -40,6 +50,12 @@ const MerchantIdentitySchema: ZodObject<{
      9999px: "9999px";
   }>>>>;
   brand_color: ZodDefault<ZodOptional<ZodNullable<ZodString>>>;
+  business_type: ZodEnum<{
+     food: "food";
+     healthcare: "healthcare";
+     public_service: "public_service";
+     retail: "retail";
+  }>;
   default_prep_time_min: ZodNumber;
   font_family: ZodNullable<ZodOptional<ZodDefault<ZodEnum<{
      Inter: "Inter";
@@ -64,7 +80,7 @@ const MerchantIdentitySchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/settings.ts:14](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/settings.ts#L14)
+Defined in: [lib/validators/settings.ts:15](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L15)
 
 Schema for updating the merchant identity section:
 name, slug, logo, and default preparation time.
@@ -83,8 +99,21 @@ const QueueSettingsSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/settings.ts:64](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/settings.ts#L64)
+Defined in: [lib/validators/settings.ts:75](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L75)
 
 Schema for updating the queue configuration section:
 capacity, welcome message, and notification preferences.
 Validated by updateQueueSettingsAction.
+
+***
+
+### ThankYouTitleSchema
+
+```ts
+const ThankYouTitleSchema: ZodOptional<ZodNullable<ZodString>>;
+```
+
+Defined in: [lib/validators/settings.ts:94](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/settings.ts#L94)
+
+Schema for updating the title shown on the completed-ticket banner.
+Validated by updateThankYouTitleAction.

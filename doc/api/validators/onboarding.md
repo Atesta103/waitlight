@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / validators/onboarding
+[WaitLight Backend API](../README.md) / validators/onboarding
 
 # validators/onboarding
 
@@ -14,7 +14,7 @@
 type OnboardingInput = z.infer<typeof OnboardingSchema>;
 ```
 
-Defined in: [lib/validators/onboarding.ts:30](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/onboarding.ts#L30)
+Defined in: [lib/validators/onboarding.ts:32](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/onboarding.ts#L32)
 
 ## Variables
 
@@ -22,6 +22,12 @@ Defined in: [lib/validators/onboarding.ts:30](https://github.com/Atesta103/waitl
 
 ```ts
 const OnboardingSchema: ZodObject<{
+  business_type: ZodEnum<{
+     food: "food";
+     healthcare: "healthcare";
+     public_service: "public_service";
+     retail: "retail";
+  }>;
   max_capacity: ZodNumber;
   name: ZodString;
   slug: ZodString;
@@ -29,4 +35,4 @@ const OnboardingSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/onboarding.ts:9](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/validators/onboarding.ts#L9)
+Defined in: [lib/validators/onboarding.ts:10](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/onboarding.ts#L10)

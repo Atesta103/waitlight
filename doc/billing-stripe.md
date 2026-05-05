@@ -1,12 +1,12 @@
 # Stripe Billing
 
-> Part of the Wait-Light engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
+> Part of the WaitLight engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
 
 ## Live Billing Model
 
-Wait-Light uses Stripe Billing with Checkout Sessions in `subscription` mode.
+WaitLight uses Stripe Billing with Checkout Sessions in `subscription` mode.
 
-- Product: `prod_USYIrmmUBUZNb9` (`Wait-Light Pro`)
+- Product: `prod_USYIrmmUBUZNb9` (`WaitLight Pro`)
 - Price: `price_1TTdBpGXOpVdjY12j2I9RHxu`
 - Amount: 29 EUR / month / establishment
 - Trial: 14 days, card collected by Stripe Checkout

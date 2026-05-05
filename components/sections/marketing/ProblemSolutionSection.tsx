@@ -24,7 +24,7 @@ export function ProblemSolutionSection({ id }: ProblemSolutionSectionProps) {
                 <div className="mt-10 grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch lg:gap-6">
                     <Card className="rounded-3xl border-status-cancelled/35 bg-feedback-error-bg/35 p-6 sm:p-7">
                         <p className="text-xs font-semibold uppercase tracking-[0.11em] text-feedback-error">
-                            Sans Wait-Light
+                            Sans WaitLight
                         </p>
                         <h3 className="mt-3 text-2xl font-semibold text-text-primary">
                             L&apos;attente devient vite une source de friction.
@@ -54,7 +54,7 @@ export function ProblemSolutionSection({ id }: ProblemSolutionSectionProps) {
 
                     <Card className="rounded-3xl border-feedback-success/35 bg-feedback-success-bg/45 p-6 sm:p-7">
                         <p className="text-xs font-semibold uppercase tracking-[0.11em] text-feedback-success">
-                            Avec Wait-Light
+                            Avec WaitLight
                         </p>
                         <h3 className="mt-3 text-2xl font-semibold text-text-primary">
                             Le parcours devient fluide, même en heure de pointe.

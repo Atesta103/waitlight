@@ -1,6 +1,6 @@
-# Security Rules — Wait-Light
+# Security Rules — WaitLight
 
-> Part of the Wait-Light engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
+> Part of the WaitLight engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
 > The jury is **strict on security.** Apply every rule here without exception.
 
 ---

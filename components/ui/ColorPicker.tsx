@@ -11,7 +11,7 @@ type ColorPickerProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"
 }
 
 const PRESET_COLORS = [
-    "#4F46E5", // Indigo (Wait-Light par défaut)
+    "#4F46E5", // Indigo (WaitLight par défaut)
     "#0EA5E9", // Sky
     "#10B981", // Emerald
     "#F59E0B", // Amber

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
     return (
@@ -9,15 +10,9 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
                 <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 font-bold text-sm tracking-tight text-[#111827]"
+                        className="flex items-center"
                     >
-                        <span
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6366F1] text-white text-xs font-black"
-                            aria-hidden="true"
-                        >
-                            W
-                        </span>
-                        Wait-Light
+                        <BrandLogo markClassName="h-7 w-7" textClassName="text-sm" />
                     </Link>
                     <Link
                         href="/"
@@ -36,7 +31,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
             {/* Minimal footer */}
             <footer className="border-t border-[#E5E7EB] py-6 mt-8">
                 <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#6B7280]">
-                    <span>© {new Date().getFullYear()} Wait-Light. Tous droits réservés.</span>
+                    <span>© {new Date().getFullYear()} WaitLight. Tous droits réservés.</span>
                     <nav className="flex items-center gap-4" aria-label="Liens légaux">
                         <Link href="/legal/cgu" className="hover:text-[#111827] transition-colors">CGU</Link>
                         <Link href="/legal/privacy" className="hover:text-[#111827] transition-colors">Confidentialité</Link>

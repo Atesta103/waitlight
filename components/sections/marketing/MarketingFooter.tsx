@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Heart } from "lucide-react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 
 const FOOTER_LINKS = {
     product: [
@@ -61,15 +62,7 @@ export function MarketingFooter() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
                     {/* Brand column */}
                     <div className="col-span-2 md:col-span-1">
-                        <div className="flex items-center gap-2 font-bold text-lg tracking-tight text-[#111827] mb-3">
-                            <span
-                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#6366F1] text-white text-sm font-black"
-                                aria-hidden="true"
-                            >
-                                W
-                            </span>
-                            Wait-Light
-                        </div>
+                        <BrandLogo className="mb-3" />
                         <p className="text-sm text-[#374151] leading-relaxed">
                             La file d&apos;attente digitale pensée pour les commerces modernes.
                         </p>
@@ -138,7 +131,7 @@ export function MarketingFooter() {
 
                 {/* Bottom bar */}
                 <div className="border-t border-[#E5E7EB] pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#6B7280]">
-                    <span>© {currentYear} Wait-Light. Tous droits réservés.</span>
+                    <span>© {currentYear} WaitLight. Tous droits réservés.</span>
                     <span className="flex items-center gap-1">
                         Fait avec
                         <Heart

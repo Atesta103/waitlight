@@ -1,6 +1,6 @@
-# Accessibility & Inclusivity — Wait-Light
+# Accessibility & Inclusivity — WaitLight
 
-> Part of the Wait-Light engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
+> Part of the WaitLight engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
 > **Accessibility is not a bonus feature — it is a baseline requirement.**
 > Target: **WCAG 2.1 Level AA** across all pages. Both user surfaces (merchant + customer).
 
@@ -8,7 +8,7 @@
 
 ## Guiding Principle
 
-Wait-Light serves _any_ customer of _any_ merchant — including people who are blind, deaf, motor-impaired, cognitively challenged, or simply non-native French speakers. A person who cannot use the app cannot join the queue: that is a discriminatory failure, not a UX inconvenience.
+WaitLight serves _any_ customer of _any_ merchant — including people who are blind, deaf, motor-impaired, cognitively challenged, or simply non-native French speakers. A person who cannot use the app cannot join the queue: that is a discriminatory failure, not a UX inconvenience.
 
 ---
 

@@ -1,6 +1,6 @@
-# Architecture Rules — Wait-Light
+# Architecture Rules — WaitLight
 
-> Part of the Wait-Light engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
+> Part of the WaitLight engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
 
 ---
 

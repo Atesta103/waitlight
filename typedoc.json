@@ -38,7 +38,7 @@
   "excludeInternal": true,
   "excludeExternals": true,
   "skipErrorChecking": true,
-  "name": "Wait-Light Backend API",
+  "name": "WaitLight Backend API",
   "includeVersion": false,
   "categorizeByGroup": true,
   "groupOrder": ["Actions", "Validators", "Types", "Utilities", "*"],

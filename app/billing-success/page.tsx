@@ -8,7 +8,7 @@ import Link from "next/link"
 import { AlertCircle } from "lucide-react"
 
 export const metadata: Metadata = {
-    title: "Abonnement activé — Wait-Light",
+    title: "Abonnement activé — WaitLight",
 }
 
 type SearchParams = Promise<{ session_id?: string }>

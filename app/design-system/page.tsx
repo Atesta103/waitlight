@@ -301,7 +301,7 @@ export default function DesignSystemPage() {
                 <div className="mx-auto max-w-4xl space-y-16">
                     <header>
                         <h1 className="text-3xl font-bold text-text-primary">
-                            Wait-Light Design System
+                            WaitLight Design System
                         </h1>
                         <p className="mt-2 text-text-secondary">
                             Composants visuels du projet, organisés en Atoms →

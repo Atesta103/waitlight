@@ -30,9 +30,9 @@ pour mettre a jour les droits de l'utilisateur dans Supabase. Le retour Checkout
 
 ---
 
-# Wait-Light
+# WaitLight
 
-Wait-Light est un SaaS de gestion de file d'attente virtuelle (Scan and Go).
+WaitLight est un SaaS de gestion de file d'attente virtuelle (Scan and Go).
 
 Objectif:
 

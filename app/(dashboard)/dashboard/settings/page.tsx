@@ -5,7 +5,7 @@ import { getMerchantSettingsAction } from "@/lib/actions/settings"
 import { SettingsPanel } from "@/components/sections/SettingsPanel"
 
 export const metadata: Metadata = {
-    title: "Paramètres — Wait-Light",
+    title: "Paramètres — WaitLight",
 }
 
 export default async function SettingsPage() {

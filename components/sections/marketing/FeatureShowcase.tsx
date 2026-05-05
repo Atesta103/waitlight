@@ -44,7 +44,7 @@ export function FeatureShowcase({ id }: FeatureShowcaseProps) {
                     Une attente modernisée sans changer vos habitudes d&apos;équipe.
                 </h2>
                 <p className="mt-4 text-base text-text-secondary sm:text-lg">
-                    Wait-Light s&apos;adapte à vos flux actuels et améliore la perception du service dès les premiers jours.
+                    WaitLight s&apos;adapte à vos flux actuels et améliore la perception du service dès les premiers jours.
                 </p>
             </div>
 

@@ -188,9 +188,9 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         if (!ticket) return
 
         if (ticket.status === "called") {
-            document.title = "C'est votre tour ! — Wait-Light"
+            document.title = "C'est votre tour ! — WaitLight"
         } else if (position !== undefined && position > 0) {
-            document.title = `(${position}) En attente — Wait-Light`
+            document.title = `(${position}) En attente — WaitLight`
         } else {
             document.title = `File d'attente — ${merchant.name}`
         }

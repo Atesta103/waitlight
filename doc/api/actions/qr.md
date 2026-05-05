@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / actions/qr
+[WaitLight Backend API](../README.md) / actions/qr
 
 # actions/qr
 
@@ -23,7 +23,7 @@ function generateQrTokenAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/qr.ts:40](https://github.com/Atesta103/waitlight/blob/b5339e5337ff856d55f42aa7d8b642100c97c53f/lib/actions/qr.ts#L40)
+Defined in: [lib/actions/qr.ts:40](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/qr.ts#L40)
 
 Generate a cryptographic one-time token for the authenticated merchant's
 rotating QR code.

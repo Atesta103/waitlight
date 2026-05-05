@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, Clock, MessageCircle } from "lucide-react"
 import { ContactForm } from "@/components/sections/marketing/ContactForm"
 
 export const metadata: Metadata = {
-    title: "Contactez-nous — Wait-Light",
+    title: "Contactez-nous — WaitLight",
     description:
         "Une question, un problème technique, une suggestion ? Notre équipe vous répond rapidement.",
     alternates: {

@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-    title: "Conditions Générales d'Utilisation — Wait-Light",
-    description: "Conditions générales d'utilisation du service Wait-Light, logiciel de file d'attente digitale.",
+    title: "Conditions Générales d'Utilisation — WaitLight",
+    description: "Conditions générales d'utilisation du service WaitLight, logiciel de file d'attente digitale.",
 }
 
 export default function CguPage() {
@@ -24,12 +24,12 @@ export default function CguPage() {
                     <h2 className="text-lg font-bold text-[#111827] mb-3">1. Objet</h2>
                     <p>
                         Les présentes Conditions Générales d&apos;Utilisation (« CGU ») régissent l&apos;accès et
-                        l&apos;utilisation du service Wait-Light (ci-après « le Service »), un logiciel de gestion de
+                        l&apos;utilisation du service WaitLight (ci-après « le Service »), un logiciel de gestion de
                         file d&apos;attente digitale accessible via le site <strong>waitlight.fr</strong> et ses
                         sous-domaines.
                     </p>
                     <p className="mt-3">
-                        Le Service est édité et exploité par Wait-Light (ci-après « l&apos;Éditeur »). Toute utilisation
+                        Le Service est édité et exploité par WaitLight (ci-après « l&apos;Éditeur »). Toute utilisation
                         du Service, qu&apos;il s&apos;agisse d&apos;un commerçant (« Marchand ») ou d&apos;un client
                         final (« Client »), implique l&apos;acceptation pleine et entière des présentes CGU.
                     </p>
@@ -37,7 +37,7 @@ export default function CguPage() {
 
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-3">2. Description du Service</h2>
-                    <p>Wait-Light permet à des commerçants, professionnels de santé ou organisateurs d&apos;événements (« Marchands ») de :</p>
+                    <p>WaitLight permet à des commerçants, professionnels de santé ou organisateurs d&apos;événements (« Marchands ») de :</p>
                     <ul className="list-disc list-inside space-y-1 mt-3 ml-2">
                         <li>Créer et gérer une ou plusieurs files d&apos;attente digitales.</li>
                         <li>Générer et partager un QR Code permettant à leurs clients de rejoindre la file.</li>
@@ -67,7 +67,7 @@ export default function CguPage() {
                 <section>
                     <h2 className="text-lg font-bold text-[#111827] mb-3">4. Tarification et facturation</h2>
                     <p>
-                        Wait-Light est proposé au tarif de <strong>29 € HT par mois et par établissement</strong>.
+                        WaitLight est proposé au tarif de <strong>29 € HT par mois et par établissement</strong>.
                         Un essai gratuit de <strong>14 jours</strong> est offert à tout nouveau Marchand, sans
                         engagement. La saisie d&apos;un moyen de paiement est requise pour activer l&apos;essai.
                     </p>
@@ -98,7 +98,7 @@ export default function CguPage() {
                     <h2 className="text-lg font-bold text-[#111827] mb-3">6. Propriété intellectuelle</h2>
                     <p>
                         L&apos;ensemble des éléments constituant le Service (code source, interfaces, algorithmes,
-                        marque « Wait-Light », logo) est la propriété exclusive de l&apos;Éditeur et est protégé par
+                        marque « WaitLight », logo) est la propriété exclusive de l&apos;Éditeur et est protégé par
                         les lois françaises et internationales relatives à la propriété intellectuelle.
                     </p>
                     <p className="mt-3">

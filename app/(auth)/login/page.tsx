@@ -3,8 +3,8 @@ import { LoginForm } from "@/components/sections/LoginForm"
 import { loginAction, oauthSignInAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
-    title: "Connexion — Wait-Light",
-    description: "Connectez-vous à votre espace marchand Wait-Light.",
+    title: "Connexion — WaitLight",
+    description: "Connectez-vous à votre espace marchand WaitLight.",
 }
 
 /** Maps `?error=` query param values to human-readable messages. */

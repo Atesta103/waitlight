@@ -4,7 +4,7 @@ import { getQueueAction } from "@/lib/actions/queue"
 import { QueueSection } from "./QueueSection"
 
 export const metadata: Metadata = {
-    title: "Tableau de bord — Wait-Light",
+    title: "Tableau de bord — WaitLight",
 }
 
 /**
