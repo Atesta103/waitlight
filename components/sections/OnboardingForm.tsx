@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
 import { ProgressBar } from "@/components/ui/ProgressBar"
 import { Select } from "@/components/ui/Select"
-import { SlugInput } from "@/components/composed/SlugInput"
+import { SlugInput, type SlugStatus } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
 import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
 import {
@@ -57,6 +57,7 @@ function OnboardingForm({
     const [errors, setErrors] = useState<
         Partial<Record<keyof OnboardingData, string>>
     >({})
+    const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle")
 
     const validateStep = (): boolean => {
         const newErrors: Partial<Record<keyof OnboardingData, string>> = {}
@@ -72,6 +73,15 @@ function OnboardingForm({
         if (step === 1) {
             if (!data.slug) newErrors.slug = "Le slug est obligatoire."
             if (data.slug.length < 3) newErrors.slug = "Minimum 3 caractères."
+            if (data.slug.length >= 3 && slugStatus === "checking") {
+                newErrors.slug = "Validation du slug en cours."
+            }
+            if (data.slug.length >= 3 && slugStatus === "taken") {
+                newErrors.slug = "Ce slug est déjà pris."
+            }
+            if (data.slug.length >= 3 && slugStatus === "idle") {
+                newErrors.slug = "Attendez la validation du slug."
+            }
         }
 
         if (step === 2) {
@@ -97,6 +107,10 @@ function OnboardingForm({
     const handleBack = () => {
         setStep((s) => Math.max(0, s - 1))
     }
+
+    const isSlugStepBlocked =
+        step === 1 && (data.slug.length < 3 || slugStatus !== "available")
+    const isCheckingSlug = step === 1 && slugStatus === "checking"
 
     return (
         <div className={cn("flex flex-col gap-6", className)}>
@@ -203,10 +217,16 @@ function OnboardingForm({
                             </p>
                             <SlugInput
                                 value={data.slug}
-                                onChange={(slug) =>
+                                onChange={(slug) => {
                                     setData((d) => ({ ...d, slug }))
-                                }
+                                    setSlugStatus("idle")
+                                    setErrors((current) => ({
+                                        ...current,
+                                        slug: undefined,
+                                    }))
+                                }}
                                 checkAvailability={checkSlugAvailability}
+                                onStatusChange={setSlugStatus}
                             />
                             {errors.slug ? (
                                 <p
@@ -267,13 +287,19 @@ function OnboardingForm({
                 <Button
                     variant="primary"
                     onClick={handleNext}
-                    isLoading={isSubmitting && step === STEPS.length - 1}
+                    disabled={isSlugStepBlocked}
+                    isLoading={
+                        isCheckingSlug ||
+                        (isSubmitting && step === STEPS.length - 1)
+                    }
                 >
                     {step === STEPS.length - 1 ? (
                         <>
                             <Check size={16} aria-hidden="true" />
                             Créer mon établissement
                         </>
+                    ) : isCheckingSlug ? (
+                        "Validation du slug..."
                     ) : (
                         <>
                             Suivant

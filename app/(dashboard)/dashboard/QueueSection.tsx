@@ -5,6 +5,7 @@ import { DashboardHeader } from "@/components/sections/DashboardHeader"
 import { QueueList } from "@/components/sections/QueueList"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
+import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
 import {
     toggleQueueOpenAction,
     getQueueAction,
@@ -94,6 +95,21 @@ export function QueueSection({
         },
     })
 
+    const manualTicketDialog = (
+        <ManualTicketDialog
+            businessType={businessType}
+            isSubmitting={manualTicketMutation.isPending}
+            onCreate={async (customerName) => {
+                const result =
+                    await manualTicketMutation.mutateAsync(customerName)
+                if ("error" in result) {
+                    return { error: result.error }
+                }
+                return { data: result.data }
+            }}
+        />
+    )
+
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader
@@ -106,13 +122,12 @@ export function QueueSection({
             />
 
             {!isOpen && (
-                <div
-                    role="status"
-                    className="rounded-xl border border-border-default bg-surface-card p-6 text-center text-sm text-text-secondary"
-                >
-                    La file est fermée. Activez-la pour que les {wording.plural}{" "}
-                    puissent rejoindre.
-                </div>
+                <ClosedQueueGuidance
+                    customerLabelPlural={wording.plural}
+                    onOpenQueue={() => toggleMutation.mutate(true)}
+                    isOpening={toggleMutation.isPending}
+                    manualTicketAction={manualTicketDialog}
+                />
             )}
 
             {isOpen && (
@@ -131,20 +146,7 @@ export function QueueSection({
                             size={220}
                             businessType={businessType}
                         />
-                        <ManualTicketDialog
-                            businessType={businessType}
-                            isSubmitting={manualTicketMutation.isPending}
-                            onCreate={async (customerName) => {
-                                const result =
-                                    await manualTicketMutation.mutateAsync(
-                                        customerName,
-                                    )
-                                if ("error" in result) {
-                                    return { error: result.error }
-                                }
-                                return { data: result.data }
-                            }}
-                        />
+                        {manualTicketDialog}
                     </div>
                 </div>
             )}

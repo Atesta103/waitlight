@@ -4,12 +4,15 @@ import { useState, useEffect, useId } from "react"
 import { cn } from "@/lib/utils/cn"
 import { Check, X, Loader2 } from "lucide-react"
 
+type SlugStatus = "idle" | "checking" | "available" | "taken"
+
 type SlugInputProps = {
     value: string
     onChange: (value: string) => void
     baseUrl?: string
-    /** Simulates async slug availability check */
+    /** Checks whether the sanitized slug is available. */
     checkAvailability?: (slug: string) => Promise<boolean>
+    onStatusChange?: (status: SlugStatus) => void
     className?: string
 }
 
@@ -18,12 +21,11 @@ function SlugInput({
     onChange,
     baseUrl = "waitlight.app",
     checkAvailability,
+    onStatusChange,
     className,
 }: SlugInputProps) {
     const id = useId()
-    const [status, setStatus] = useState<
-        "idle" | "checking" | "available" | "taken"
-    >("idle")
+    const [status, setStatus] = useState<SlugStatus>("idle")
 
     const sanitize = (raw: string) =>
         raw
@@ -42,13 +44,23 @@ function SlugInput({
         let cancelled = false
 
         if (!value || value.length < 3) {
-            const t = setTimeout(() => { if (!cancelled) setStatus("idle") }, 0)
-            return () => { cancelled = true; clearTimeout(t) }
+            const t = setTimeout(() => {
+                if (!cancelled) setStatus("idle")
+            }, 0)
+            return () => {
+                cancelled = true
+                clearTimeout(t)
+            }
         }
 
         if (!checkAvailability) {
-            const t = setTimeout(() => { if (!cancelled) setStatus("available") }, 0)
-            return () => { cancelled = true; clearTimeout(t) }
+            const t = setTimeout(() => {
+                if (!cancelled) setStatus("available")
+            }, 0)
+            return () => {
+                cancelled = true
+                clearTimeout(t)
+            }
         }
 
         // Defer setState to avoid synchronous call inside effect body
@@ -59,8 +71,15 @@ function SlugInput({
             if (!cancelled) setStatus(available ? "available" : "taken")
         }, 0)
 
-        return () => { cancelled = true; clearTimeout(timer) }
+        return () => {
+            cancelled = true
+            clearTimeout(timer)
+        }
     }, [value, checkAvailability])
+
+    useEffect(() => {
+        onStatusChange?.(status)
+    }, [status, onStatusChange])
 
     const statusIcon = {
         idle: null,
@@ -152,4 +171,4 @@ function SlugInput({
     )
 }
 
-export { SlugInput, type SlugInputProps }
+export { SlugInput, type SlugInputProps, type SlugStatus }
