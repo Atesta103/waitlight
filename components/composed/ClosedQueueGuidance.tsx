@@ -4,11 +4,12 @@ import Link from "next/link"
 import {
     BarChart2,
     BellRing,
+    CalendarClock,
     CheckCircle2,
     Palette,
     Play,
     QrCode,
-    Settings2,
+    Timer,
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
@@ -29,17 +30,17 @@ const ACTIONS = [
         target: "_blank",
     },
     {
-        title: "Personnaliser l'apparence",
-        description: "Logo, couleurs, thème et rendu côté client.",
-        href: "/dashboard/settings#display",
-        icon: Palette,
+        title: "Définir les horaires",
+        description: "Préparez les jours et plages d'ouverture.",
+        href: "/dashboard/settings#schedule",
+        icon: CalendarClock,
         target: undefined,
     },
     {
-        title: "Régler la file",
-        description: "Capacité, messages client et options d'accueil.",
-        href: "/dashboard/settings#queue",
-        icon: Settings2,
+        title: "Temps d'attente",
+        description: "Ajustez l'estimation affichée aux clients.",
+        href: "/dashboard/settings#waittime",
+        icon: Timer,
         target: undefined,
     },
 ] as const
@@ -86,7 +87,7 @@ function ClosedQueueGuidance({
                 className,
             )}
         >
-            <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="flex flex-col gap-5">
                     <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5">
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
@@ -129,9 +130,9 @@ function ClosedQueueGuidance({
                                     href={action.href}
                                     target={action.target}
                                     rel={action.target ? "noopener noreferrer" : undefined}
-                                    className="group rounded-lg border border-border-default bg-surface-base p-4 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                    className="group rounded-lg border border-border-default bg-surface-base p-3 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
                                 >
-                                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-surface-card text-brand-primary">
+                                    <div className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-lg bg-surface-card text-brand-primary">
                                         <Icon size={17} aria-hidden="true" />
                                     </div>
                                     <h3 className="text-sm font-semibold text-text-primary">
@@ -146,7 +147,7 @@ function ClosedQueueGuidance({
                     </div>
                 </div>
 
-                <aside className="flex flex-col gap-4 rounded-lg border border-border-default bg-surface-base p-4 sm:p-5">
+                <aside className="flex flex-col gap-4 rounded-lg border border-border-default bg-surface-base p-4">
                     <div>
                         <div className="mb-3 flex items-center gap-2">
                             <CheckCircle2
@@ -158,7 +159,7 @@ function ClosedQueueGuidance({
                                 Avant d&apos;ouvrir
                             </h3>
                         </div>
-                        <ul className="space-y-2.5">
+                        <ul className="space-y-2">
                             {CHECKLIST.map((item) => (
                                 <li
                                     key={item}
@@ -186,9 +187,9 @@ function ClosedQueueGuidance({
                                     <Link
                                         key={link.href}
                                         href={link.href}
-                                        className="group flex gap-3 rounded-lg border border-border-default bg-surface-card p-3 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                        className="group flex gap-3 rounded-lg border border-border-default bg-surface-card p-2.5 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
                                     >
-                                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface-base text-brand-primary">
+                                        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-base text-brand-primary">
                                             <Icon size={15} aria-hidden="true" />
                                         </span>
                                         <span>
