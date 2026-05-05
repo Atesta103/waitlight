@@ -24,6 +24,10 @@ const poppinsFont = Poppins({ variable: "--font-poppins", weight: ["400", "500",
 export const metadata: Metadata = {
   title: "WaitLight",
   description: "La file d'attente digitale pour votre commerce.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

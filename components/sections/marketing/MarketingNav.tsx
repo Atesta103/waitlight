@@ -62,7 +62,7 @@ export function MarketingNav() {
                     aria-label="Ouvrir le menu"
                     aria-expanded={isMenuOpen}
                     onClick={() => setIsMenuOpen((prev) => !prev)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#D1D5DB] bg-white/75 text-[#111827] transition-colors hover:bg-white"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/75 text-[#111827] transition-colors hover:bg-white"
                 >
                     {isMenuOpen ? <X size={17} aria-hidden="true" /> : <Menu size={17} aria-hidden="true" />}
                 </button>
