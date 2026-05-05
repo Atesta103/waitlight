@@ -10,16 +10,19 @@ L'application propose deux méthodes d'authentification :
 
 Vous pouvez créer votre propre compte marchand directement sur la page d'inscription.
 
-### Simulation de paiement (Stripe)
-Le système de facturation est actuellement configuré en mode test. Pour simuler une souscription premium sans frais réels, veuillez utiliser les identifiants de carte de test suivants lors du passage en caisse (Stripe Checkout) :
+### Paiement Stripe
+La facturation de production utilise le compte Stripe live `WaitLight`.
+Le paywall du dashboard est leve uniquement apres une souscription Stripe active
+ou un bypass admin explicite.
 
-Numéro de carte : 4242 4242 4242 4242
+- Produit live: `prod_USYIrmmUBUZNb9`
+- Prix live: `price_1TTdBpGXOpVdjY12j2I9RHxu`
+- Tarif: 29 EUR / mois
+- Webhook production: `https://waitlight.fr/api/webhooks/stripe`
 
-Date d'expiration : Toute date future (ex : 12/28)
-
-CVC : 123
-
-Une fois le paiement validé, le webhook Stripe traite l'événement checkout.session.completed pour mettre à jour les droits de l'utilisateur dans la base de données Supabase en temps réel.
+Une fois le paiement valide, Stripe envoie `checkout.session.completed` au webhook
+pour mettre a jour les droits de l'utilisateur dans Supabase. Le retour Checkout
+`/billing-success` synchronise aussi l'abonnement pour eviter d'attendre le webhook.
 
 ### En local : 
 - Commande a lancé : `npm run dev`
@@ -129,8 +132,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 ADMIN_EMAILS=admin@example.com,admin2@example.com
 
 # Stripe
-STRIPE_SECRET_KEY=
-STRIPE_PRICE_ID=
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PRICE_ID=price_1TTdBpGXOpVdjY12j2I9RHxu
 STRIPE_WEBHOOK_SECRET=
 
 # Dev local

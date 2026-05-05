@@ -69,7 +69,7 @@ export default function CguPage() {
                     <p>
                         Wait-Light est proposé au tarif de <strong>29 € HT par mois et par établissement</strong>.
                         Un essai gratuit de <strong>14 jours</strong> est offert à tout nouveau Marchand, sans
-                        engagement et sans saisie de coordonnées bancaires.
+                        engagement. La saisie d&apos;un moyen de paiement est requise pour activer l&apos;essai.
                     </p>
                     <p className="mt-3">
                         À l&apos;issue de la période d&apos;essai, l&apos;abonnement est tacitement reconduit mensuellement.

@@ -37,7 +37,7 @@ export function MarketingFooter() {
                             Prêt à transformer l&apos;attente ?
                         </h2>
                         <p className="mt-2 text-white/80 text-sm">
-                            14 jours gratuits. Aucune carte bancaire. Configuration en 2 minutes.
+                            14 jours gratuits. Carte bancaire requise. Configuration en 2 minutes.
                         </p>
                     </div>
                     <Link

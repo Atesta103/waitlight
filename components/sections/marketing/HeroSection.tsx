@@ -266,7 +266,7 @@ export function ClientWidgetMockup({ showNotification = true, businessName = "Le
 
 const TRUST_ITEMS = [
     "Essai gratuit 14 jours",
-    "Sans carte bancaire",
+    "Carte bancaire requise",
     "Configuration en 2 min",
 ]
 

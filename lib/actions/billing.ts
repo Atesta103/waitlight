@@ -11,6 +11,7 @@ import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { adminSupabase } from "@/lib/supabase/admin"
 import { stripe } from "@/lib/stripe"
+import { getStripePriceId } from "@/lib/stripe-config"
 import { isActiveStatus } from "@/lib/subscription-status"
 
 // ---------------------------------------------------------------------------
@@ -78,7 +79,9 @@ export async function getSubscriptionAction(): Promise<
 export async function createCheckoutSessionAction(): Promise<
     { data: { url: string } } | { error: string }
 > {
-    if (!process.env.STRIPE_PRICE_ID) {
+    const stripePriceId = getStripePriceId()
+
+    if (!stripePriceId) {
         return { error: "Configuration de paiement manquante." }
     }
 
@@ -137,6 +140,7 @@ export async function createCheckoutSessionAction(): Promise<
                 {
                     merchant_id: user.id,
                     stripe_customer_id: stripeCustomerId,
+                    stripe_price_id: stripePriceId,
                     status: "incomplete",
                 } as never,
                 { onConflict: "merchant_id" },
@@ -158,8 +162,11 @@ export async function createCheckoutSessionAction(): Promise<
         const session = await stripe.checkout.sessions.create({
             mode: "subscription",
             customer: stripeCustomerId,
-            line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-            subscription_data: { trial_period_days: 14 },
+            line_items: [{ price: stripePriceId, quantity: 1 }],
+            subscription_data: {
+                trial_period_days: 14,
+                metadata: { merchant_id: user.id },
+            },
             success_url: `${origin}/billing-success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin}/subscribe?error=cancelled`,
             allow_promotion_codes: true,

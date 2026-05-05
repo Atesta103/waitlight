@@ -6,7 +6,7 @@ import { SubscribeClient } from "./SubscribeClient"
 
 export const metadata: Metadata = {
     title: "Abonnement — Wait-Light",
-    description: "Activez votre accès Wait-Light avec un essai gratuit de 14 jours.",
+    description: "Activez votre accès Wait-Light avec un abonnement Stripe sécurisé.",
 }
 
 type SearchParams = Promise<{ error?: string }>

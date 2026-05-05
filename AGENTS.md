@@ -172,6 +172,7 @@ _(empty — populate as the project progresses)_
 | [`doc/design-system.md`](./doc/design-system.md)                           | Design tokens, atoms/molecules/organisms                             |
 | [`doc/architecture.md`](./doc/architecture.md)                             | Next.js & Supabase patterns to follow                                |
 | [`doc/security.md`](./doc/security.md)                                     | Security checklist for every layer                                   |
+| [`doc/billing-stripe.md`](./doc/billing-stripe.md)                         | Stripe live billing, paywall, webhook, and env constraints           |
 | [`doc/accessibility.md`](./doc/accessibility.md)                           | WCAG 2.1 AA rules, i18n, motion, screen readers                      |
 | [`doc/features/11_i18n_next_intl.md`](./doc/features/11_i18n_next_intl.md) | i18n task: next-intl setup, component translation, language switcher |
 | [`doc/api/README.md`](./doc/api/README.md)                                 | **Auto-generated** TypeDoc index — run `npm run docs` to regenerate  |

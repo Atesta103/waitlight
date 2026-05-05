@@ -181,6 +181,9 @@ const securityHeaders = [
 | `QR_TOKEN_SECRET`               | **Server only** | HMAC signing key for QR token nonces. Never client-side.                   |
 | `VAPID_PRIVATE_KEY`             | **Server only** | Web Push signing key. Never client-side.                                   |
 | `VAPID_PUBLIC_KEY`              | Public          | Used by the browser to subscribe to push.                                  |
+| `STRIPE_SECRET_KEY`             | **Server only** | Must be `sk_live_...` in production; `sk_test_...` is rejected by the app.  |
+| `STRIPE_PRICE_ID`               | **Server only** | Live recurring Price ID used by Checkout.                                  |
+| `STRIPE_WEBHOOK_SECRET`         | **Server only** | Live webhook signing secret for `/api/webhooks/stripe`.                    |
 | `SENTRY_DSN`                    | Server + Client | Separate DSNs for server and client Sentry projects.                       |
 
 Committed to git: `.env.example` with all variable names and empty values.
