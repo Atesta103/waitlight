@@ -23,45 +23,45 @@ export function BrandLogo({
         <span className={cn("inline-flex items-center gap-2.5", className)}>
             <svg
                 className={cn("h-9 w-9 shrink-0", markClassName)}
-                viewBox="0 0 72 72"
+                viewBox="0 0 120 120"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
             >
                 <rect
-                    x="12"
-                    y="12"
-                    width="16"
-                    height="49"
-                    rx="8"
+                    x="16.24"
+                    y="16.24"
+                    width="25.52"
+                    height="83.52"
+                    rx="12.76"
                     className={cn(isReverse || isLight ? "fill-white" : isMono ? "fill-text-primary" : "fill-brand-primary")}
                 />
-                <circle cx="20" cy="20.6" r="5.25" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
-                <circle cx="20" cy="34.3" r="5.25" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
-                <circle cx="20" cy="48" r="5.25" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
+                <circle cx="28.768" cy="34.22" r="4.06" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
+                <circle cx="28.768" cy="57.42" r="4.06" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
+                <circle cx="28.768" cy="80.62" r="4.06" className={cn(isReverse || isLight ? "fill-brand-primary" : "fill-white")} />
                 <rect
-                    x="36.7"
-                    y="18"
-                    width="23"
-                    height="4.2"
-                    rx="2.1"
-                    className={cn(isReverse || isLight ? "fill-white/45" : isMono ? "fill-text-primary/45" : "fill-brand-primary/45")}
+                    x="58"
+                    y="29"
+                    width="35.96"
+                    height="6.728"
+                    rx="3.364"
+                    className={cn(isReverse || isLight ? "fill-white/40" : isMono ? "fill-text-primary/40" : "fill-brand-primary/40")}
                 />
                 <rect
-                    x="36.7"
-                    y="31"
-                    width="28"
-                    height="5"
-                    rx="2.5"
+                    x="58"
+                    y="49.88"
+                    width="47.56"
+                    height="8.12"
+                    rx="4.06"
                     className={cn(isReverse || isLight ? "fill-white" : isMono ? "fill-text-primary" : "fill-brand-primary")}
                 />
                 <rect
-                    x="36.7"
-                    y="45.4"
-                    width="21.5"
-                    height="4.2"
-                    rx="2.1"
-                    className={cn(isReverse || isLight ? "fill-white/65" : isMono ? "fill-text-primary/65" : "fill-brand-primary/65")}
+                    x="58"
+                    y="74.24"
+                    width="34.8"
+                    height="6.728"
+                    rx="3.364"
+                    className={cn(isReverse || isLight ? "fill-white/60" : isMono ? "fill-text-primary/60" : "fill-brand-primary/60")}
                 />
             </svg>
             {showText ? (

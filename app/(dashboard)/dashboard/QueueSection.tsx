@@ -126,7 +126,6 @@ export function QueueSection({
                     customerLabelPlural={wording.plural}
                     onOpenQueue={() => toggleMutation.mutate(true)}
                     isOpening={toggleMutation.isPending}
-                    manualTicketAction={manualTicketDialog}
                 />
             )}
 

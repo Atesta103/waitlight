@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import type { ReactNode } from "react"
 import {
     BarChart2,
     CheckCircle2,
@@ -9,7 +8,6 @@ import {
     Play,
     QrCode,
     Sparkles,
-    UserPlus,
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils/cn"
@@ -18,7 +16,6 @@ type ClosedQueueGuidanceProps = {
     customerLabelPlural: string
     onOpenQueue: () => void
     isOpening?: boolean
-    manualTicketAction: ReactNode
     className?: string
 }
 
@@ -54,7 +51,6 @@ function ClosedQueueGuidance({
     customerLabelPlural,
     onOpenQueue,
     isOpening = false,
-    manualTicketAction,
     className,
 }: ClosedQueueGuidanceProps) {
     return (
@@ -157,20 +153,26 @@ function ClosedQueueGuidance({
 
                     <div className="border-t border-border-default pt-4">
                         <div className="mb-3 flex items-center gap-2">
-                            <UserPlus
+                            <QrCode
                                 size={16}
                                 className="text-brand-primary"
                                 aria-hidden="true"
                             />
                             <h3 className="text-sm font-semibold text-text-primary">
-                                Besoin d&apos;ajouter quelqu&apos;un ?
+                                Préparer l&apos;accueil
                             </h3>
                         </div>
                         <p className="mb-3 text-sm text-text-secondary">
-                            Ajoutez un ticket manuel si un client ne peut pas
-                            scanner le QR code.
+                            Affichez le QR code sur une tablette ou un écran
+                            avant d&apos;ouvrir la file. Les premiers clients
+                            pourront scanner dès que vous passez en ouvert.
                         </p>
-                        {manualTicketAction}
+                        <Link
+                            href="/dashboard/qr-display"
+                            className="inline-flex h-10 items-center justify-center rounded-md border border-border-default bg-surface-card px-3 text-sm font-medium text-text-primary transition-colors hover:bg-border-default/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                        >
+                            Afficher le QR code
+                        </Link>
                     </div>
                 </aside>
             </div>
