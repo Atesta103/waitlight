@@ -1,8 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useRef } from "react"
-import { ChevronRight, Utensils, Stethoscope, ShoppingBag, FerrisWheel } from "lucide-react"
+import { useState } from "react"
+import { Utensils, Stethoscope, ShoppingBag, FerrisWheel } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 
 type UseCase = {
@@ -11,16 +12,15 @@ type UseCase = {
     sector: string
     title: string
     subtitle: string
-    problem: string
-    solution: string
     valueProp: string
     imageSrc: string
     bullets: string[]
     iconClass: string
     iconBgClass: string
-    badgeClass: string
     color: string
     colorLight: string
+    stat: string
+    statLabel: string
 }
 
 const USE_CASES: UseCase[] = [
@@ -30,8 +30,6 @@ const USE_CASES: UseCase[] = [
         sector: "Restauration",
         title: "Food trucks, bistrots et restauration rapide",
         subtitle: "Fluidifier le rush du midi sans casser le rythme de service.",
-        problem: "Des clients amassés devant le comptoir, des bipeurs coûteux qui se perdent.",
-        solution: "Le client passe commande, scanne, puis reçoit un rappel navigateur quand son plat est prêt.",
         valueProp: "Vous réduisez l'encombrement du comptoir et gardez une file lisible même aux pics.",
         imageSrc: "/marketing/usecase-restaurant.jpg",
         bullets: [
@@ -41,9 +39,10 @@ const USE_CASES: UseCase[] = [
         ],
         iconClass: "text-[#D97706]",
         iconBgClass: "bg-[#FFFBEB]",
-        badgeClass: "text-[#D97706]",
         color: "#D97706",
         colorLight: "#FFFBEB",
+        stat: "−60%",
+        statLabel: "d'encombrement",
     },
     {
         Icon: Stethoscope,
@@ -51,8 +50,6 @@ const USE_CASES: UseCase[] = [
         sector: "Santé",
         title: "Médecins, cliniques et centres de soins",
         subtitle: "Rendre l'attente plus sereine pour les patients et l'accueil.",
-        problem: "Salles d'attente bondées, anxiogènes et propices à la propagation de virus.",
-        solution: "Le patient s'enregistre, suit sa position et reçoit un rappel quand le praticien est prêt.",
         valueProp: "Vous lissez les flux d'arrivée et réduisez la sensation d'attente subie.",
         imageSrc: "/marketing/usecase-health.jpg",
         bullets: [
@@ -62,9 +59,10 @@ const USE_CASES: UseCase[] = [
         ],
         iconClass: "text-[#059669]",
         iconBgClass: "bg-[#ECFDF5]",
-        badgeClass: "text-[#059669]",
         color: "#059669",
         colorLight: "#ECFDF5",
+        stat: "−45 min",
+        statLabel: "d'attente perçue",
     },
     {
         Icon: ShoppingBag,
@@ -72,8 +70,6 @@ const USE_CASES: UseCase[] = [
         sector: "Retail & Administrations",
         title: "SAV, boutiques et points de service",
         subtitle: "Éviter l'abandon de file et garder les clients actifs pendant l'attente.",
-        problem: "Plus de 45 minutes d'attente debout. Perte d'opportunités d'achat.",
-        solution: "Ticket digital → shopping libre → notification dès qu'un conseiller est disponible.",
         valueProp: "Vous captez plus de passages finalisés et limitez la frustration en magasin.",
         imageSrc: "/marketing/usecase-retail.jpg",
         bullets: [
@@ -83,9 +79,10 @@ const USE_CASES: UseCase[] = [
         ],
         iconClass: "text-[#4F46E5]",
         iconBgClass: "bg-[#EEF2FF]",
-        badgeClass: "text-[#4F46E5]",
         color: "#4F46E5",
         colorLight: "#EEF2FF",
+        stat: "+40%",
+        statLabel: "de prises en charge",
     },
     {
         Icon: FerrisWheel,
@@ -93,8 +90,6 @@ const USE_CASES: UseCase[] = [
         sector: "Événementiel & Loisirs",
         title: "Parcs d'attractions & festivals",
         subtitle: "Maintenir des flux fluides sur site même en forte affluence.",
-        problem: "Files interminables pour les attractions phares ou les food-trucks du festival.",
-        solution: "File virtuelle + mini-jeux intégrés pour transformer l'attente en moment ludique.",
         valueProp: "Vous augmentez le confort visiteur tout en préservant la circulation globale.",
         imageSrc: "/marketing/usecase-event.jpg",
         bullets: [
@@ -104,36 +99,18 @@ const USE_CASES: UseCase[] = [
         ],
         iconClass: "text-[#DB2777]",
         iconBgClass: "bg-[#FDF2F8]",
-        badgeClass: "text-[#DB2777]",
         color: "#DB2777",
         colorLight: "#FDF2F8",
+        stat: "×3",
+        statLabel: "satisfaction visiteur",
     },
 ]
 
-/**
- * UseCasesGrid — 4 use case cards by sector.
- * Mobile: horizontal snap carousel with dot indicators.
- * Desktop: vertical stacked list with alternating image layout.
- */
 export function UseCasesGrid({ id }: { id?: string }) {
-    const [activeIndex, setActiveIndex] = useState(0)
-    const scrollRef = useRef<HTMLDivElement>(null)
-
-    const scrollTo = (index: number) => {
-        if (!scrollRef.current) return
-        const card = scrollRef.current.children[index] as HTMLElement
-        card?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
-        setActiveIndex(index)
-    }
-
-    const handleScroll = () => {
-        if (!scrollRef.current) return
-        const container = scrollRef.current
-        const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth ?? 0
-        const scrollLeft = container.scrollLeft
-        const index = Math.round(scrollLeft / (cardWidth + 20)) // 20 = gap
-        setActiveIndex(Math.min(index, USE_CASES.length - 1))
-    }
+    // null = all closed (default state)
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    // mobile: tap to open/close
+    const [mobileActiveIndex, setMobileActiveIndex] = useState<number | null>(null)
 
     return (
         <section
@@ -160,174 +137,236 @@ export function UseCasesGrid({ id }: { id?: string }) {
                     </p>
                 </div>
 
-                {/* ── MOBILE: Snap carousel ── */}
-                <div className="md:hidden">
-                    {/* Scroll hint label */}
-                    <div className="flex items-center justify-center gap-1.5 mb-4 text-[#6B7280]">
-                        <span className="text-xs font-medium">Faire défiler</span>
-                        <ChevronRight size={14} aria-hidden="true" />
-                    </div>
-
-                    {/* Cards track */}
-                    <div
-                        ref={scrollRef}
-                        onScroll={handleScroll}
-                        className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 scroll-smooth"
-                        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                        aria-label="Carrousel des cas d'usage"
-                    >
-                        {USE_CASES.map((uc, i) => (
-                            <article
+                {/* ── MOBILE: Vertical accordion ── */}
+                <div className="md:hidden flex flex-col gap-3">
+                    {USE_CASES.map((uc, i) => {
+                        const isOpen = mobileActiveIndex === i
+                        return (
+                            <motion.article
                                 key={uc.id}
                                 id={uc.id}
-                                className={cn(
-                                    "w-[82vw] max-w-[340px] flex-shrink-0 snap-center rounded-3xl border bg-white p-5 flex flex-col transition-all duration-300",
-                                    i === activeIndex
-                                        ? "shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-                                        : "border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.04)] opacity-75 scale-[0.97]"
-                                )}
-                            style={i === activeIndex ? { borderColor: uc.color, borderWidth: 1 } : undefined}
+                                layout
+                                onClick={() => setMobileActiveIndex(isOpen ? null : i)}
+                                className="relative rounded-2xl overflow-hidden cursor-pointer"
+                                animate={{ height: isOpen ? 360 : 72 }}
+                                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                                style={{ willChange: "height" }}
                             >
-                                {/* Mini illustration */}
-                                <div className="w-full h-24 rounded-xl overflow-hidden mb-4 flex-shrink-0">
-                                    <Image
-                                        src={uc.imageSrc}
-                                        alt={`Illustration ${uc.sector}`}
-                                        width={340}
-                                        height={96}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+                                {/* Background image */}
+                                <Image
+                                    src={uc.imageSrc}
+                                    alt={`Illustration ${uc.sector}`}
+                                    fill
+                                    className="object-cover"
+                                    style={{ transform: isOpen ? "scale(1.04)" : "scale(1)", transition: "transform 0.7s ease" }}
+                                />
 
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", uc.iconBgClass)}>
-                                        <uc.Icon size={22} className={uc.iconClass} aria-hidden={true} />
+                                {/* Deep gradient */}
+                                <div
+                                    className="absolute inset-0 transition-opacity duration-500"
+                                    style={{
+                                        background: isOpen
+                                            ? "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.35) 75%, rgba(0,0,0,0.15) 100%)"
+                                            : "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.28) 100%)",
+                                    }}
+                                />
+
+                                {/* Color tint when closed */}
+                                <div
+                                    className="absolute inset-0 transition-opacity duration-500"
+                                    style={{ backgroundColor: uc.color, opacity: isOpen ? 0 : 0.3 }}
+                                />
+
+                                {/* Content */}
+                                <div className="absolute inset-x-0 bottom-0 p-4">
+                                    <AnimatePresence>
+                                        {isOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 8 }}
+                                                animate={{ opacity: 1, y: 0, transition: { duration: 0.28, delay: 0.2 } }}
+                                                exit={{ opacity: 0, transition: { duration: 0.08 } }}
+                                                className="mb-3"
+                                            >
+                                                {/* Stat pill */}
+                                                <div
+                                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 mb-3"
+                                                    style={{ backgroundColor: `${uc.color}33`, border: `1px solid ${uc.color}66` }}
+                                                >
+                                                    <span className="font-black text-base leading-none" style={{ color: uc.color }}>{uc.stat}</span>
+                                                    <span className="text-white/70 text-xs font-medium">{uc.statLabel}</span>
+                                                </div>
+
+                                                <p className="text-white/90 text-sm leading-relaxed mb-3" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}>
+                                                    {uc.subtitle}
+                                                </p>
+
+                                                <ul className="space-y-1.5 mb-3">
+                                                    {uc.bullets.map((bullet) => (
+                                                        <li key={bullet} className="flex items-start gap-2 text-sm text-white/90" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
+                                                            <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: `${uc.color}40`, border: `1px solid ${uc.color}80` }}>
+                                                                <svg className="w-2.5 h-2.5" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </span>
+                                                            {bullet}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Sector row — always visible */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0", uc.iconBgClass)}>
+                                                <uc.Icon size={14} className={uc.iconClass} aria-hidden={true} />
+                                            </div>
+                                            <div>
+                                                <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest block" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
+                                                    {uc.sector}
+                                                </span>
+                                                <span className="text-white text-sm font-black tracking-tight leading-tight block" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
+                                                    {uc.title}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <motion.div
+                                            animate={{ rotate: isOpen ? 45 : 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="w-6 h-6 rounded-full bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0"
+                                        >
+                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        </motion.div>
                                     </div>
-                                    <span className={cn("text-xs font-bold uppercase tracking-wider", uc.badgeClass)}>
-                                        {uc.sector}
-                                    </span>
                                 </div>
-
-                                <h3 className="text-lg font-black text-[#111827] tracking-tight leading-snug">
-                                    {uc.title}
-                                </h3>
-                                <p className="mt-1.5 text-sm text-[#374151] leading-relaxed">{uc.subtitle}</p>
-
-                                <div className="mt-4 rounded-2xl bg-[#F8F9FA] p-3.5 flex-1">
-                                    <p className="text-sm text-[#374151] leading-relaxed">
-                                        <span className="font-semibold text-[#111827] block mb-0.5">Problème :</span>
-                                        {uc.problem}
-                                    </p>
-                                    <div className="h-px w-full bg-[#E5E7EB] my-3" />
-                                    <p className="text-sm text-[#374151] leading-relaxed">
-                                        <span className="font-semibold text-[#111827] block mb-0.5">Solution :</span>
-                                        {uc.solution}
-                                    </p>
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
-                                    <p className="text-sm font-bold text-[#4338CA] leading-snug">
-                                        {uc.valueProp}
-                                    </p>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-
-                    {/* Dot indicators */}
-                    <div className="flex justify-center items-center gap-2 mt-4" role="tablist" aria-label="Navigation du carrousel">
-                        {USE_CASES.map((uc, i) => (
-                            <button
-                                key={uc.id}
-                                role="tab"
-                                aria-selected={i === activeIndex}
-                                aria-label={`Aller à ${uc.sector}`}
-                                onClick={() => scrollTo(i)}
-                                className={cn("rounded-full transition-all duration-300", i === activeIndex ? "w-6 h-2.5" : "w-2.5 h-2.5 bg-[#D1D5DB]")}
-                                style={i === activeIndex ? { backgroundColor: USE_CASES[i].color } : undefined}
-                            />
-                        ))}
-                    </div>
-                    {/* Card counter */}
-                    <p className="text-center text-xs text-[#9CA3AF] mt-2">
-                        {activeIndex + 1} / {USE_CASES.length}
-                    </p>
+                            </motion.article>
+                        )
+                    })}
                 </div>
 
-                {/* ── DESKTOP: Stacked list with images ── */}
-                <div className="hidden md:block space-y-8">
-                    {USE_CASES.map((uc, index) => (
-                        <article
-                            key={uc.id}
-                            id={uc.id}
-                            className="rounded-3xl border border-[#E5E7EB] bg-white p-8"
-                        >
-                            <div
-                                className={cn(
-                                    "grid gap-8 lg:gap-10",
-                                    index % 2 === 0 ? "lg:grid-cols-[1fr_1.05fr]" : "lg:grid-cols-[1.05fr_1fr]",
-                                )}
+                {/* ── DESKTOP: 4 cards expand on hover — all closed by default ── */}
+                <div
+                    className="hidden md:flex gap-3 h-[480px]"
+                    onMouseLeave={() => setHoveredIndex(null)}
+                >
+                    {USE_CASES.map((uc, index) => {
+                        const isExpanded = hoveredIndex === index
+
+                        return (
+                            <motion.article
+                                key={uc.id}
+                                id={uc.id}
+                                onMouseEnter={() => setHoveredIndex(index)}
+                                animate={{ flex: isExpanded ? 3 : 1 }}
+                                transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                                className="relative rounded-3xl overflow-hidden cursor-default"
+                                style={{ minWidth: 0 }}
                             >
-                                {/* Image — desktop only */}
-                                <div className={cn(index % 2 !== 0 && "lg:order-2")}>
-                                    <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] aspect-square relative">
-                                        <Image
-                                            src={uc.imageSrc}
-                                            alt={`Illustration pour ${uc.sector}`}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 767px) 0px, (max-width: 1023px) 90vw, 600px"
-                                        />
-                                    </div>
-                                </div>
+                                {/* Background image */}
+                                <Image
+                                    src={uc.imageSrc}
+                                    alt={`Illustration pour ${uc.sector}`}
+                                    fill
+                                    className="object-cover transition-transform duration-700"
+                                    style={{ transform: isExpanded ? "scale(1.05)" : "scale(1)" }}
+                                    sizes="(max-width: 1023px) 90vw, 580px"
+                                />
 
-                                {/* Text */}
-                                <div className={cn("flex flex-col", index % 2 !== 0 && "lg:order-1")}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", uc.iconBgClass)}>
-                                            <uc.Icon size={22} className={uc.iconClass} aria-hidden={true} />
+                                {/* Gradient overlay */}
+                                <div
+                                    className="absolute inset-0 transition-opacity duration-500"
+                                    style={{
+                                        background: isExpanded
+                                            ? "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.72) 42%, rgba(0,0,0,0.28) 75%, rgba(0,0,0,0.08) 100%)"
+                                            : "linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.25) 100%)",
+                                    }}
+                                />
+
+                                {/* Color tint when collapsed */}
+                                <div
+                                    className="absolute inset-0 transition-opacity duration-500"
+                                    style={{ backgroundColor: uc.color, opacity: isExpanded ? 0 : 0.32 }}
+                                />
+
+                                {/* Bottom content */}
+                                <div className="absolute inset-x-0 bottom-0 p-6">
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 6 }}
+                                                animate={{ opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.22 } }}
+                                                exit={{ opacity: 0, transition: { duration: 0.06 } }}
+                                            >
+                                                {/* Stat pill */}
+                                                <div
+                                                    className="inline-flex items-center gap-2.5 rounded-xl px-3.5 py-2 mb-4"
+                                                    style={{ backgroundColor: `${uc.color}30`, border: `1px solid ${uc.color}55` }}
+                                                >
+                                                    <span className="font-black text-xl leading-none" style={{ color: uc.color }}>{uc.stat}</span>
+                                                    <span className="text-white/75 text-xs font-semibold">{uc.statLabel}</span>
+                                                </div>
+
+                                                <p className="text-white text-sm leading-relaxed mb-4" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
+                                                    {uc.subtitle}
+                                                </p>
+
+                                                <ul className="space-y-2 mb-4">
+                                                    {uc.bullets.map((bullet) => (
+                                                        <li key={bullet} className="flex items-start gap-2.5 text-sm text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                                                            <span
+                                                                className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
+                                                                style={{ backgroundColor: `${uc.color}40`, border: `1px solid ${uc.color}70` }}
+                                                            >
+                                                                <svg className="w-2.5 h-2.5" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </span>
+                                                            {bullet}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+
+                                                <div
+                                                    className="rounded-xl px-4 py-2.5 text-sm font-medium text-white/90 backdrop-blur-sm border mb-4"
+                                                    style={{
+                                                        backgroundColor: "rgba(0,0,0,0.35)",
+                                                        borderColor: "rgba(255,255,255,0.15)",
+                                                        textShadow: "0 1px 4px rgba(0,0,0,0.7)",
+                                                    }}
+                                                >
+                                                    {uc.valueProp}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Sector + title */}
+                                    <motion.div layout transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}>
+                                        <div className="flex items-center gap-2.5 mb-2">
+                                            <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg", uc.iconBgClass)}>
+                                                <uc.Icon size={17} className={uc.iconClass} aria-hidden={true} />
+                                            </div>
+                                            <span
+                                                className="text-white text-xs font-bold uppercase tracking-widest"
+                                                style={{ textShadow: "0 1px 6px rgba(0,0,0,0.95)" }}
+                                            >
+                                                {uc.sector}
+                                            </span>
                                         </div>
-                                        <span className={cn("text-xs font-bold uppercase tracking-wider", uc.badgeClass)}>
-                                            {uc.sector}
-                                        </span>
-                                    </div>
-
-                                    <h3 className="mt-4 text-2xl font-black text-[#111827] tracking-tight leading-snug">
-                                        {uc.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm text-[#374151] leading-relaxed">{uc.subtitle}</p>
-
-                                    <div className="mt-5 rounded-xl bg-[#F8F9FA] p-4">
-                                        <p className="text-sm text-[#374151] leading-relaxed">
-                                            <span className="font-semibold text-[#111827]">Problème : </span>
-                                            {uc.problem}
-                                        </p>
-                                        <p className="mt-2 text-sm text-[#374151] leading-relaxed">
-                                            <span className="font-semibold text-[#111827]">Solution WaitLight : </span>
-                                            {uc.solution}
-                                        </p>
-                                    </div>
-
-                                    <ul className="mt-4 space-y-2">
-                                        {uc.bullets.map((bullet) => (
-                                            <li key={bullet} className="flex items-start gap-2.5 text-sm text-[#374151]">
-                                                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: uc.colorLight }}>
-                                                    <svg className="w-3 h-3" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </span>
-                                                {bullet}
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <p className="mt-4 rounded-xl px-4 py-3 text-sm font-medium" style={{ backgroundColor: uc.colorLight, color: uc.color }}>
-                                        {uc.valueProp}
-                                    </p>
+                                        <h3
+                                            className="text-white text-[1.1rem] font-black tracking-tight leading-snug line-clamp-1"
+                                            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.95)" }}
+                                        >
+                                            {uc.title}
+                                        </h3>
+                                    </motion.div>
                                 </div>
-                            </div>
-                        </article>
-                    ))}
+                            </motion.article>
+                        )
+                    })}
                 </div>
             </div>
         </section>
