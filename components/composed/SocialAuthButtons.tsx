@@ -127,9 +127,11 @@ function SocialAuthButtons({
                     )}
                 >
                     {loading === id ? <Spinner size="sm" /> : icon}
-                    <span>
-                        {label} avec {name}
-                    </span>
+                    {loading !== id && (
+                        <span>
+                            {label} avec {name}
+                        </span>
+                    )}
                 </button>
             ))}
         </div>

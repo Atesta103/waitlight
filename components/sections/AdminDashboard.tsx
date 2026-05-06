@@ -103,7 +103,6 @@ function BypassToggle({ merchantId, isBypassed }: { merchantId: string, isBypass
                     })
                 }}
             />
-            {isPending && <span className="text-xs text-text-secondary whitespace-nowrap">Load...</span>}
         </label>
     )
 }

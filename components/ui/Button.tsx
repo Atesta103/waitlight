@@ -32,8 +32,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             >
                 {isLoading ? (
                     <Spinner size="sm" label="Chargement" className="text-current" />
-                ) : null}
-                {children}
+                ) : (
+                    children
+                )}
             </button>
         )
     },

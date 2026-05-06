@@ -313,9 +313,11 @@ export function ContactForm() {
                         label="Envoi du message"
                     />
                 ) : (
-                    <Send size={16} aria-hidden="true" />
+                    <>
+                        <Send size={16} aria-hidden="true" />
+                        Envoyer le message
+                    </>
                 )}
-                {status === "loading" ? "Envoi en cours…" : "Envoyer le message"}
             </button>
         </form>
     )

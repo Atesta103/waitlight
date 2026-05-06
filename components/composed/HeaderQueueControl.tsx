@@ -5,6 +5,7 @@ import { QrCode, Play } from "lucide-react"
 import Link from "next/link"
 import { toggleQueueOpenAction } from "@/lib/actions/queue"
 import { cn } from "@/lib/utils/cn"
+import { Spinner } from "@/components/ui/Spinner"
 
 type HeaderQueueControlProps = {
     initialIsOpen: boolean
@@ -69,17 +70,23 @@ export function HeaderQueueControl({
                 className={controlClasses}
                 aria-busy={toggleMutation.isPending}
             >
-                <Play size={isMobile ? 16 : 18} aria-hidden="true" />
+                {toggleMutation.isPending ? (
+                    <Spinner size="sm" className="text-current" label="Ouverture" />
+                ) : (
+                    <Play size={isMobile ? 16 : 18} aria-hidden="true" />
+                )}
                 {isMobile ? (
                     <span className="truncate">
-                        {toggleMutation.isPending
-                            ? "Ouverture..."
-                            : "Ouvrir la file"}
+                        {!toggleMutation.isPending && "Ouvrir la file"}
                     </span>
                 ) : (
                     <>
-                        <span className="hidden sm:inline">Ouvrir la file</span>
-                        <span className="sm:hidden">Ouvrir</span>
+                        {!toggleMutation.isPending && (
+                            <>
+                                <span className="hidden sm:inline">Ouvrir la file</span>
+                                <span className="sm:hidden">Ouvrir</span>
+                            </>
+                        )}
                     </>
                 )}
             </button>

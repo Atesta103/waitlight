@@ -350,8 +350,8 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                         disabled={isSaving}
                         isLoading={isSaving}
                     >
-                        {isSaving ? null : <Save size={16} />}
-                        Enregistrer les horaires
+                        {!isSaving && <Save size={16} />}
+                        {!isSaving && "Enregistrer les horaires"}
                     </Button>
                 </div>
             ) : null}
