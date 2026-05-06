@@ -19,8 +19,6 @@ type UseCase = {
     iconBgClass: string
     color: string
     colorLight: string
-    stat: string
-    statLabel: string
 }
 
 const USE_CASES: UseCase[] = [
@@ -41,8 +39,6 @@ const USE_CASES: UseCase[] = [
         iconBgClass: "bg-[#FFFBEB]",
         color: "#D97706",
         colorLight: "#FFFBEB",
-        stat: "−60%",
-        statLabel: "d'encombrement",
     },
     {
         Icon: Stethoscope,
@@ -61,8 +57,6 @@ const USE_CASES: UseCase[] = [
         iconBgClass: "bg-[#ECFDF5]",
         color: "#059669",
         colorLight: "#ECFDF5",
-        stat: "−45 min",
-        statLabel: "d'attente perçue",
     },
     {
         Icon: ShoppingBag,
@@ -81,8 +75,6 @@ const USE_CASES: UseCase[] = [
         iconBgClass: "bg-[#EEF2FF]",
         color: "#4F46E5",
         colorLight: "#EEF2FF",
-        stat: "+40%",
-        statLabel: "de prises en charge",
     },
     {
         Icon: FerrisWheel,
@@ -101,8 +93,6 @@ const USE_CASES: UseCase[] = [
         iconBgClass: "bg-[#FDF2F8]",
         color: "#DB2777",
         colorLight: "#FDF2F8",
-        stat: "×3",
-        statLabel: "satisfaction visiteur",
     },
 ]
 
@@ -148,7 +138,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                 layout
                                 onClick={() => setMobileActiveIndex(isOpen ? null : i)}
                                 className="relative rounded-2xl overflow-hidden cursor-pointer"
-                                animate={{ height: isOpen ? 360 : 72 }}
+                                animate={{ height: isOpen ? 380 : 130 }}
                                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                                 style={{ willChange: "height" }}
                             >
@@ -174,7 +164,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                 {/* Color tint when closed */}
                                 <div
                                     className="absolute inset-0 transition-opacity duration-500"
-                                    style={{ backgroundColor: uc.color, opacity: isOpen ? 0 : 0.3 }}
+                                    style={{ backgroundColor: uc.color, opacity: isOpen ? 0 : 0.15 }}
                                 />
 
                                 {/* Content */}
@@ -187,15 +177,6 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                                 exit={{ opacity: 0, transition: { duration: 0.08 } }}
                                                 className="mb-3"
                                             >
-                                                {/* Stat pill */}
-                                                <div
-                                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 mb-3"
-                                                    style={{ backgroundColor: `${uc.color}33`, border: `1px solid ${uc.color}66` }}
-                                                >
-                                                    <span className="font-black text-base leading-none" style={{ color: uc.color }}>{uc.stat}</span>
-                                                    <span className="text-white/70 text-xs font-medium">{uc.statLabel}</span>
-                                                </div>
-
                                                 <p className="text-white/90 text-sm leading-relaxed mb-3" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}>
                                                     {uc.subtitle}
                                                 </p>
@@ -203,9 +184,9 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                                 <ul className="space-y-1.5 mb-3">
                                                     {uc.bullets.map((bullet) => (
                                                         <li key={bullet} className="flex items-start gap-2 text-sm text-white/90" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
-                                                            <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: `${uc.color}40`, border: `1px solid ${uc.color}80` }}>
+                                                            <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center bg-white">
                                                                 <svg className="w-2.5 h-2.5" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                                 </svg>
                                                             </span>
                                                             {bullet}
@@ -232,12 +213,12 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                             </div>
                                         </div>
                                         <motion.div
-                                            animate={{ rotate: isOpen ? 45 : 0 }}
+                                            animate={{ rotate: isOpen ? 180 : 0 }}
                                             transition={{ duration: 0.3 }}
-                                            className="w-6 h-6 rounded-full bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0"
+                                            className="w-6 h-6 rounded-full bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0 self-center"
                                         >
                                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                                             </svg>
                                         </motion.div>
                                     </div>
@@ -288,7 +269,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                 {/* Color tint when collapsed */}
                                 <div
                                     className="absolute inset-0 transition-opacity duration-500"
-                                    style={{ backgroundColor: uc.color, opacity: isExpanded ? 0 : 0.32 }}
+                                    style={{ backgroundColor: uc.color, opacity: isExpanded ? 0 : 0.15 }}
                                 />
 
                                 {/* Bottom content */}
@@ -300,15 +281,6 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                                 animate={{ opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.22 } }}
                                                 exit={{ opacity: 0, transition: { duration: 0.06 } }}
                                             >
-                                                {/* Stat pill */}
-                                                <div
-                                                    className="inline-flex items-center gap-2.5 rounded-xl px-3.5 py-2 mb-4"
-                                                    style={{ backgroundColor: `${uc.color}30`, border: `1px solid ${uc.color}55` }}
-                                                >
-                                                    <span className="font-black text-xl leading-none" style={{ color: uc.color }}>{uc.stat}</span>
-                                                    <span className="text-white/75 text-xs font-semibold">{uc.statLabel}</span>
-                                                </div>
-
                                                 <p className="text-white text-sm leading-relaxed mb-4" style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
                                                     {uc.subtitle}
                                                 </p>
@@ -316,12 +288,9 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                                 <ul className="space-y-2 mb-4">
                                                     {uc.bullets.map((bullet) => (
                                                         <li key={bullet} className="flex items-start gap-2.5 text-sm text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                                                            <span
-                                                                className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                                                                style={{ backgroundColor: `${uc.color}40`, border: `1px solid ${uc.color}70` }}
-                                                            >
+                                                            <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center bg-white">
                                                                 <svg className="w-2.5 h-2.5" style={{ color: uc.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                                 </svg>
                                                             </span>
                                                             {bullet}
