@@ -121,7 +121,7 @@ function ClosedQueueGuidance({
                         </div>
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-3">
+                    <div className="grid items-start gap-3 md:grid-cols-3">
                         {ACTIONS.map((action) => {
                             const Icon = action.icon
                             return (
