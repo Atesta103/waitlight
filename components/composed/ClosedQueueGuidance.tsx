@@ -87,9 +87,9 @@ function ClosedQueueGuidance({
                 className,
             )}
         >
-            <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="flex flex-col gap-5">
-                    <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5">
+            <div className="grid items-stretch gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+                <div className="flex flex-col gap-5 h-full">
+                    <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5 flex-1">
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
                             File en pause
                         </p>
@@ -121,7 +121,7 @@ function ClosedQueueGuidance({
                         </div>
                     </div>
 
-                    <div className="grid items-start gap-3 md:grid-cols-3">
+                    <div className="grid items-stretch gap-3 md:grid-cols-3">
                         {ACTIONS.map((action) => {
                             const Icon = action.icon
                             return (
@@ -130,7 +130,7 @@ function ClosedQueueGuidance({
                                     href={action.href}
                                     target={action.target}
                                     rel={action.target ? "noopener noreferrer" : undefined}
-                                    className="group rounded-lg border border-border-default bg-surface-base p-3 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                                    className="group flex flex-col h-full rounded-lg border border-border-default bg-surface-base p-3 transition-colors hover:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
                                 >
                                     <div className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-lg bg-surface-card text-brand-primary">
                                         <Icon size={17} aria-hidden="true" />
@@ -138,7 +138,7 @@ function ClosedQueueGuidance({
                                     <h3 className="text-sm font-semibold text-text-primary">
                                         {action.title}
                                     </h3>
-                                    <p className="mt-1 text-sm text-text-secondary">
+                                    <p className="mt-1 text-sm text-text-secondary flex-1">
                                         {action.description}
                                     </p>
                                 </Link>
@@ -147,7 +147,7 @@ function ClosedQueueGuidance({
                     </div>
                 </div>
 
-                <aside className="flex flex-col gap-4 rounded-lg border border-border-default bg-surface-base p-4">
+                <aside className="flex flex-col gap-4 h-full rounded-lg border border-border-default bg-surface-base p-4">
                     <div>
                         <div className="mb-3 flex items-center gap-2">
                             <CheckCircle2

@@ -27,14 +27,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             <button
                 ref={ref}
                 disabled={disabled || isLoading}
-                className={getButtonClasses({ variant, size, className })}
+                className={cn(getButtonClasses({ variant, size, className }), "relative")}
                 {...props}
             >
-                {isLoading ? (
-                    <Spinner size="sm" label="Chargement" className="text-current" />
-                ) : (
-                    children
+                {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Spinner size="sm" label="Chargement" className="text-current" />
+                    </div>
                 )}
+                <span className={cn(
+                    "flex items-center justify-center gap-inherit w-full h-full",
+                    isLoading ? "opacity-0" : "opacity-100"
+                )} style={{ gap: 'inherit' }}>
+                    {children}
+                </span>
             </button>
         )
     },

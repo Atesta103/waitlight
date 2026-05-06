@@ -363,8 +363,8 @@ const NotificationPreferencesEditor = forwardRef<NotificationPreferencesEditorHa
                         disabled={isSaving}
                         isLoading={isSaving}
                     >
-                        {!isSaving && <Save size={16} />}
-                        {!isSaving && "Enregistrer"}
+                        <Save size={16} />
+                        Enregistrer
                     </Button>
                 </div>
             ) : null}

@@ -67,28 +67,28 @@ export function HeaderQueueControl({
             <button
                 onClick={() => toggleMutation.mutate()}
                 disabled={toggleMutation.isPending}
-                className={controlClasses}
+                className={cn(controlClasses, "relative")}
                 aria-busy={toggleMutation.isPending}
             >
-                {toggleMutation.isPending ? (
-                    <Spinner size="sm" className="text-current" label="Ouverture" />
-                ) : (
+                {toggleMutation.isPending && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Spinner size="sm" className="text-current" label="Ouverture" />
+                    </div>
+                )}
+                <span className={cn(
+                    "flex items-center justify-center gap-inherit w-full h-full",
+                    toggleMutation.isPending ? "opacity-0" : "opacity-100"
+                )} style={{ gap: 'inherit' }}>
                     <Play size={isMobile ? 16 : 18} aria-hidden="true" />
-                )}
-                {isMobile ? (
-                    <span className="truncate">
-                        {!toggleMutation.isPending && "Ouvrir la file"}
-                    </span>
-                ) : (
-                    <>
-                        {!toggleMutation.isPending && (
-                            <>
-                                <span className="hidden sm:inline">Ouvrir la file</span>
-                                <span className="sm:hidden">Ouvrir</span>
-                            </>
-                        )}
-                    </>
-                )}
+                    {isMobile ? (
+                        <span className="truncate">Ouvrir la file</span>
+                    ) : (
+                        <>
+                            <span className="hidden sm:inline">Ouvrir la file</span>
+                            <span className="sm:hidden">Ouvrir</span>
+                        </>
+                    )}
+                </span>
             </button>
         )
     }

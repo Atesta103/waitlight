@@ -296,7 +296,7 @@ export function ContactForm() {
                 type="submit"
                 disabled={status === "loading"}
                 className={cn(
-                    "inline-flex items-center justify-center gap-2",
+                    "inline-flex items-center justify-center gap-2 relative",
                     "w-full sm:w-auto sm:self-end",
                     "px-6 py-2.5 rounded-xl",
                     "bg-[#6366F1] text-white text-sm font-semibold",
@@ -306,18 +306,22 @@ export function ContactForm() {
                     "disabled:opacity-60 disabled:cursor-not-allowed",
                 )}
             >
-                {status === "loading" ? (
-                    <Spinner
-                        size="sm"
-                        className="text-current"
-                        label="Envoi du message"
-                    />
-                ) : (
-                    <>
-                        <Send size={16} aria-hidden="true" />
-                        Envoyer le message
-                    </>
+                {status === "loading" && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Spinner
+                            size="sm"
+                            className="text-current"
+                            label="Envoi du message"
+                        />
+                    </div>
                 )}
+                <span className={cn(
+                    "flex items-center justify-center gap-2",
+                    status === "loading" ? "opacity-0" : "opacity-100"
+                )}>
+                    <Send size={16} aria-hidden="true" />
+                    Envoyer le message
+                </span>
             </button>
         </form>
     )
