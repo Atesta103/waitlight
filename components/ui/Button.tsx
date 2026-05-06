@@ -3,6 +3,7 @@
 import { forwardRef } from "react"
 import { Spinner } from "./Spinner"
 import { buttonVariants, buttonSizes, getButtonClasses } from "./button-classes"
+import { cn } from "@/lib/utils/cn"
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: keyof typeof buttonVariants
