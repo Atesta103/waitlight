@@ -89,21 +89,23 @@ function ClosedQueueGuidance({
         >
             <div className="grid items-stretch gap-5 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="flex flex-col gap-5 h-full">
-                    <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5 flex-1">
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                            File en pause
-                        </p>
-                        <h2
-                            id="closed-queue-title"
-                            className="text-xl font-semibold text-text-primary"
-                        >
-                            Votre file est fermée
-                        </h2>
-                        <p className="mt-2 max-w-xl text-sm text-text-secondary">
-                            Les {customerLabelPlural} ne peuvent pas rejoindre
-                            pour l&apos;instant. Ouvrez la file quand votre équipe
-                            est prête à recevoir de nouveaux tickets.
-                        </p>
+                    <div className="rounded-lg border border-border-default bg-surface-base p-4 sm:p-5 flex flex-col flex-1 justify-center">
+                        <div>
+                            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                                File en pause
+                            </p>
+                            <h2
+                                id="closed-queue-title"
+                                className="text-xl font-semibold text-text-primary"
+                            >
+                                Votre file est fermée
+                            </h2>
+                            <p className="mt-2 max-w-xl text-sm text-text-secondary">
+                                Les {customerLabelPlural} ne peuvent pas rejoindre
+                                pour l&apos;instant. Ouvrez la file quand votre équipe
+                                est prête à recevoir de nouveaux tickets.
+                            </p>
+                        </div>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <Button
                                 type="button"
