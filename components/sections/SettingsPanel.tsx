@@ -1373,8 +1373,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             >
                                 <Card>
                                     <CardContent>
-                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-                                            <div className="flex flex-col gap-5 pt-1">
+                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
+                                            <div className="flex h-full flex-col gap-5 pt-1">
                                                 <Input
                                                     label="Capacité maximale"
                                                     type="number"
@@ -1428,7 +1428,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 />
                                             </div>
 
-                                            <div className="flex justify-center">
+                                            <div className="flex h-full items-center justify-center">
                                                 <QueuePhoneMockup
                                                     name={identity.merchantName}
                                                     welcomeMessage={queue.welcomeMessage}
