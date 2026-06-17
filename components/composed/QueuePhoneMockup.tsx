@@ -82,9 +82,9 @@ export function QueuePhoneMockup({ name, welcomeMessage, thankYouTitle, thankYou
     const [tab, setTab] = useState<Tab>("welcome")
 
     return (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex h-full flex-col items-center gap-3">
             {/* Tab switcher */}
-            <div className="flex rounded-lg border border-border-default bg-surface-base p-0.5">
+            <div className="flex shrink-0 rounded-lg border border-border-default bg-surface-base p-0.5">
                 {([
                     { value: "welcome" as Tab, label: "Accueil" },
                     { value: "thankyou" as Tab, label: "Remerciement" },
@@ -120,7 +120,8 @@ export function QueuePhoneMockup({ name, welcomeMessage, thankYouTitle, thankYou
                         ticketId="preview"
                         thankYouTitle={thankYouTitle}
                         thankYouMessage={thankYouMessage}
-                        className="h-full justify-center gap-3 px-4"
+                        className="h-full justify-center gap-2 px-3"
+                        compact
                     />
                 )}
             </PhoneFrame>
