@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils/cn"
 
 export const buttonVariants = {
     primary:
-        "bg-brand-primary text-text-inverse hover:bg-brand-primary-hover focus-visible:ring-border-focus",
+        "bg-brand-primary text-[var(--color-text-on-primary)] hover:bg-brand-primary-hover hover:text-[var(--color-text-on-primary)] focus-visible:ring-border-focus",
     secondary:
         "bg-brand-secondary text-text-primary hover:bg-brand-secondary-hover focus-visible:ring-border-focus",
     ghost: "bg-transparent text-text-primary hover:bg-border-default hover:bg-surface-hover focus-visible:ring-border-focus",

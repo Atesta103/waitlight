@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](README.md)
+[**WaitLight Backend API**](README.md)
 
 ***
 
-[Wait-Light Backend API](README.md) / proxy
+[WaitLight Backend API](README.md) / proxy
 
 # proxy
 
@@ -14,7 +14,7 @@
 function proxy(request): Promise<NextResponse<unknown>>;
 ```
 
-Defined in: [proxy.ts:34](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L34)
+Defined in: [proxy.ts:34](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/proxy.ts#L34)
 
 Next.js Proxy (formerly Middleware) — runs on every matching request.
 
@@ -44,10 +44,10 @@ const config: {
 };
 ```
 
-Defined in: [proxy.ts:73](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L73)
+Defined in: [proxy.ts:75](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/proxy.ts#L75)
 
 #### Type Declaration
 
 | Name | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="property-matcher"></a> `matcher` | `string`[] | [proxy.ts:74](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/proxy.ts#L74) |
+| <a id="property-matcher"></a> `matcher` | `string`[] | [proxy.ts:76](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/proxy.ts#L76) |

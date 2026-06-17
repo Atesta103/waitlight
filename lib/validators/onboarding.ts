@@ -5,12 +5,14 @@
  * Zod schema for the merchant onboarding form.
  */
 import { z } from "zod"
+import { BusinessTypeSchema } from "@/lib/validators/business"
 
 export const OnboardingSchema = z.object({
     name: z
         .string()
         .min(1, "Le nom de l'établissement est requis.")
         .max(100, "100 caractères maximum."),
+    business_type: BusinessTypeSchema,
     slug: z
         .string()
         .min(3, "Le slug doit contenir au minimum 3 caractères.")

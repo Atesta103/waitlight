@@ -3,9 +3,9 @@ import { RegisterForm } from "@/components/sections/RegisterForm"
 import { registerAction, oauthSignInAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
-    title: "Créer un compte — Wait-Light",
+    title: "Créer un compte — WaitLight",
     description:
-        "Créez votre compte marchand Wait-Light et commencez à gérer votre file d'attente.",
+        "Créez votre compte marchand WaitLight et commencez à gérer votre file d'attente.",
 }
 
 /**

@@ -9,6 +9,7 @@ const mockItems: QueueItem[] = [
     {
         id: "ticket-01",
         customer_name: "Marie Dupont",
+        entry_source: "qr",
         status: "called",
         joined_at: ago(15),
         called_at: ago(2),
@@ -18,6 +19,7 @@ const mockItems: QueueItem[] = [
     {
         id: "ticket-02",
         customer_name: "Jean Martin",
+        entry_source: "manual",
         status: "waiting",
         joined_at: ago(10),
         called_at: null,
@@ -27,6 +29,7 @@ const mockItems: QueueItem[] = [
     {
         id: "ticket-03",
         customer_name: "Sophie Bernard",
+        entry_source: "qr",
         status: "waiting",
         joined_at: ago(7),
         called_at: null,
@@ -36,6 +39,7 @@ const mockItems: QueueItem[] = [
     {
         id: "ticket-04",
         customer_name: "Lucas Petit",
+        entry_source: "qr",
         status: "waiting",
         joined_at: ago(3),
         called_at: null,

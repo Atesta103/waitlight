@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe"
 import { AdminDashboard } from "@/components/sections/AdminDashboard"
 
 export const metadata: Metadata = {
-    title: "Admin — Wait-Light",
+    title: "Admin — WaitLight",
 }
 
 /**

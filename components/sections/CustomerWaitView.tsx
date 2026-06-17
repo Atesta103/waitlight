@@ -6,6 +6,7 @@ import { QueuePositionCard } from "@/components/composed/QueuePositionCard"
 import { ConnectionStatus } from "@/components/composed/ConnectionStatus"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { cn } from "@/lib/utils/cn"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 import { Gamepad2 } from "lucide-react"
 import type { ConnectionState } from "@/components/composed/ConnectionStatus"
 
@@ -21,6 +22,10 @@ type CustomerWaitViewProps = {
     customerName: string
     slug: string
     ticketId: string
+    thankYouTitle?: string | null
+    thankYouMessage?: string | null
+    backgroundUrl?: string | null
+    businessType?: string | null
     className?: string
 }
 
@@ -33,9 +38,14 @@ function CustomerWaitView({
     customerName,
     slug,
     ticketId,
+    thankYouTitle,
+    thankYouMessage,
+    backgroundUrl,
+    businessType,
     className,
 }: CustomerWaitViewProps) {
     const prefersReduced = useReducedMotion()
+    const wording = getBusinessWording(businessType)
     
     const variants: Variants | undefined = prefersReduced ? undefined : {
         initial: { opacity: 0, y: 15, scale: 0.98 },
@@ -48,6 +58,13 @@ function CustomerWaitView({
 
     return (
         <div className={cn("flex flex-col gap-6", className)}>
+            {backgroundUrl && (
+                <div
+                    className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
+                    style={{ backgroundImage: `url(${backgroundUrl})` }}
+                />
+            )}
+
             {connectionState !== "connected" ? (
                 <ConnectionStatus state={connectionState} />
             ) : null}
@@ -65,7 +82,7 @@ function CustomerWaitView({
                         <StatusBanner
                             variant="called"
                             title="C'est votre tour !"
-                            description={`${customerName}, présentez-vous au comptoir.`}
+                            description={`${customerName}, présentez-vous au ${wording.serviceDesk}.`}
                         />
                     </motion.div>
                 ) : status === "done" ? (
@@ -79,8 +96,8 @@ function CustomerWaitView({
                     >
                         <StatusBanner
                             variant="done"
-                            title="Merci !"
-                            description="Votre visite est terminée. Bonne journée !"
+                            title={thankYouTitle?.trim() || "Merci !"}
+                            description={thankYouMessage || "Votre visite est terminée. Bonne journée !"}
                         />
                     </motion.div>
                 ) : status === "cancelled" ? (
@@ -116,6 +133,7 @@ function CustomerWaitView({
                                 position={position}
                                 totalWaiting={totalWaiting}
                                 estimatedMinutes={estimatedWaitMinutes}
+                                businessType={businessType}
                             />
                         </div>
                         <p className="text-center text-sm text-text-secondary">

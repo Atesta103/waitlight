@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── Wait-Light Design Tokens ─── */
+/* ─── WaitLight Design Tokens ─── */
 
 :root {
   /* Brand */
@@ -8,6 +8,9 @@
   --color-brand-primary-hover: #4f46e5;
   --color-brand-secondary: #a5b4fc;
   --color-brand-secondary-hover: #818cf8;
+  
+  --font-brand: var(--font-inter);
+  --radius-brand: 0.5rem;
 
   /* Status */
   --color-status-waiting: #f59e0b;
@@ -29,6 +32,7 @@
   --color-text-secondary: #6b7280;
   --color-text-disabled: #d1d5db;
   --color-text-inverse: #ffffff;
+  --color-text-on-primary: #ffffff;
 
   /* Borders */
   --color-border-default: #e5e7eb;
@@ -45,11 +49,45 @@
   --color-feedback-info-bg: #dbeafe;
 
   /* Radii */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* Fallback radius if brand radius is not set. By default it is 0.5rem */
+  --radius-sm: var(--radius-brand);
+  --radius-md: var(--radius-brand);
+  --radius-lg: var(--radius-brand);
+  --radius-xl: var(--radius-brand);
+  --radius-2xl: var(--radius-brand);
+  --radius-3xl: var(--radius-brand);
   --radius-full: 9999px;
 }
+
+/* ─── Dark mode tokens (scoped to .dark set by next-themes on <html>) ─── */
+/* Only affects the app — marketing pages have class="light" on their root wrapper */
+
+.dark {
+  /* Surfaces */
+  --color-surface-base: #0f1117;
+  --color-surface-card: #1a1d27;
+  --color-surface-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Text */
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-disabled: #374151;
+  --color-text-inverse: #111827;
+
+  /* Borders */
+  --color-border-default: #2d3748;
+
+  /* Status backgrounds — slightly muted in dark */
+  --color-status-waiting-bg: #451a03;
+  --color-status-called-bg: #052e16;
+  --color-status-done-bg: #1f2937;
+  --color-status-cancelled-bg: #450a0a;
+  --color-feedback-error-bg: #450a0a;
+  --color-feedback-success-bg: #052e16;
+  --color-feedback-warning-bg: #451a03;
+  --color-feedback-info-bg: #1e3a5f;
+}
+
 
 @theme inline {
   /* Brand */
@@ -78,6 +116,7 @@
   --color-text-secondary: var(--color-text-secondary);
   --color-text-disabled: var(--color-text-disabled);
   --color-text-inverse: var(--color-text-inverse);
+  --color-text-on-primary: var(--color-text-on-primary);
 
   /* Borders */
   --color-border-default: var(--color-border-default);
@@ -97,17 +136,73 @@
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
   --radius-full: var(--radius-full);
 
   /* Fonts */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-brand, var(--font-geist-sans));
   --font-mono: var(--font-geist-mono);
+  --font-brand: var(--font-brand, var(--font-inter));
+}
+
+/* Base custom styles based on tailwind v4 */
+@layer base {
+  * {
+    border-color: var(--color-border-default);
+  }
+}
+
+/* ─── Marketing hero animations ─── */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-7px); }
+}
+@keyframes float-mid {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+.animate-float-slow  { animation: float-slow  3.4s ease-in-out infinite; }
+.animate-float-mid   { animation: float-mid   2.9s ease-in-out infinite; }
+.animate-float-fast  { animation: float-fast  2.4s ease-in-out infinite; }
+
+/* Noise texture overlay — subtle grain for depth */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ─── Skeleton shimmer ─── */
 @keyframes shimmer {
   0%   { background-position:  200% center; }
   100% { background-position: -200% center; }
+}
+
+@keyframes waitlight-loader {
+  0%, 100% {
+    opacity: 0.22;
+    transform: scaleY(0.72);
+  }
+  45%, 55% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.animate-waitlight-loader {
+  animation: waitlight-loader 900ms ease-in-out infinite;
+  transform-origin: center;
 }
 
 .skeleton-shimmer {
@@ -127,4 +222,8 @@ body {
   background: var(--color-surface-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }

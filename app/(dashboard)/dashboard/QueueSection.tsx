@@ -1,17 +1,23 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Maximize2 } from "lucide-react"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"
 import { QueueList } from "@/components/sections/QueueList"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
-import { Button } from "@/components/ui/Button"
-import { toggleQueueOpenAction, getQueueAction } from "@/lib/actions/queue"
+import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
+import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
+import {
+    toggleQueueOpenAction,
+    getQueueAction,
+    createManualTicketAction,
+} from "@/lib/actions/queue"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 import type { QueueItem } from "@/lib/actions/queue"
 
 type QueueSectionProps = {
     merchantId: string
     merchantName: string
+    businessType: string
     merchantSlug: string
     initialIsOpen: boolean
     initialItems: QueueItem[]
@@ -27,20 +33,24 @@ type QueueSectionProps = {
 export function QueueSection({
     merchantId,
     merchantName,
+    businessType,
     merchantSlug,
     initialIsOpen,
     initialItems,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
-    // Use TanStack Query as a global state store across components to sync the queue status, without an actual HTTP fetcher
+    const wording = getBusinessWording(businessType)
+    // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
+    // to share 'isOpen' across components without an actual HTTP request.
     const { data: isOpen = initialIsOpen } = useQuery({
         queryKey: ["queue-status", merchantId],
-        queryFn: () => Promise.resolve(initialIsOpen), // Just provide a default if not already in cache
+        queryFn: () => Promise.resolve(initialIsOpen), // Fallback if not in cache
         initialData: initialIsOpen,
-        staleTime: Infinity,
+        staleTime: Infinity, // Data never goes stale, preventing auto-refetches
     })
 
-    // Live count from the queue cache (updated by QueueList's Realtime sub)
+    // TANSTACK: Fetches actual queue data. The cache key ["queue", merchantId]
+    // allows other components to read/update this exact data.
     const { data: queueItems = initialItems } = useQuery({
         queryKey: ["queue", merchantId],
         queryFn: async () => {
@@ -54,40 +64,69 @@ export function QueueSection({
 
     const waitingCount = queueItems.filter((i) => i.status === "waiting").length
 
-    // Toggle open/close with optimistic update
+    // TANSTACK: useMutation handles data modification (POST/PUT/DELETE).
+    // We use it to trigger server actions and track loading/error states.
     const toggleMutation = useMutation({
         mutationFn: (newIsOpen: boolean) =>
             toggleQueueOpenAction({ is_open: newIsOpen }),
+        // TANSTACK: onMutate runs BEFORE the server request finishes.
+        // We do an "optimistic update" to instantly change the UI.
         onMutate: (newIsOpen) => {
             queryClient.setQueryData(["queue-status", merchantId], newIsOpen)
         },
+        // TANSTACK: If server request fails, rollback to the previous state.
         onError: (_err, newIsOpen) => {
             // Roll back on error
             queryClient.setQueryData(["queue-status", merchantId], !newIsOpen)
         },
         onSettled: () => {
-            // Invalidate the query to ensure we're synced with the server
-            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
+            // Note: We deliberately do not invalidateQueries here because the queryFn
+            // resolves to the static initialIsOpen prop. Invalidating would immediately
+            // revert the optimistic update to the initial prop value instead of fetching
+            // the actual server state. The UI will stay optimistically correct.
         },
     })
+
+    const manualTicketMutation = useMutation({
+        mutationFn: (customerName: string) =>
+            createManualTicketAction({ customerName }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["queue", merchantId] })
+        },
+    })
+
+    const manualTicketDialog = (
+        <ManualTicketDialog
+            businessType={businessType}
+            isSubmitting={manualTicketMutation.isPending}
+            onCreate={async (customerName) => {
+                const result =
+                    await manualTicketMutation.mutateAsync(customerName)
+                if ("error" in result) {
+                    return { error: result.error }
+                }
+                return { data: result.data }
+            }}
+        />
+    )
 
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader
                 merchantName={merchantName}
+                businessType={businessType}
                 isOpen={isOpen}
                 waitingCount={waitingCount}
                 onToggleOpen={(v) => toggleMutation.mutate(v)}
+                isUpdatingOpenState={toggleMutation.isPending}
             />
 
             {!isOpen && (
-                <div
-                    role="status"
-                    className="rounded-xl border border-border-default bg-surface-card p-6 text-center text-sm text-text-secondary"
-                >
-                    La file est fermée. Activez-la pour que les clients puissent
-                    rejoindre.
-                </div>
+                <ClosedQueueGuidance
+                    customerLabelPlural={wording.plural}
+                    onOpenQueue={() => toggleMutation.mutate(true)}
+                    isOpening={toggleMutation.isPending}
+                />
             )}
 
             {isOpen && (
@@ -96,27 +135,17 @@ export function QueueSection({
                     <QueueList
                         merchantId={merchantId}
                         initialItems={initialItems}
+                        businessType={businessType}
                     />
 
                     {/* Right — QR code panel */}
                     <div className="flex flex-col items-center gap-3">
-                        <QRCodeDisplay slug={merchantSlug} size={220} />
-                        <a
-                            href={`/qr?slug=${encodeURIComponent(merchantSlug)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full"
-                        >
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full"
-                                aria-label="Afficher le QR code en plein écran dans un nouvel onglet"
-                            >
-                                <Maximize2 size={14} aria-hidden="true" />
-                                Plein écran
-                            </Button>
-                        </a>
+                        <QRCodeDisplay
+                            slug={merchantSlug}
+                            size={220}
+                            businessType={businessType}
+                        />
+                        {manualTicketDialog}
                     </div>
                 </div>
             )}

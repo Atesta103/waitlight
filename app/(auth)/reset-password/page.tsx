@@ -3,9 +3,9 @@ import { ResetPasswordForm } from "@/components/sections/ResetPasswordForm"
 import { resetPasswordAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
-    title: "Nouveau mot de passe — Wait-Light",
+    title: "Nouveau mot de passe — WaitLight",
     description:
-        "Choisissez un nouveau mot de passe pour votre compte Wait-Light.",
+        "Choisissez un nouveau mot de passe pour votre compte WaitLight.",
 }
 
 /**

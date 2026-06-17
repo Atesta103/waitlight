@@ -119,16 +119,26 @@ function SocialAuthButtons({
                     disabled={!!loading || disabled}
                     aria-label={`${label} avec ${name}`}
                     className={cn(
-                        "flex h-11 min-w-11 cursor-pointer items-center justify-center gap-3 rounded-md border px-4",
+                        "relative flex h-11 min-w-11 cursor-pointer items-center justify-center gap-3 rounded-md border px-4",
                         "text-sm font-medium text-text-primary transition-colors",
                         "bg-surface-card border-border-default hover:bg-surface-base",
                         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus",
                         "disabled:pointer-events-none disabled:opacity-50",
                     )}
                 >
-                    {loading === id ? <Spinner size="sm" /> : icon}
-                    <span>
-                        {label} avec {name}
+                    {loading === id && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Spinner size="sm" />
+                        </div>
+                    )}
+                    <span className={cn(
+                        "flex items-center justify-center gap-3",
+                        loading === id ? "opacity-0" : "opacity-100"
+                    )}>
+                        {icon}
+                        <span>
+                            {label} avec {name}
+                        </span>
                     </span>
                 </button>
             ))}

@@ -1,7 +1,8 @@
 "use client"
 
-import { Wifi, WifiOff, Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/Spinner"
 import { cn } from "@/lib/utils/cn"
+import { Wifi, WifiOff } from "lucide-react"
 
 type ConnectionState = "connected" | "reconnecting" | "offline"
 
@@ -12,7 +13,7 @@ type ConnectionStatusProps = {
 
 const stateConfig: Record<
     ConnectionState,
-    { label: string; className: string; icon: React.ElementType }
+    { label: string; className: string; icon?: React.ElementType; loading?: boolean }
 > = {
     connected: {
         label: "Connecté",
@@ -22,7 +23,7 @@ const stateConfig: Record<
     reconnecting: {
         label: "Reconnexion en cours…",
         className: "bg-feedback-warning-bg text-feedback-warning",
-        icon: Loader2,
+        loading: true,
     },
     offline: {
         label: "Connexion perdue",
@@ -45,11 +46,15 @@ function ConnectionStatus({ state, className }: ConnectionStatusProps) {
                 className,
             )}
         >
-            <Icon
-                size={16}
-                className={cn(state === "reconnecting" && "animate-spin")}
-                aria-hidden="true"
-            />
+            {config.loading ? (
+                <Spinner
+                    size="sm"
+                    className="text-current"
+                    decorative
+                />
+            ) : Icon ? (
+                <Icon size={16} aria-hidden="true" />
+            ) : null}
             {config.label}
         </div>
     )

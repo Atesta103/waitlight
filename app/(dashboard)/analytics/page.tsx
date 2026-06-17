@@ -4,7 +4,7 @@ import { getAnalyticsAction } from "@/lib/actions/analytics"
 import { AnalyticsDashboard } from "@/components/sections/AnalyticsDashboard"
 
 export const metadata: Metadata = {
-    title: "Analytiques — Wait-Light",
+    title: "Analytiques — WaitLight",
 }
 
 /**

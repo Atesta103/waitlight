@@ -1,12 +1,32 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / validators/queue
+[WaitLight Backend API](../README.md) / validators/queue
 
 # validators/queue
 
 ## Type Aliases
+
+### CreateManualTicketInput
+
+```ts
+type CreateManualTicketInput = z.infer<typeof CreateManualTicketSchema>;
+```
+
+Defined in: [lib/validators/queue.ts:68](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L68)
+
+***
+
+### JoinQueueInput
+
+```ts
+type JoinQueueInput = z.infer<typeof JoinQueueSchema>;
+```
+
+Defined in: [lib/validators/queue.ts:55](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L55)
+
+***
 
 ### TicketIdInput
 
@@ -14,7 +34,7 @@
 type TicketIdInput = z.infer<typeof TicketIdSchema>;
 ```
 
-Defined in: [lib/validators/queue.ts:28](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L28)
+Defined in: [lib/validators/queue.ts:28](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L28)
 
 ***
 
@@ -24,7 +44,7 @@ Defined in: [lib/validators/queue.ts:28](https://github.com/Atesta103/waitlight/
 type TicketStatus = z.infer<typeof TicketStatusSchema>;
 ```
 
-Defined in: [lib/validators/queue.ts:19](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L19)
+Defined in: [lib/validators/queue.ts:19](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L19)
 
 ***
 
@@ -34,9 +54,40 @@ Defined in: [lib/validators/queue.ts:19](https://github.com/Atesta103/waitlight/
 type ToggleQueueInput = z.infer<typeof ToggleQueueSchema>;
 ```
 
-Defined in: [lib/validators/queue.ts:37](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L37)
+Defined in: [lib/validators/queue.ts:37](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L37)
 
 ## Variables
+
+### CreateManualTicketSchema
+
+```ts
+const CreateManualTicketSchema: ZodObject<{
+  customerName: ZodString;
+}, $strip>;
+```
+
+Defined in: [lib/validators/queue.ts:60](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L60)
+
+Schema for merchants creating a manual ticket (dashboard only).
+
+***
+
+### JoinQueueSchema
+
+```ts
+const JoinQueueSchema: ZodObject<{
+  consent: ZodLiteral<true>;
+  customerName: ZodString;
+  slug: ZodString;
+  token: ZodString;
+}, $strip>;
+```
+
+Defined in: [lib/validators/queue.ts:42](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L42)
+
+Schema for a customer joining the queue via QR code.
+
+***
 
 ### TicketIdSchema
 
@@ -46,7 +97,7 @@ const TicketIdSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/queue.ts:24](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L24)
+Defined in: [lib/validators/queue.ts:24](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L24)
 
 Schema for a single ticket ID — used by call, complete, cancel actions.
 
@@ -63,7 +114,7 @@ const TicketStatusSchema: ZodEnum<{
 }>;
 ```
 
-Defined in: [lib/validators/queue.ts:12](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L12)
+Defined in: [lib/validators/queue.ts:12](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L12)
 
 Valid ticket status values for state-machine transitions.
 
@@ -77,6 +128,6 @@ const ToggleQueueSchema: ZodObject<{
 }, $strip>;
 ```
 
-Defined in: [lib/validators/queue.ts:33](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/validators/queue.ts#L33)
+Defined in: [lib/validators/queue.ts:33](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/validators/queue.ts#L33)
 
 Schema for toggling the queue open/closed state.

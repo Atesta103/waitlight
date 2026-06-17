@@ -1,0 +1,36 @@
+{
+  "title": "5 - Subscription and Stripe Webhooks",
+  "description": "Explore how payment access is gated, checkout is created, and webhook events sync subscription state.",
+  "steps": [
+    {
+      "title": "Subscription gate before dashboard",
+      "file": "app/subscribe/page.tsx",
+      "pattern": "isActiveStatus\\(subscription\\.status\\)",
+      "description": "If a merchant already has an active subscription, the subscribe page redirects directly to the dashboard."
+    },
+    {
+      "title": "Checkout session creation",
+      "file": "lib/actions/billing.ts",
+      "pattern": "export async function createCheckoutSessionAction",
+      "description": "The billing action creates a Stripe Checkout session and returns a URL for client redirection."
+    },
+    {
+      "title": "Signature verification",
+      "file": "app/api/webhooks/stripe/route.ts",
+      "pattern": "stripe\\.webhooks\\.constructEvent",
+      "description": "Webhook requests are accepted only after Stripe signature verification using the raw request body."
+    },
+    {
+      "title": "Webhook sync to subscriptions table",
+      "file": "app/api/webhooks/stripe/route.ts",
+      "pattern": "adminSupabase\\s*\\.from\\(\"subscriptions\"\\)\\s*\\.upsert",
+      "description": "Webhook handlers update subscription records with admin privileges so merchant access reflects Stripe events."
+    },
+    {
+      "title": "Billing portal access",
+      "file": "lib/actions/billing.ts",
+      "pattern": "export async function createPortalSessionAction",
+      "description": "Customers with an existing Stripe customer id can open the billing portal to manage their subscription."
+    }
+  ]
+}

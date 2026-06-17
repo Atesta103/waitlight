@@ -60,3 +60,5 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+graphify-out/manifest.json
+graphify-out/cost.json

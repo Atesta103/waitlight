@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / actions/queue
+[WaitLight Backend API](../README.md) / actions/queue
 
 # actions/queue
 
@@ -20,7 +20,7 @@ function callTicketAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/queue.ts:100](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L100)
+Defined in: [lib/actions/queue.ts:189](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L189)
 
 Transition a ticket from `waiting` → `called`.
 
@@ -59,7 +59,7 @@ function cancelTicketAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/queue.ts:200](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L200)
+Defined in: [lib/actions/queue.ts:293](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L293)
 
 Transition a ticket to `cancelled` from either `waiting` or `called`.
 
@@ -84,6 +84,34 @@ Silently no-ops if the ticket is already `done` or `cancelled`.
 
 ***
 
+### checkNameAction()
+
+```ts
+function checkNameAction(name, slug?): Promise<{
+  isBanned: boolean;
+}>;
+```
+
+Defined in: [lib/actions/queue.ts:542](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L542)
+
+Check if a customer name is banned for the given merchant.
+Checks both merchant-specific bans and global bans (merchant_id IS NULL).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The customer name to check. |
+| `slug?` | `string` | The merchant slug, used to look up the merchant_id. |
+
+#### Returns
+
+`Promise`\<\{
+  `isBanned`: `boolean`;
+\}\>
+
+***
+
 ### completeTicketAction()
 
 ```ts
@@ -96,7 +124,7 @@ function completeTicketAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/queue.ts:150](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L150)
+Defined in: [lib/actions/queue.ts:241](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L241)
 
 Transition a ticket from `called` → `done`.
 
@@ -123,6 +151,42 @@ Only tickets in `called` state can be completed — use [callTicketAction](#call
 
 ***
 
+### createManualTicketAction()
+
+```ts
+function createManualTicketAction(input): Promise<
+  | {
+  data: QueueItem;
+}
+  | {
+  error: string;
+}>;
+```
+
+Defined in: [lib/actions/queue.ts:89](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L89)
+
+Create a manual ticket from the merchant dashboard.
+Validates input, enforces merchant ownership, and checks capacity.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `customerName`: `string`; \} |
+| `input.customerName` | `string` |
+
+#### Returns
+
+`Promise`\<
+  \| \{
+  `data`: [`QueueItem`](#queueitem);
+\}
+  \| \{
+  `error`: `string`;
+\}\>
+
+***
+
 ### getQueueAction()
 
 ```ts
@@ -135,7 +199,7 @@ function getQueueAction(): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/queue.ts:52](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L52)
+Defined in: [lib/actions/queue.ts:57](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L57)
 
 Fetch the active queue (status `waiting` and `called`) for the authenticated merchant.
 
@@ -162,6 +226,93 @@ Empty array when the queue is empty.
 
 ***
 
+### joinQueueAction()
+
+```ts
+function joinQueueAction(input): Promise<
+  | {
+  data: {
+     merchantId: string;
+     ticketId: string;
+  };
+}
+  | {
+  error: string;
+}>;
+```
+
+Defined in: [lib/actions/queue.ts:379](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L379)
+
+Join the queue as an anonymous customer.
+Validates the QR token, checks business state, and inserts a ticket.
+No authentication required — customers are anonymous.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `consent`: `true`; `customerName`: `string`; `slug`: `string`; `token`: `string`; \} |
+| `input.consent` | `true` |
+| `input.customerName` | `string` |
+| `input.slug` | `string` |
+| `input.token` | `string` |
+
+#### Returns
+
+`Promise`\<
+  \| \{
+  `data`: \{
+     `merchantId`: `string`;
+     `ticketId`: `string`;
+  \};
+\}
+  \| \{
+  `error`: `string`;
+\}\>
+
+***
+
+### reportTicketNameAction()
+
+```ts
+function reportTicketNameAction(ticketId, offendingName): Promise<
+  | {
+  data: {
+     customer_name: string;
+     id: string;
+     name_flagged: boolean;
+  };
+}
+  | {
+  error: string;
+}>;
+```
+
+Defined in: [lib/actions/queue.ts:472](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L472)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `offendingName` | `string` |
+
+#### Returns
+
+`Promise`\<
+  \| \{
+  `data`: \{
+     `customer_name`: `string`;
+     `id`: `string`;
+     `name_flagged`: `boolean`;
+  \};
+\}
+  \| \{
+  `error`: `string`;
+\}\>
+
+***
+
 ### toggleQueueOpenAction()
 
 ```ts
@@ -174,7 +325,7 @@ function toggleQueueOpenAction(input): Promise<
 }>;
 ```
 
-Defined in: [lib/actions/queue.ts:248](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L248)
+Defined in: [lib/actions/queue.ts:343](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L343)
 
 Set the queue open/closed state for the authenticated merchant.
 
@@ -207,6 +358,7 @@ type QueueItem = {
   called_at: string | null;
   customer_name: string;
   done_at: string | null;
+  entry_source: "qr" | "manual";
   id: string;
   joined_at: string;
   merchant_id: string;
@@ -214,7 +366,7 @@ type QueueItem = {
 };
 ```
 
-Defined in: [lib/actions/queue.ts:24](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L24)
+Defined in: [lib/actions/queue.ts:28](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L28)
 
 A live ticket in the queue (only `waiting` and `called` statuses are returned
 by [getQueueAction](#getqueueaction); `done` and `cancelled` are filtered out).
@@ -223,10 +375,11 @@ by [getQueueAction](#getqueueaction); `done` and `cancelled` are filtered out).
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="called_at"></a> `called_at` | `string` \| `null` | [lib/actions/queue.ts:30](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L30) |
-| <a id="customer_name"></a> `customer_name` | `string` | [lib/actions/queue.ts:27](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L27) |
-| <a id="done_at"></a> `done_at` | `string` \| `null` | [lib/actions/queue.ts:31](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L31) |
-| <a id="id"></a> `id` | `string` | [lib/actions/queue.ts:25](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L25) |
-| <a id="joined_at"></a> `joined_at` | `string` | [lib/actions/queue.ts:29](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L29) |
-| <a id="merchant_id"></a> `merchant_id` | `string` | [lib/actions/queue.ts:26](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L26) |
-| <a id="status"></a> `status` | `"waiting"` \| `"called"` \| `"done"` \| `"cancelled"` | [lib/actions/queue.ts:28](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/queue.ts#L28) |
+| <a id="called_at"></a> `called_at` | `string` \| `null` | [lib/actions/queue.ts:35](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L35) |
+| <a id="customer_name"></a> `customer_name` | `string` | [lib/actions/queue.ts:31](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L31) |
+| <a id="done_at"></a> `done_at` | `string` \| `null` | [lib/actions/queue.ts:36](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L36) |
+| <a id="entry_source"></a> `entry_source` | `"qr"` \| `"manual"` | [lib/actions/queue.ts:32](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L32) |
+| <a id="id"></a> `id` | `string` | [lib/actions/queue.ts:29](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L29) |
+| <a id="joined_at"></a> `joined_at` | `string` | [lib/actions/queue.ts:34](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L34) |
+| <a id="merchant_id"></a> `merchant_id` | `string` | [lib/actions/queue.ts:30](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L30) |
+| <a id="status"></a> `status` | `"waiting"` \| `"called"` \| `"done"` \| `"cancelled"` | [lib/actions/queue.ts:33](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/queue.ts#L33) |

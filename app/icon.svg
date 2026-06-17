@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .mark { fill: #0F1420; }
+    .cut { fill: #FFFFFF; }
+    @media (prefers-color-scheme: dark) {
+      .mark { fill: #FFFFFF; }
+      .cut { fill: #0F1420; }
+    }
+  </style>
+  <rect class="mark" x="16.24" y="16.24" width="25.52" height="83.52" rx="12.76"/>
+  <circle class="cut" cx="28.768" cy="34.22" r="4.06"/>
+  <circle class="cut" cx="28.768" cy="57.42" r="4.06"/>
+  <circle class="cut" cx="28.768" cy="80.62" r="4.06"/>
+  <rect class="mark" x="58" y="29" width="35.96" height="6.728" rx="3.364" opacity="0.38"/>
+  <rect class="mark" x="58" y="49.88" width="47.56" height="8.12" rx="4.06"/>
+  <rect class="mark" x="58" y="74.24" width="34.8" height="6.728" rx="3.364" opacity="0.62"/>
+</svg>

@@ -1,33 +1,55 @@
 import { cn } from "@/lib/utils/cn"
-import { Loader2 } from "lucide-react"
 
 const sizes = {
-    sm: "h-4 w-4",
-    md: "h-6 w-6",
-    lg: "h-10 w-10",
+    sm: {
+        root: "h-4 w-7 gap-0.5",
+        bar: "w-1.5 rounded-full",
+        heights: ["h-3", "h-4", "h-2.5", "h-3.5"],
+    },
+    md: {
+        root: "h-6 w-10 gap-1",
+        bar: "w-2 rounded-full",
+        heights: ["h-4", "h-6", "h-3.5", "h-5"],
+    },
+    lg: {
+        root: "h-10 w-16 gap-1.5",
+        bar: "w-3 rounded-full",
+        heights: ["h-7", "h-10", "h-6", "h-8"],
+    },
 } as const
 
 type SpinnerProps = {
     size?: keyof typeof sizes
     className?: string
     label?: string
+    decorative?: boolean
 }
 
 function Spinner({
     size = "md",
     className,
     label = "Chargement…",
+    decorative = false,
 }: SpinnerProps) {
     return (
         <span
-            role="status"
-            className={cn("inline-flex items-center justify-center", className)}
+            role={decorative ? undefined : "status"}
+            aria-hidden={decorative ? true : undefined}
+            className={cn("inline-flex items-center justify-center text-brand-primary", sizes[size].root, className)}
         >
-            <Loader2
-                className={cn("animate-spin text-brand-primary", sizes[size])}
-                aria-hidden="true"
-            />
-            <span className="sr-only">{label}</span>
+            {sizes[size].heights.map((height, index) => (
+                <span
+                    key={`${height}-${index}`}
+                    className={cn(
+                        "animate-waitlight-loader bg-current",
+                        sizes[size].bar,
+                        height,
+                    )}
+                    style={{ animationDelay: `${index * 120}ms` }}
+                    aria-hidden="true"
+                />
+            ))}
+            {decorative ? null : <span className="sr-only">{label}</span>}
         </span>
     )
 }

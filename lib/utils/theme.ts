@@ -1,5 +1,5 @@
 /**
- * Wait-Light merchant theme system.
+ * WaitLight merchant theme system.
  *
  * A MerchantTheme is a plain record of CSS custom-property overrides.
  * Apply it to any wrapper element via the `style` prop to scope the

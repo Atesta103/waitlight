@@ -53,3 +53,16 @@ export const JoinQueueSchema = z.object({
 })
 
 export type JoinQueueInput = z.infer<typeof JoinQueueSchema>
+
+/**
+ * Schema for merchants creating a manual ticket (dashboard only).
+ */
+export const CreateManualTicketSchema = z.object({
+    customerName: z
+        .string()
+        .trim()
+        .min(2, "Le prénom doit contenir au moins 2 caractères.")
+        .max(50, "Le prénom ne peut pas dépasser 50 caractères."),
+})
+
+export type CreateManualTicketInput = z.infer<typeof CreateManualTicketSchema>

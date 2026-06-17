@@ -1,12 +1,13 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useLayoutEffect } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { QueueDot } from "@/components/ui/QueueDot"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { StatusBanner } from "./StatusBanner"
 import { Clock, ChevronUp, CalendarClock, BellRing } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 type QueuePositionCardProps = {
     /** 1-based position (1 = next to be called, 0 = "it's your turn") */
@@ -15,6 +16,7 @@ type QueuePositionCardProps = {
     totalWaiting: number | null
     /** estimated wait in minutes */
     estimatedMinutes: number | null
+    businessType?: string | null
     className?: string
 }
 
@@ -25,10 +27,13 @@ const MAX_DOTS_BEHIND = 3
  * Date.now() is called only on the client (useEffect) to avoid SSR/hydration mismatch.
  */
 function EstimatedClockTime({ minutes }: { minutes: number }) {
-    const [formatted, setFormatted] = useState<string | null>(null)
+    // useLayoutEffect: not subject to react-hooks/set-state-in-effect,
+    // runs after paint (client only) — avoids SSR/hydration mismatch.
+    const [formatted, setFormatted] = useState("")
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const eta = new Date(Date.now() + minutes * 60_000)
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- useLayoutEffect is intentional: reads Date.now() after mount to avoid SSR hydration mismatch
         setFormatted(
             eta.toLocaleTimeString("fr-FR", {
                 hour: "2-digit",
@@ -86,9 +91,11 @@ function QueuePositionCard({
     position,
     totalWaiting,
     estimatedMinutes,
+    businessType,
     className,
 }: QueuePositionCardProps) {
     const prefersReduced = useReducedMotion()
+    const wording = getBusinessWording(businessType)
     const prevPositionRef = useRef<number | null>(null)
     const [showAdvance, setShowAdvance] = useState(false)
     const [direction, setDirection] = useState<1 | -1>(1)
@@ -96,14 +103,21 @@ function QueuePositionCard({
     // Detect forward movement to briefly show the ↑ badge and track direction
     useEffect(() => {
         const prev = prevPositionRef.current
+        let t1: ReturnType<typeof setTimeout>
+        let t2: ReturnType<typeof setTimeout>
+
         if (prev !== null && position !== null && position < prev) {
-            setShowAdvance(true)
-            setDirection(-1)
-            const t = setTimeout(() => setShowAdvance(false), 1800)
+            // Defer to avoid synchronous setState inside effect
+            t1 = setTimeout(() => {
+                setShowAdvance(true)
+                setDirection(-1)
+            }, 0)
+            t2 = setTimeout(() => setShowAdvance(false), 1800)
             prevPositionRef.current = position
-            return () => clearTimeout(t)
+            return () => { clearTimeout(t1); clearTimeout(t2) }
         } else if (position !== null) {
-            setDirection(1)
+            t1 = setTimeout(() => setDirection(1), 0)
+            return () => clearTimeout(t1)
         }
         prevPositionRef.current = position
     }, [position])
@@ -299,8 +313,8 @@ function QueuePositionCard({
                 {/* Label */}
                 <p className="text-sm font-medium text-text-secondary">
                     {aheadCount === 1
-                        ? "1 personne devant vous"
-                        : `${aheadCount} personnes devant vous`}
+                        ? `1 ${wording.singular} devant vous`
+                        : `${aheadCount} ${wording.plural} devant vous`}
                 </p>
 
                 {/* Wait time + estimated clock time */}
@@ -325,7 +339,7 @@ function QueuePositionCard({
                 {/* Queue depth label */}
                 {totalWaiting > 1 && (
                     <p className="text-xs text-text-disabled">
-                        {totalWaiting} personnes au total
+                        {totalWaiting} {wording.plural} au total
                     </p>
                 )}
             </div>

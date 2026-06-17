@@ -5,14 +5,9 @@ import { getMerchantSettingsAction } from "@/lib/actions/settings"
 import { SettingsPanel } from "@/components/sections/SettingsPanel"
 
 export const metadata: Metadata = {
-    title: "Paramètres — Wait-Light",
+    title: "Paramètres — WaitLight",
 }
 
-/**
- * Settings page — Server Component.
- * Fetches the merchant + settings data server-side and passes it to the
- * client SettingsPanel. Auth is guaranteed by the DashboardLayout parent.
- */
 export default async function SettingsPage() {
     const result = await getMerchantSettingsAction()
 
@@ -24,7 +19,6 @@ export default async function SettingsPage() {
 
     return (
         <div className="flex flex-col gap-8">
-            {/* ── Page header ──────────────────────────────────────────── */}
             <div className="flex items-center gap-4 border-b border-border-default pb-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-default bg-surface-card shadow-sm">
                     <Settings
@@ -49,15 +43,32 @@ export default async function SettingsPage() {
             <SettingsPanel
                 initialData={{
                     merchantName: merchant.name,
+                    businessType: merchant.business_type,
                     slug: merchant.slug,
                     logoUrl: merchant.logo_url,
+                    brandColor: merchant.brand_color,
+                    fontFamily: merchant.font_family,
+                    borderRadius: merchant.border_radius,
+                    themePattern: merchant.theme_pattern,
                     defaultPrepTimeMin: merchant.default_prep_time_min,
                     maxCapacity: settings.max_capacity,
                     welcomeMessage: settings.welcome_message ?? "",
+                    thankYouTitle: settings.thank_you_title ?? "",
+                    thankYouMessage: settings.thank_you_message ?? "",
                     notificationsEnabled: settings.notifications_enabled,
                     autoCloseEnabled: settings.auto_close_enabled,
                     calculatedAvgPrepTime: merchant.calculated_avg_prep_time,
                     avgPrepComputedAt: merchant.avg_prep_computed_at,
+                    schedule: settings.schedule,
+                    notificationChannels: settings.notification_channels,
+                    notificationSound: settings.notification_sound,
+                    approachingPositionEnabled:
+                        settings.approaching_position_enabled,
+                    approachingPositionThreshold:
+                        settings.approaching_position_threshold,
+                    approachingTimeEnabled: settings.approaching_time_enabled,
+                    approachingTimeThresholdMin:
+                        settings.approaching_time_threshold_min,
                 }}
             />
         </div>

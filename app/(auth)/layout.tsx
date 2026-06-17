@@ -1,4 +1,7 @@
 import type { ReactNode } from "react"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import { BrandLogo } from "@/components/ui/BrandLogo"
 
 type AuthLayoutProps = {
     children: ReactNode
@@ -11,7 +14,7 @@ type AuthLayoutProps = {
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
     return (
-        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-surface-base px-4 py-8">
+        <div className="light relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-surface-base px-4 py-8">
             {/* Center Glow Background */}
             <div
                 className="pointer-events-none absolute inset-0 z-0 opacity-20"
@@ -20,11 +23,24 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                 }}
             />
 
+            {/* Back link */}
+            <div className="absolute top-6 left-6 z-10">
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#374151] hover:text-[#111827] transition-colors"
+                >
+                    <ArrowLeft size={15} aria-hidden="true" />
+                    Retour
+                </Link>
+            </div>
+
             {/* Header / Brand */}
             <div className="relative z-10 mb-8 flex flex-col items-center text-center">
-                <h1 className="mb-2 text-4xl font-bold tracking-tight text-brand-primary md:text-5xl">
-                    WaitLight
-                </h1>
+                <BrandLogo
+                    markClassName="h-12 w-12"
+                    textClassName="text-4xl text-brand-primary md:text-5xl"
+                    className="mb-2"
+                />
                 <p className="max-w-xs text-lg font-medium text-brand-primary opacity-80 md:max-w-sm md:text-xl">
                     Gérez votre file d&apos;attente sans effort
                 </p>

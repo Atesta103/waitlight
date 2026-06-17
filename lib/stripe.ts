@@ -6,11 +6,8 @@
  * Never import this file in a Client Component or any file prefixed with NEXT_PUBLIC_.
  */
 import Stripe from "stripe"
+import { getStripeSecretKey } from "@/lib/stripe-config"
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is not set")
-}
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(getStripeSecretKey(), {
     apiVersion: "2026-02-25.clover",
 })

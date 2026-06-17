@@ -1,8 +1,8 @@
-[**Wait-Light Backend API**](../README.md)
+[**WaitLight Backend API**](../README.md)
 
 ***
 
-[Wait-Light Backend API](../README.md) / actions/onboarding
+[WaitLight Backend API](../README.md) / actions/onboarding
 
 # actions/onboarding
 
@@ -14,7 +14,7 @@
 function checkSlugAvailabilityAction(slug): Promise<boolean>;
 ```
 
-Defined in: [lib/actions/onboarding.ts:25](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/onboarding.ts#L25)
+Defined in: [lib/actions/onboarding.ts:25](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/onboarding.ts#L25)
 
 Check whether a slug is already taken (no merchant exclusion).
 
@@ -46,7 +46,7 @@ function createMerchantAction(formData): Promise<{
 }>;
 ```
 
-Defined in: [lib/actions/onboarding.ts:60](https://github.com/Atesta103/waitlight/blob/abf23b09a97421ec75e06e7b3316f9a069100e58/lib/actions/onboarding.ts#L60)
+Defined in: [lib/actions/onboarding.ts:60](https://github.com/Atesta103/waitlight/blob/914be13e140824c8834a516e63f166105c33e322/lib/actions/onboarding.ts#L60)
 
 Create the `merchants` and `settings` rows for the authenticated user.
 Final step of the onboarding wizard.
@@ -61,7 +61,8 @@ On success, redirects to `/dashboard`. If a merchant row already exists
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `formData` | \{ `maxCapacity`: `number`; `name`: `string`; `slug`: `string`; `welcomeMessage`: `string`; \} | Mapped to [OnboardingSchema](../validators/onboarding.md#onboardingschema) before validation. |
+| `formData` | \{ `businessType`: `string`; `maxCapacity`: `number`; `name`: `string`; `slug`: `string`; `welcomeMessage`: `string`; \} | Mapped to [OnboardingSchema](../validators/onboarding.md#onboardingschema) before validation. |
+| `formData.businessType` | `string` | - |
 | `formData.maxCapacity` | `number` | - |
 | `formData.name` | `string` | - |
 | `formData.slug` | `string` | - |
