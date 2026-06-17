@@ -57,8 +57,7 @@ function JoinPhoneMockup({ name, welcomeMessage }: { name: string; welcomeMessag
     const displayMessage = welcomeMessage || "Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."
 
     return (
-        <div className="flex flex-col items-center gap-3">
-            <p className="text-xs font-medium text-text-secondary">Aperçu client</p>
+        <div className="flex flex-col items-center">
             <div className="relative w-[260px] shrink-0">
                 {/* Phone frame */}
                 <div className="bg-[#111827] rounded-[2.5rem] p-3 shadow-[0_32px_80px_-12px_rgba(0,0,0,0.28),0_0_0_1px_rgba(255,255,255,0.06)]">
@@ -212,42 +211,50 @@ function OnboardingForm({
             {/* Stepper — toujours pleine largeur */}
             <div className="flex flex-col gap-3">
                 <ActiveLine value={step + 1} max={STEPS.length} label="Progression de l'onboarding" />
-                <div className="flex items-center justify-between">
+                <div className="flex items-start">
                     {STEPS.map((s, i) => {
                         const Icon = s.icon
                         const isCompleted = i < step
                         const isCurrent = i === step
                         return (
-                            <div key={s.label} className="flex flex-1 items-center gap-2">
-                                <div
-                                    className={cn(
-                                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors",
-                                        isCompleted
-                                            ? "bg-feedback-success text-text-inverse"
-                                            : isCurrent
-                                              ? "bg-brand-primary text-text-inverse"
-                                              : "bg-border-default text-text-secondary",
-                                    )}
-                                >
-                                    {isCompleted ? (
-                                        <Check size={16} aria-hidden="true" />
-                                    ) : (
-                                        <Icon size={16} aria-hidden="true" />
-                                    )}
+                            <div key={s.label} className="flex flex-1 items-start">
+                                {/* Connector before (not on first) */}
+                                {i > 0 && (
+                                    <div className="mt-4 h-px flex-1 bg-border-default" />
+                                )}
+                                {/* Dot + label stacked */}
+                                <div className="flex flex-col items-center gap-1 shrink-0">
+                                    <div
+                                        className={cn(
+                                            "flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-colors",
+                                            isCompleted
+                                                ? "bg-feedback-success text-text-inverse"
+                                                : isCurrent
+                                                  ? "bg-brand-primary text-text-inverse"
+                                                  : "bg-border-default text-text-secondary",
+                                        )}
+                                    >
+                                        {isCompleted ? (
+                                            <Check size={16} aria-hidden="true" />
+                                        ) : (
+                                            <Icon size={16} aria-hidden="true" />
+                                        )}
+                                    </div>
+                                    <span
+                                        className={cn(
+                                            "hidden text-xs sm:inline",
+                                            isCurrent
+                                                ? "font-medium text-text-primary"
+                                                : "text-text-secondary",
+                                        )}
+                                    >
+                                        {s.label}
+                                    </span>
                                 </div>
-                                <span
-                                    className={cn(
-                                        "hidden text-sm sm:inline",
-                                        isCurrent
-                                            ? "font-medium text-text-primary"
-                                            : "text-text-secondary",
-                                    )}
-                                >
-                                    {s.label}
-                                </span>
-                                {i < STEPS.length - 1 ? (
-                                    <div className="mx-2 h-px flex-1 bg-border-default sm:hidden" />
-                                ) : null}
+                                {/* Connector after (not on last) */}
+                                {i < STEPS.length - 1 && (
+                                    <div className="mt-4 h-px flex-1 bg-border-default" />
+                                )}
                             </div>
                         )
                     })}
