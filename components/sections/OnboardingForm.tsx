@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
@@ -17,6 +18,7 @@ import {
     ArrowRight,
     ArrowLeft,
     Check,
+    Smartphone,
 } from "lucide-react"
 
 type OnboardingData = {
@@ -40,12 +42,55 @@ const STEPS = [
     { label: "Configuration", icon: Settings },
 ] as const
 
+function slugify(name: string): string {
+    return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 50)
+}
+
+function PhoneMockup({ message }: { message: string }) {
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                <Smartphone size={13} aria-hidden="true" />
+                Aperçu client
+            </div>
+            <div className="w-full max-w-[240px] rounded-[2rem] border-[3px] border-text-primary bg-text-primary shadow-md">
+                {/* Phone top bar */}
+                <div className="flex items-center justify-center py-2">
+                    <div className="h-1.5 w-12 rounded-full bg-surface-base opacity-30" />
+                </div>
+                {/* Screen */}
+                <div className="overflow-hidden rounded-[1.6rem] bg-surface-base px-4 py-5">
+                    <div className="mb-3 text-center">
+                        <div className="mx-auto mb-1 h-8 w-8 rounded-full bg-brand-primary/20" />
+                        <p className="text-xs font-semibold text-text-primary">Votre file d&apos;attente</p>
+                    </div>
+                    <div className="rounded-lg bg-surface-card p-3 shadow-sm">
+                        <p className="text-[11px] leading-relaxed text-text-secondary">
+                            {message || "Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."}
+                        </p>
+                    </div>
+                    <div className="mt-3 rounded-lg bg-brand-primary py-2 text-center">
+                        <p className="text-[11px] font-semibold text-white">Rejoindre la file</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 function OnboardingForm({
     onComplete,
     checkSlugAvailability,
     isSubmitting = false,
     className,
 }: OnboardingFormProps) {
+    const router = useRouter()
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
         name: "",
@@ -97,6 +142,9 @@ function OnboardingForm({
 
     const handleNext = () => {
         if (!validateStep()) return
+        if (step === 0 && !data.slug) {
+            setData((d) => ({ ...d, slug: slugify(d.name) }))
+        }
         if (step < STEPS.length - 1) {
             setStep((s) => s + 1)
         } else {
@@ -105,6 +153,10 @@ function OnboardingForm({
     }
 
     const handleBack = () => {
+        if (step === 0) {
+            router.push("/")
+            return
+        }
         setStep((s) => Math.max(0, s - 1))
     }
 
@@ -211,9 +263,7 @@ function OnboardingForm({
                                 Choisissez votre slug
                             </h3>
                             <p className="text-sm text-text-secondary">
-                                C&apos;est l&apos;adresse que vos clients
-                                utiliseront pour accéder à votre file
-                                d&apos;attente.
+                                C&apos;est l&apos;identifiant unique de votre établissement dans l&apos;URL partagée à vos clients.
                             </p>
                             <SlugInput
                                 value={data.slug}
@@ -236,6 +286,15 @@ function OnboardingForm({
                                     {errors.slug}
                                 </p>
                             ) : null}
+                            {data.slug && (
+                                <div className="flex items-center gap-2 rounded-lg border border-border-default bg-surface-base px-3 py-2">
+                                    <Link size={13} className="shrink-0 text-text-tertiary" aria-hidden="true" />
+                                    <p className="truncate text-xs text-text-secondary">
+                                        <span className="text-text-tertiary">waitlight.fr/</span>
+                                        <span className="font-medium text-text-primary">{data.slug}</span>
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="flex flex-col gap-4">
@@ -257,18 +316,21 @@ function OnboardingForm({
                                 error={errors.maxCapacity}
                                 hint="Nombre maximum de personnes dans la file."
                             />
-                            <Textarea
-                                label="Message d'accueil"
-                                placeholder="Bienvenue ! Merci de patienter, votre tour arrive."
-                                value={data.welcomeMessage}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        welcomeMessage: e.target.value,
-                                    }))
-                                }
-                                hint="Affiché aux clients lorsqu'ils scannent votre QR code."
-                            />
+                            <div className="flex flex-col gap-3">
+                                <Textarea
+                                    label="Message d'accueil"
+                                    placeholder="Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."
+                                    value={data.welcomeMessage}
+                                    onChange={(e) =>
+                                        setData((d) => ({
+                                            ...d,
+                                            welcomeMessage: e.target.value,
+                                        }))
+                                    }
+                                    hint="Affiché aux clients lorsqu'ils scannent votre QR code."
+                                />
+                                <PhoneMockup message={data.welcomeMessage} />
+                            </div>
                         </div>
                     )}
                 </CardContent>
@@ -279,7 +341,6 @@ function OnboardingForm({
                 <Button
                     variant="ghost"
                     onClick={handleBack}
-                    disabled={step === 0}
                 >
                     <ArrowLeft size={16} aria-hidden="true" />
                     Retour
