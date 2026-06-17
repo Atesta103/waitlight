@@ -1,8 +1,9 @@
 "use client"
 
 import { forwardRef } from "react"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "./Spinner"
 import { buttonVariants, buttonSizes, getButtonClasses } from "./button-classes"
+import { cn } from "@/lib/utils/cn"
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: keyof typeof buttonVariants
@@ -27,17 +28,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             <button
                 ref={ref}
                 disabled={disabled || isLoading}
-                className={getButtonClasses({ variant, size, className })}
+                className={cn(getButtonClasses({ variant, size, className }), "relative")}
                 {...props}
             >
-                {isLoading ? (
-                    <Loader2
-                        className="animate-spin"
-                        aria-hidden="true"
-                        size={18}
-                    />
-                ) : null}
-                {children}
+                {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Spinner size="sm" label="Chargement" className="text-current" />
+                    </div>
+                )}
+                <span className={cn(
+                    "flex items-center justify-center gap-inherit w-full h-full",
+                    isLoading ? "opacity-0" : "opacity-100"
+                )} style={{ gap: 'inherit' }}>
+                    {children}
+                </span>
             </button>
         )
     },

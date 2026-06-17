@@ -3,9 +3,9 @@ import { ForgotPasswordForm } from "@/components/sections/ForgotPasswordForm"
 import { forgotPasswordAction } from "@/lib/actions/auth"
 
 export const metadata: Metadata = {
-    title: "Mot de passe oublié — Wait-Light",
+    title: "Mot de passe oublié — WaitLight",
     description:
-        "Réinitialisez votre mot de passe Wait-Light en recevant un lien par e-mail.",
+        "Réinitialisez votre mot de passe WaitLight en recevant un lien par e-mail.",
 }
 
 /**

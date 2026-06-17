@@ -7,6 +7,7 @@ import { MerchantIdentitySchema, QueueSettingsSchema } from "../settings"
 describe("MerchantIdentitySchema", () => {
     const valid = {
         name: "Boulangerie du Coin",
+        business_type: "retail",
         slug: "boulangerie-du-coin",
         logo_url: null,
         default_prep_time_min: 5,

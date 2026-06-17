@@ -1,4 +1,4 @@
-# Wait-Light — Agent Engineering Rules
+# WaitLight — Agent Engineering Rules
 
 > **READ THIS ENTIRE FILE BEFORE WRITING A SINGLE LINE OF CODE.**
 > Applies to every AI agent: GitHub Copilot, Claude, Gemini, ChatGPT, Cursor, and any future model.
@@ -8,7 +8,7 @@
 
 ## 0. Project Context
 
-Wait-Light is a SaaS virtual queue app ("Scan & Go"). Two user surfaces:
+WaitLight is a SaaS virtual queue app ("Scan & Go"). Two user surfaces:
 
 - **Merchant** (authenticated) — manages the queue from `/dashboard`
 - **Customer** (anonymous) — joins via QR Code, tracks position on `/[slug]/wait/[ticketId]`
@@ -172,6 +172,7 @@ _(empty — populate as the project progresses)_
 | [`doc/design-system.md`](./doc/design-system.md)                           | Design tokens, atoms/molecules/organisms                             |
 | [`doc/architecture.md`](./doc/architecture.md)                             | Next.js & Supabase patterns to follow                                |
 | [`doc/security.md`](./doc/security.md)                                     | Security checklist for every layer                                   |
+| [`doc/billing-stripe.md`](./doc/billing-stripe.md)                         | Stripe live billing, paywall, webhook, and env constraints           |
 | [`doc/accessibility.md`](./doc/accessibility.md)                           | WCAG 2.1 AA rules, i18n, motion, screen readers                      |
 | [`doc/features/11_i18n_next_intl.md`](./doc/features/11_i18n_next_intl.md) | i18n task: next-intl setup, component translation, language switcher |
 | [`doc/api/README.md`](./doc/api/README.md)                                 | **Auto-generated** TypeDoc index — run `npm run docs` to regenerate  |
@@ -186,3 +187,20 @@ _(empty — populate as the project progresses)_
 | [`doc/api/qr-token.md`](./doc/api/qr-token.md)                             | QR token utility — HMAC-SHA256 sign/verify (generated)               |
 | [`doc/api/validators/`](./doc/api/validators/)                             | Zod schemas per domain — auth, queue, settings, onboarding (generated)|
 | [`doc/postgres-features.md`](./doc/postgres-features.md)                 | Syntaxe des fonctionnalités natives Postgres (RLS, Triggers, RPC) avancées |
+
+## graphify
+
+This project has a graphify knowledge graph at .graphify/.
+
+Rules:
+- Before answering architecture or codebase questions, read .graphify/GRAPH_REPORT.md for god nodes and community structure
+- If .graphify/wiki/index.md exists, navigate it instead of reading raw files
+- In Codex, the reliable explicit skill invocation is `$graphify ...`; do not rely on `/graphify ...`
+- `$graphify ...` is a Codex skill trigger, not a Bash subcommand like `graphify .`
+- A successful TypeScript-backed Codex build should leave `.graphify/.graphify_runtime.json` with `runtime: typescript`
+- If .graphify/graph.json is missing but graphify-out/graph.json exists, run `graphify migrate-state --dry-run` first; if tracked legacy artifacts are reported, ask before using the recommended `git mv -f graphify-out .graphify` and commit message
+- If .graphify/needs_update exists or .graphify/branch.json has stale=true, warn before relying on semantic results and run the graphify skill with --update when appropriate
+- If the user asks to build, update, query, path, or explain the graph, use the installed `graphify` skill instead of ad-hoc file traversal
+- Before deep graph traversal, prefer `graphify summary --graph .graphify/graph.json` for compact first-hop orientation
+- For review impact on changed files, use `graphify review-delta --graph .graphify/graph.json` instead of generic traversal
+- After modifying code files in this session, run `npx graphify hook-rebuild` to keep the graph current

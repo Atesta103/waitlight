@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
 import { Button } from "@/components/ui/Button"
-import { ProgressBar } from "@/components/ui/ProgressBar"
-import { SlugInput } from "@/components/composed/SlugInput"
+import { ActiveLine } from "@/components/ui/ActiveLine"
+import { Select } from "@/components/ui/Select"
+import { SlugInput, type SlugStatus } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
+import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
 import {
     Store,
     Link,
@@ -19,6 +21,7 @@ import {
 
 type OnboardingData = {
     name: string
+    businessType: BusinessType
     slug: string
     maxCapacity: number
     welcomeMessage: string
@@ -46,6 +49,7 @@ function OnboardingForm({
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
         name: "",
+        businessType: "retail",
         slug: "",
         maxCapacity: 20,
         welcomeMessage: "",
@@ -53,6 +57,7 @@ function OnboardingForm({
     const [errors, setErrors] = useState<
         Partial<Record<keyof OnboardingData, string>>
     >({})
+    const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle")
 
     const validateStep = (): boolean => {
         const newErrors: Partial<Record<keyof OnboardingData, string>> = {}
@@ -61,11 +66,22 @@ function OnboardingForm({
             if (!data.name.trim()) newErrors.name = "Le nom est obligatoire."
             if (data.name.length > 100)
                 newErrors.name = "100 caractères maximum."
+            if (!data.businessType)
+                newErrors.businessType = "Le type d'activité est requis."
         }
 
         if (step === 1) {
             if (!data.slug) newErrors.slug = "Le slug est obligatoire."
             if (data.slug.length < 3) newErrors.slug = "Minimum 3 caractères."
+            if (data.slug.length >= 3 && slugStatus === "checking") {
+                newErrors.slug = "Validation du slug en cours."
+            }
+            if (data.slug.length >= 3 && slugStatus === "taken") {
+                newErrors.slug = "Ce slug est déjà pris."
+            }
+            if (data.slug.length >= 3 && slugStatus === "idle") {
+                newErrors.slug = "Attendez la validation du slug."
+            }
         }
 
         if (step === 2) {
@@ -92,10 +108,15 @@ function OnboardingForm({
         setStep((s) => Math.max(0, s - 1))
     }
 
+    const isSlugStepBlocked =
+        step === 1 && (data.slug.length < 3 || slugStatus !== "available")
+    const isCheckingSlug = step === 1 && slugStatus === "checking"
+
     return (
         <div className={cn("flex flex-col gap-6", className)}>
             {/* Stepper */}
             <div className="flex flex-col gap-3">
+                <ActiveLine value={step + 1} max={STEPS.length} label="Progression de l'onboarding" />
                 <div className="flex items-center justify-between">
                     {STEPS.map((s, i) => {
                         const Icon = s.icon
@@ -133,13 +154,12 @@ function OnboardingForm({
                                     {s.label}
                                 </span>
                                 {i < STEPS.length - 1 ? (
-                                    <div className="mx-2 h-px flex-1 bg-border-default" />
+                                    <div className="mx-2 h-px flex-1 bg-border-default sm:hidden" />
                                 ) : null}
                             </div>
                         )
                     })}
                 </div>
-                <ProgressBar value={step + 1} max={STEPS.length} size="sm" />
             </div>
 
             {/* Step content */}
@@ -162,6 +182,28 @@ function OnboardingForm({
                                 }
                                 error={errors.name}
                             />
+                            <Select
+                                label="Type d'activité"
+                                value={data.businessType}
+                                onChange={(e) =>
+                                    setData((d) => ({
+                                        ...d,
+                                        businessType: BusinessTypeSchema.parse(
+                                            e.target.value,
+                                        ),
+                                    }))
+                                }
+                                options={[
+                                    { value: "food", label: "Alimentaire" },
+                                    { value: "healthcare", label: "Santé" },
+                                    { value: "retail", label: "Commerce" },
+                                    {
+                                        value: "public_service",
+                                        label: "Administration / services",
+                                    },
+                                ]}
+                                error={errors.businessType}
+                            />
                         </div>
                     ) : step === 1 ? (
                         <div className="flex flex-col gap-4">
@@ -175,10 +217,16 @@ function OnboardingForm({
                             </p>
                             <SlugInput
                                 value={data.slug}
-                                onChange={(slug) =>
+                                onChange={(slug) => {
                                     setData((d) => ({ ...d, slug }))
-                                }
+                                    setSlugStatus("idle")
+                                    setErrors((current) => ({
+                                        ...current,
+                                        slug: undefined,
+                                    }))
+                                }}
                                 checkAvailability={checkSlugAvailability}
+                                onStatusChange={setSlugStatus}
                             />
                             {errors.slug ? (
                                 <p
@@ -239,13 +287,19 @@ function OnboardingForm({
                 <Button
                     variant="primary"
                     onClick={handleNext}
-                    isLoading={isSubmitting && step === STEPS.length - 1}
+                    disabled={isSlugStepBlocked}
+                    isLoading={
+                        isCheckingSlug ||
+                        (isSubmitting && step === STEPS.length - 1)
+                    }
                 >
                     {step === STEPS.length - 1 ? (
                         <>
                             <Check size={16} aria-hidden="true" />
                             Créer mon établissement
                         </>
+                    ) : isCheckingSlug ? (
+                        "Validation du slug..."
                     ) : (
                         <>
                             Suivant

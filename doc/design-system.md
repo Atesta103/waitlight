@@ -1,6 +1,6 @@
-# Design System — Wait-Light
+# Design System — WaitLight
 
-> Part of the Wait-Light engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
+> Part of the WaitLight engineering rules. See [`AGENTS.md`](../AGENTS.md) for the full context.
 > **Respect every rule here.** The design system is not optional — deviation requires explicit discussion.
 
 ---

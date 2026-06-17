@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { QRCodeCanvas } from "qrcode.react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
@@ -8,6 +8,7 @@ import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { QR_ROTATION_INTERVAL_MS } from "@/lib/utils/qr-config"
 import { generateQrTokenAction } from "@/lib/actions/qr"
+import { getBusinessWording } from "@/lib/utils/business-wording"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
 const REFRESH_INTERVAL_MS = QR_ROTATION_INTERVAL_MS
@@ -15,19 +16,25 @@ const TOTAL_S = REFRESH_INTERVAL_MS / 1000
 
 type QRCodeDisplayProps = {
     slug: string
+    businessType?: string | null
     baseUrl?: string
     /** Pixel size of the QR code. Default 220. */
     size?: number
     className?: string
+    /** Si true, désactive les appels API et l'intervalle de rafraîchissement (pour les démos marketing) */
+    mockMode?: boolean
 }
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
 function QRCodeDisplay({
     slug,
+    businessType,
     baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
     size = 220,
     className,
+    mockMode = false,
 }: QRCodeDisplayProps) {
+    const wording = getBusinessWording(businessType)
     const [token, setToken] = useState<string | null>(null)
     const [fetchedAt, setFetchedAt] = useState<number | null>(null)
     const [countdown, setCountdown] = useState(TOTAL_S)
@@ -37,8 +44,11 @@ function QRCodeDisplay({
     const url = `${baseUrl}/${slug}/join`
     const qrValue = token ? `${url}?t=${token}` : url
 
-    const fetchToken = async () => {
-        setQrVisible(false)
+    const fetchToken = useCallback(async () => {
+        if (mockMode) return
+
+        // Defer setState to avoid synchronous setState in effect body
+        setTimeout(() => setQrVisible(false), 0)
         const result = await generateQrTokenAction()
 
         // Wait for skeleton animation
@@ -51,17 +61,26 @@ function QRCodeDisplay({
             setProgress(1)
             setQrVisible(true)
         }, 300)
-    }
+    }, [mockMode])
 
     /* Rotate token every REFRESH_INTERVAL_MS */
     useEffect(() => {
+        if (mockMode) {
+            // Defer to avoid synchronous setState inside effect
+            const t = setTimeout(() => {
+                setQrVisible(true)
+                setFetchedAt(Date.now())
+            }, 0)
+            return () => clearTimeout(t)
+        }
+
         fetchToken() // Initial fetch
 
         const tick = setInterval(() => {
             fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
-    }, [])
+    }, [mockMode, fetchToken])
 
     /* Precision timer — visual countdown based on rotation interval, not token TTL */
     useEffect(() => {
@@ -121,16 +140,18 @@ function QRCodeDisplay({
     return (
         <div
             className={cn(
-                "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
+                mockMode
+                    ? "w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white shadow-md"
+                    : "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
                 className,
             )}
         >
             {/* ── Header ──────────────────────────────────────────────────── */}
             <div className="flex flex-col items-center gap-0.5 border-b border-border-default px-6 py-4">
-                <p className="text-center text-sm font-semibold text-text-primary">
-                    Scannez pour rejoindre la file d&apos;attente
+                <p className={cn("text-center text-sm font-semibold", mockMode ? "text-[#111827]" : "text-text-primary")}>
+                    Scannez pour {wording.joinCta.toLowerCase()}
                 </p>
-                <p className="text-xs text-text-secondary">{slug}</p>
+                <p className={cn("text-xs", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>{slug}</p>
             </div>
 
             {/* ── QR zone ─────────────────────────────────────────────────── */}
@@ -143,7 +164,7 @@ function QRCodeDisplay({
                     >
                         {countdown}s
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-text-secondary">
+                    <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
                         Prochain code
                     </span>
                 </div>
@@ -164,12 +185,7 @@ function QRCodeDisplay({
                             xmlns="http://www.w3.org/2000/svg"
                         >
                             {/* Background track - subtle but visible */}
-                            <path
-                                d={d}
-                                stroke="currentColor"
-                                strokeWidth={strokeWidth}
-                                className="text-text-secondary/10"
-                            />
+                            <path d={d} stroke="currentColor" strokeWidth={strokeWidth} className={mockMode ? "text-[#D1D5DB]" : "text-text-secondary/10"} />
                             {/* Animated path */}
                             <motion.path
                                 d={d}
@@ -200,6 +216,8 @@ function QRCodeDisplay({
                                 value={qrValue}
                                 size={size}
                                 marginSize={0}
+                                bgColor="#FFFFFF"
+                                fgColor="#000000"
                                 aria-label="QR Code pour rejoindre la file d'attente"
                                 style={{
                                     display: "block",
@@ -217,7 +235,7 @@ function QRCodeDisplay({
                 </div>
 
                 {/* ── Footer hint ─────────────────────────────────────────── */}
-                <div className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-text-secondary">
+                <div className={cn("flex items-center gap-1.5 whitespace-nowrap text-sm font-medium", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
                     <Camera size={14} aria-hidden="true" className="shrink-0" />
                     <span>Flashez ce code avec votre appareil photo</span>
                 </div>

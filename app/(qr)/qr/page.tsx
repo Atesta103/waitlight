@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 
 export const metadata: Metadata = {
-    title: "QR Code — Wait-Light",
+    title: "QR Code — WaitLight",
 }
 
 type QrFullscreenPageProps = {

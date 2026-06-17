@@ -103,7 +103,6 @@ function BypassToggle({ merchantId, isBypassed }: { merchantId: string, isBypass
                     })
                 }}
             />
-            {isPending && <span className="text-xs text-text-secondary whitespace-nowrap">Load...</span>}
         </label>
     )
 }
@@ -145,7 +144,7 @@ export function AdminDashboard({
         <div className="min-h-screen bg-surface-base">
             <header className="border-b border-border-default bg-surface-card px-6 py-4">
                 <h1 className="text-xl font-bold text-text-primary">
-                    Administration — Wait-Light
+                    Administration — WaitLight
                 </h1>
                 <p className="mt-0.5 text-sm text-text-secondary">
                     Gestion des clients, paiements et factures

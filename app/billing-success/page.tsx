@@ -8,7 +8,7 @@ import Link from "next/link"
 import { AlertCircle } from "lucide-react"
 
 export const metadata: Metadata = {
-    title: "Abonnement activé — Wait-Light",
+    title: "Abonnement activé — WaitLight",
 }
 
 type SearchParams = Promise<{ session_id?: string }>
@@ -51,11 +51,23 @@ export default async function BillingSuccessPage(props: {
             )
         }
 
-        const merchantId = session.metadata?.merchant_id ?? user.id
+        if (session.metadata?.merchant_id !== user.id) {
+            return <ErrorView message="Lien de retour invalide pour ce compte." />
+        }
+
+        if (!session.subscription || typeof session.subscription === "string") {
+            return <ErrorView message="Impossible de confirmer l'abonnement. Veuillez contacter le support." />
+        }
+
+        const merchantId = session.metadata.merchant_id
         const sub = session.subscription as Stripe.Subscription
         const periodEnd = sub.items.data[0]?.current_period_end
             ? new Date(sub.items.data[0].current_period_end * 1000).toISOString()
             : null
+        const trialEnd = sub.trial_end
+            ? new Date(sub.trial_end * 1000).toISOString()
+            : null
+        const priceId = sub.items.data[0]?.price.id ?? null
 
         const { error: upsertError } = await adminSupabase
             .from("subscriptions")
@@ -64,7 +76,9 @@ export default async function BillingSuccessPage(props: {
                 merchant_id: merchantId,
                 stripe_customer_id: session.customer as string,
                 stripe_subscription_id: sub.id,
+                stripe_price_id: priceId,
                 status: sub.status,
+                trial_end: trialEnd,
                 current_period_end: periodEnd,
                 cancel_at_period_end: sub.cancel_at_period_end,
             } as never,

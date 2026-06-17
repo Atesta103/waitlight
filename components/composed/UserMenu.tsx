@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { LogOut, Settings } from "lucide-react"
 import { Dropdown } from "@/components/ui/Dropdown"
 import { signOutAction } from "@/lib/actions/auth"
@@ -8,7 +9,9 @@ import { cn } from "@/lib/utils/cn"
 
 type UserMenuProps = {
     name: string
+    logoUrl?: string | null
     className?: string
+    dropdownSide?: "top" | "bottom"
 }
 
 /** Extracts up to 2 initials from a name. */
@@ -25,23 +28,47 @@ function getInitials(name: string): string {
  * Composed — avatar button in the header that opens a dropdown with
  * account actions (settings, sign out).
  */
-function UserMenu({ name, className }: UserMenuProps) {
+function UserMenu({
+    name,
+    logoUrl,
+    className,
+    dropdownSide = "bottom",
+}: UserMenuProps) {
     const router = useRouter()
 
     return (
         <Dropdown
             align="right"
+            side={dropdownSide}
             className={className}
             trigger={
-                <span
-                    className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-white",
-                        "ring-2 ring-transparent hover:ring-brand-primary/40 transition-all",
-                    )}
-                    aria-label={`Menu de ${name}`}
-                >
-                    {getInitials(name)}
-                </span>
+                logoUrl ? (
+                    <span
+                        className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full overflow-hidden",
+                            "ring-2 ring-transparent hover:ring-brand-primary/40 transition-all",
+                        )}
+                        aria-label={`Menu de ${name}`}
+                    >
+                        <Image
+                            src={logoUrl}
+                            alt={name}
+                            width={32}
+                            height={32}
+                            className="h-full w-full object-cover"
+                        />
+                    </span>
+                ) : (
+                    <span
+                        className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-white",
+                            "ring-2 ring-transparent hover:ring-brand-primary/40 transition-all",
+                        )}
+                        aria-label={`Menu de ${name}`}
+                    >
+                        {getInitials(name)}
+                    </span>
+                )
             }
             items={[
                 {

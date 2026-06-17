@@ -8,12 +8,15 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { adminSupabase } from "@/lib/supabase/admin"
 import {
     MerchantIdentitySchema,
     QueueSettingsSchema,
+    ThankYouTitleSchema,
     type MerchantIdentityInput,
     type QueueSettingsInput,
 } from "@/lib/validators/settings"
+import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rate-limit constants
@@ -26,12 +29,42 @@ const SLUG_CHANGE_COOLDOWN_MS = 60 * 60 * 1000
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
+export type WeeklyScheduleDay = {
+    open: string
+    close: string
+} | null
+
+export type ScheduleException = {
+    date: string
+    closed?: boolean
+    open?: string
+    close?: string
+}
+
+export type ScheduleData = {
+    weekly: Record<string, WeeklyScheduleDay>
+    exceptions: ScheduleException[]
+}
+
+export type NotificationChannels = {
+    sound: boolean
+    vibrate: boolean
+    toast: boolean
+    push: boolean
+}
+
 export type MerchantSettingsData = {
     merchant: {
         id: string
         name: string
+        business_type: BusinessType
         slug: string
         logo_url: string | null
+        background_url: string | null
+        brand_color: string | null
+        font_family: string | null
+        border_radius: string | null
+        theme_pattern: string | null
         default_prep_time_min: number
         is_open: boolean
         /** Auto-computed average prep time (IQR + EMA). `null` = not enough data yet. */
@@ -42,9 +75,18 @@ export type MerchantSettingsData = {
     settings: {
         max_capacity: number
         welcome_message: string | null
+        thank_you_title: string | null
+        thank_you_message: string | null
         qr_regenerated_at: string | null
         notifications_enabled: boolean
         auto_close_enabled: boolean
+        schedule: ScheduleData | null
+        notification_channels: NotificationChannels
+        notification_sound: string
+        approaching_position_enabled: boolean
+        approaching_position_threshold: number
+        approaching_time_enabled: boolean
+        approaching_time_threshold_min: number
     }
 }
 
@@ -79,19 +121,20 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
         .select(
-            "id, name, slug, logo_url, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
+            "id, name, business_type, slug, logo_url, background_url, brand_color, font_family, border_radius, theme_pattern, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
         )
         .eq("id", user.id)
         .single()
 
     if (merchantError || !merchant) {
+        console.error("Merchant fetch error", merchantError)
         return { error: "Commerce introuvable." }
     }
 
     const { data: settings, error: settingsError } = await supabase
         .from("settings")
         .select(
-            "max_capacity, welcome_message, qr_regenerated_at, notifications_enabled, auto_close_enabled",
+            "max_capacity, welcome_message, thank_you_title, thank_you_message, qr_regenerated_at, notifications_enabled, auto_close_enabled, schedule, notification_channels, notification_sound, approaching_position_enabled, approaching_position_threshold, approaching_time_enabled, approaching_time_threshold_min",
         )
         .eq("merchant_id", user.id)
         .single()
@@ -105,8 +148,16 @@ export async function getMerchantSettingsAction(): Promise<
             merchant: {
                 id: merchant.id,
                 name: merchant.name,
+                business_type:
+                    BusinessTypeSchema.safeParse(merchant.business_type).data ??
+                    "retail",
                 slug: merchant.slug,
                 logo_url: merchant.logo_url,
+                background_url: merchant.background_url,
+                brand_color: merchant.brand_color,
+                font_family: merchant.font_family,
+                border_radius: merchant.border_radius,
+                theme_pattern: merchant.theme_pattern,
                 default_prep_time_min: merchant.default_prep_time_min,
                 is_open: merchant.is_open,
                 calculated_avg_prep_time:
@@ -116,9 +167,28 @@ export async function getMerchantSettingsAction(): Promise<
             settings: {
                 max_capacity: settings.max_capacity,
                 welcome_message: settings.welcome_message,
+                thank_you_title: settings.thank_you_title ?? null,
+                thank_you_message: settings.thank_you_message ?? null,
                 qr_regenerated_at: settings.qr_regenerated_at,
                 notifications_enabled: settings.notifications_enabled,
                 auto_close_enabled: settings.auto_close_enabled,
+                schedule: (settings.schedule as ScheduleData) ?? null,
+                notification_channels:
+                    (settings.notification_channels as NotificationChannels) ?? {
+                        sound: true,
+                        vibrate: true,
+                        toast: true,
+                        push: true,
+                    },
+                notification_sound: settings.notification_sound ?? "arpeggio",
+                approaching_position_enabled:
+                    settings.approaching_position_enabled ?? false,
+                approaching_position_threshold:
+                    settings.approaching_position_threshold ?? 3,
+                approaching_time_enabled:
+                    settings.approaching_time_enabled ?? false,
+                approaching_time_threshold_min:
+                    settings.approaching_time_threshold_min ?? 5,
             },
         },
     }
@@ -200,8 +270,13 @@ export async function updateMerchantIdentityAction(
         .from("merchants")
         .update({
             name: parsed.data.name,
+            business_type: parsed.data.business_type,
             slug: parsed.data.slug,
             logo_url: parsed.data.logo_url ?? null,
+            brand_color: parsed.data.brand_color ?? "#4F46E5",
+            font_family: parsed.data.font_family ?? "Inter",
+            border_radius: parsed.data.border_radius ?? "0.5rem",
+            theme_pattern: parsed.data.theme_pattern ?? "none",
             default_prep_time_min: parsed.data.default_prep_time_min,
             // Record when the slug changed so the next call can enforce the cooldown.
             ...(slugChanged
@@ -271,46 +346,6 @@ export async function updateQueueSettingsAction(
     }
 
     return { data: null }
-}
-
-/**
- * Trigger a visual QR Code re-render by bumping `qr_regenerated_at`.
- *
- * Does **not** change the merchant slug or join URL. The `qr_regenerated_at`
- * timestamp is used client-side as a React key to force the QR component to remount.
- *
- * @returns ISO 8601 timestamp of the bump — used as a React key to force QR remount.
- *
- * **Errors:**
- * | `error` string | Cause |
- * |---|---|
- * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
- * | `"Erreur lors de la régénération du QR Code."` | Supabase update failed |
- */
-export async function regenerateQRAction(): Promise<
-    { data: { qr_regenerated_at: string } } | { error: string }
-> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
-
-    const now = new Date().toISOString()
-
-    const { error } = await supabase
-        .from("settings")
-        .update({ qr_regenerated_at: now })
-        .eq("merchant_id", user.id)
-
-    if (error) {
-        return { error: "Erreur lors de la régénération du QR Code." }
-    }
-
-    return { data: { qr_regenerated_at: now } }
 }
 
 /**
@@ -435,6 +470,323 @@ export async function resetAvgPrepTimeAction(): Promise<
         return {
             error: "Erreur lors de la réinitialisation. Veuillez réessayer.",
         }
+    }
+
+    return { data: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Banned Words CRUD
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type BannedWord = {
+    id: string
+    word: string
+    created_at: string
+}
+
+/**
+ * Fetch all banned words for the authenticated merchant.
+ */
+export async function getBannedWordsAction(): Promise<
+    { data: BannedWord[] } | { error: string }
+> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { data, error } = await adminSupabase
+        .from("banned_words")
+        .select("id, word, created_at")
+        .eq("merchant_id", user.id)
+        .order("created_at", { ascending: false })
+
+    if (error) {
+        console.error("[getBannedWordsAction] DB error:", error)
+        return { error: "Impossible de charger les mots bannis." }
+    }
+
+    return { data: data ?? [] }
+}
+
+/**
+ * Add a banned word for the authenticated merchant.
+ * Silently ignores duplicates (unique constraint on word+merchant_id).
+ */
+export async function addBannedWordAction(
+    word: string,
+): Promise<{ data: BannedWord } | { error: string }> {
+    if (!word || word.trim().length < 1) {
+        return { error: "Le mot ne peut pas être vide." }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { data, error } = await adminSupabase
+        .from("banned_words")
+        .insert({
+            word: word.toLowerCase().trim(),
+            merchant_id: user.id,
+        })
+        .select("id, word, created_at")
+        .single()
+
+    if (error) {
+        // Always log server-side so we can diagnose — code appears in npm run dev output
+        console.error("[addBannedWordAction] Supabase error:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+        })
+
+        if (error.code === "23505") {
+            return { error: "Ce mot est déjà dans la liste." }
+        }
+        return {
+            error: `Erreur ${error.code ?? "inconnue"} : ${error.message ?? "Impossible d'ajouter ce mot."}`,
+        }
+    }
+
+    return { data }
+}
+
+/**
+ * Remove a banned word by ID for the authenticated merchant.
+ */
+export async function removeBannedWordAction(
+    wordId: string,
+): Promise<{ data: null } | { error: string }> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { error } = await adminSupabase
+        .from("banned_words")
+        .delete()
+        .eq("id", wordId)
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Impossible de supprimer ce mot." }
+    }
+
+    return { data: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Schedule
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Update the merchant's queue schedule (weekly + exception dates).
+ */
+export async function updateScheduleAction(
+    schedule: ScheduleData | null,
+): Promise<{ data: null } | { error: string }> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { error } = await supabase
+        .from("settings")
+        .update({ schedule: schedule as unknown as string })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde des horaires." }
+    }
+
+    return { data: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Thank You Message
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Update the custom "thank you" message shown to clients when their ticket is completed.
+ */
+export async function updateThankYouMessageAction(
+    message: string | null,
+): Promise<{ data: null } | { error: string }> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const trimmed = message?.trim() || null
+
+    const { error } = await supabase
+        .from("settings")
+        .update({ thank_you_message: trimmed })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde." }
+    }
+
+    return { data: null }
+}
+
+/**
+ * Update the custom title shown on the completed-ticket banner.
+ */
+export async function updateThankYouTitleAction(
+    title: string | null,
+): Promise<{ data: null } | { error: string }> {
+    const parsed = ThankYouTitleSchema.safeParse(title)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const trimmed = parsed.data?.trim() || null
+
+    const { error } = await supabase
+        .from("settings")
+        .update({ thank_you_title: trimmed })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde." }
+    }
+
+    return { data: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notification Preferences
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type NotificationPreferencesInput = {
+    notification_channels: NotificationChannels
+    notification_sound: string
+    approaching_position_enabled: boolean
+    approaching_position_threshold: number
+    approaching_time_enabled: boolean
+    approaching_time_threshold_min: number
+}
+
+/**
+ * Update the merchant's notification preferences.
+ */
+export async function updateNotificationPreferencesAction(
+    input: NotificationPreferencesInput,
+): Promise<{ data: null } | { error: string }> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { error } = await supabase
+        .from("settings")
+        .update({
+            notification_channels:
+                input.notification_channels as unknown as string,
+            notification_sound: input.notification_sound,
+            approaching_position_enabled: input.approaching_position_enabled,
+            approaching_position_threshold:
+                input.approaching_position_threshold,
+            approaching_time_enabled: input.approaching_time_enabled,
+            approaching_time_threshold_min:
+                input.approaching_time_threshold_min,
+        })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde des préférences." }
+    }
+
+    return { data: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Background Image
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Remove the merchant's background image from Storage and clear `background_url`.
+ */
+export async function deleteBackgroundAction(): Promise<
+    { data: null } | { error: string }
+> {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Session expirée. Veuillez vous reconnecter." }
+    }
+
+    const { data: files, error: listError } = await supabase.storage
+        .from("merchant-backgrounds")
+        .list(user.id)
+
+    if (listError) {
+        return { error: "Erreur lors de la suppression de l'image de fond." }
+    }
+
+    if (files && files.length > 0) {
+        const paths = files.map((f) => `${user.id}/${f.name}`)
+        const { error: removeError } = await supabase.storage
+            .from("merchant-backgrounds")
+            .remove(paths)
+        if (removeError) {
+            return {
+                error: "Erreur lors de la suppression de l'image de fond.",
+            }
+        }
+    }
+
+    const { error: updateError } = await supabase
+        .from("merchants")
+        .update({ background_url: null })
+        .eq("id", user.id)
+
+    if (updateError) {
+        return { error: "Erreur lors de la mise à jour du profil." }
     }
 
     return { data: null }

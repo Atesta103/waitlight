@@ -301,7 +301,7 @@ export default function DesignSystemPage() {
                 <div className="mx-auto max-w-4xl space-y-16">
                     <header>
                         <h1 className="text-3xl font-bold text-text-primary">
-                            Wait-Light Design System
+                            WaitLight Design System
                         </h1>
                         <p className="mt-2 text-text-secondary">
                             Composants visuels du projet, organisés en Atoms →
@@ -1131,6 +1131,7 @@ export default function DesignSystemPage() {
                                     merchant_id:
                                         "00000000-0000-0000-0000-000000000001",
                                     customer_name: i.customerName,
+                                    entry_source: "qr" as const,
                                     status: i.status,
                                     joined_at: i.joinedAt,
                                     called_at: null,
@@ -1222,16 +1223,30 @@ export default function DesignSystemPage() {
                             <SettingsPanel
                                 initialData={{
                                     merchantName: "Boulangerie Martin",
+                                    businessType: "food",
                                     slug: "boulangerie-martin",
                                     logoUrl: null,
+                                    brandColor: "#4F46E5",
+                                    fontFamily: "Inter",
+                                    borderRadius: "0.5rem",
+                                    themePattern: "none",
                                     defaultPrepTimeMin: 5,
                                     maxCapacity: 20,
                                     welcomeMessage:
                                         "Bienvenue ! Prenez un numéro et profitez de votre temps libre.",
+                                    thankYouTitle: "Merci de votre visite !",
+                                    thankYouMessage: "",
                                     notificationsEnabled: true,
                                     autoCloseEnabled: true,
                                     calculatedAvgPrepTime: null,
                                     avgPrepComputedAt: null,
+                                    schedule: null,
+                                    notificationChannels: { sound: true, vibrate: true, toast: true, push: true },
+                                    notificationSound: "arpeggio",
+                                    approachingPositionEnabled: false,
+                                    approachingPositionThreshold: 3,
+                                    approachingTimeEnabled: false,
+                                    approachingTimeThresholdMin: 5,
                                 }}
                             />
                         </SubSection>

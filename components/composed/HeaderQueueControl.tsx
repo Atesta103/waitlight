@@ -4,8 +4,9 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QrCode, Play } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { toggleQueueOpenAction } from "@/lib/actions/queue"
+import { cn } from "@/lib/utils/cn"
+import { Spinner } from "@/components/ui/Spinner"
 import { UpgradeModal } from "@/components/composed/UpgradeModal"
 
 type HeaderQueueControlProps = {
@@ -13,6 +14,7 @@ type HeaderQueueControlProps = {
     merchantSlug: string
     merchantId: string
     hasSubscription?: boolean
+    mode?: "desktop" | "mobile"
 }
 
 export function HeaderQueueControl({
@@ -20,12 +22,13 @@ export function HeaderQueueControl({
     merchantSlug: _merchantSlug,
     merchantId,
     hasSubscription = false,
+    mode = "desktop",
 }: HeaderQueueControlProps) {
-    const router = useRouter()
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-    // Sync is_open status with other components (like QueueSection)
+    // TANSTACK: Reads the global "queue-status" state shared with QueueSection.
+    // It instantly reflects mutations made anywhere else in the app.
     const { data: isOpen } = useQuery({
         queryKey: ["queue-status", merchantId],
         queryFn: () => Promise.resolve(initialIsOpen), // Fallback, usually updated by mutations
@@ -33,22 +36,22 @@ export function HeaderQueueControl({
         staleTime: Infinity,
     })
 
+    // TANSTACK: Trigger server updates and handle optimistic UI rendering.
     const toggleMutation = useMutation({
         mutationFn: () => toggleQueueOpenAction({ is_open: true }),
         onMutate: () => {
-            // Optimistic update
+            // TANSTACK: Instantly updates the UI while the server request is in flight
             queryClient.setQueryData(["queue-status", merchantId], true)
         },
         onError: () => {
-            // Rollback on error
+            // TANSTACK: Rollback on error
             queryClient.setQueryData(["queue-status", merchantId], false)
         },
-        onSuccess: () => {
-            // Redirect to QR display
-            router.push("/dashboard/qr-display")
-        },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
+            // Note: We deliberately do not invalidateQueries here because the queryFn
+            // resolves to the static initialIsOpen prop. Invalidating would immediately
+            // revert the optimistic update to the initial prop value instead of fetching
+            // the actual server state. The UI will stay optimistically correct.
         }
     })
 
@@ -60,17 +63,46 @@ export function HeaderQueueControl({
         toggleMutation.mutate()
     }
 
+    const isMobile = mode === "mobile"
+
+    const controlClasses = cn(
+        "inline-flex cursor-pointer items-center rounded-xl bg-brand-primary font-semibold shadow-sm transition-all",
+        "text-[var(--color-text-on-primary)] hover:text-[var(--color-text-on-primary)]",
+        "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
+        "disabled:opacity-50",
+        isMobile
+            ? "h-11 w-full min-w-0 justify-center gap-2 px-4 text-sm"
+            : "gap-2 px-4 py-2 text-sm",
+    )
+
     if (!isOpen) {
         return (
             <>
                 <button
                     onClick={handleOpenClick}
                     disabled={toggleMutation.isPending}
-                    className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                    className={cn(controlClasses, "relative")}
+                    aria-busy={toggleMutation.isPending}
                 >
-                    <Play size={18} aria-hidden="true" />
-                    <span className="hidden sm:inline">Ouvrir la file et afficher le QR Code</span>
-                    <span className="sm:hidden">Ouvrir</span>
+                    {toggleMutation.isPending && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Spinner size="sm" className="text-current" label="Ouverture" />
+                        </div>
+                    )}
+                    <span className={cn(
+                        "flex items-center justify-center gap-inherit w-full h-full",
+                        toggleMutation.isPending ? "opacity-0" : "opacity-100"
+                    )} style={{ gap: 'inherit' }}>
+                        <Play size={isMobile ? 16 : 18} aria-hidden="true" />
+                        {isMobile ? (
+                            <span className="truncate">Ouvrir la file</span>
+                        ) : (
+                            <>
+                                <span className="hidden sm:inline">Ouvrir la file</span>
+                                <span className="sm:hidden">Ouvrir</span>
+                            </>
+                        )}
+                    </span>
                 </button>
                 <UpgradeModal
                     open={showUpgradeModal}
@@ -83,11 +115,20 @@ export function HeaderQueueControl({
     return (
         <Link
             href="/dashboard/qr-display"
-            className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={controlClasses}
+            aria-label="Voir le QR code en plein écran"
         >
-            <QrCode size={18} aria-hidden="true" />
-            <span className="hidden sm:inline">Afficher le QR Code</span>
-            <span className="sm:hidden">QR Code</span>
+            <QrCode size={isMobile ? 16 : 18} aria-hidden="true" />
+            {isMobile ? (
+                <span>Voir le QR</span>
+            ) : (
+                <>
+                    <span className="hidden sm:inline">Voir le QR</span>
+                    <span className="sm:hidden">QR Code</span>
+                </>
+            )}
         </Link>
     )
 }

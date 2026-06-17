@@ -29,6 +29,15 @@ function subPeriodEnd(sub: Stripe.Subscription): string | null {
     return new Date(item.current_period_end * 1000).toISOString()
 }
 
+function subTrialEnd(sub: Stripe.Subscription): string | null {
+    if (!sub.trial_end) return null
+    return new Date(sub.trial_end * 1000).toISOString()
+}
+
+function subPriceId(sub: Stripe.Subscription): string | null {
+    return sub.items.data[0]?.price.id ?? null
+}
+
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
     const subRef =
         invoice.parent?.subscription_details?.subscription ?? null
@@ -94,7 +103,9 @@ export async function POST(request: Request) {
                         merchant_id: merchantId,
                         stripe_customer_id: session.customer as string,
                         stripe_subscription_id: sub.id,
+                        stripe_price_id: subPriceId(sub),
                         status: sub.status,
+                        trial_end: subTrialEnd(sub),
                         current_period_end: subPeriodEnd(sub),
                         cancel_at_period_end: sub.cancel_at_period_end,
                     } as never,
@@ -111,6 +122,8 @@ export async function POST(request: Request) {
 
                 const payload = {
                     status: sub.status,
+                    stripe_price_id: subPriceId(sub),
+                    trial_end: subTrialEnd(sub),
                     current_period_end: subPeriodEnd(sub),
                     cancel_at_period_end: sub.cancel_at_period_end,
                 } as never
@@ -153,6 +166,8 @@ export async function POST(request: Request) {
                     .from("subscriptions")
                     .update({
                         status: "active",
+                        stripe_price_id: subPriceId(sub),
+                        trial_end: subTrialEnd(sub),
                         current_period_end: subPeriodEnd(sub),
                     } as never)
                     .eq("stripe_subscription_id", sub.id)

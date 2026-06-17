@@ -1,0 +1,150 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { AnimatePresence, motion } from "framer-motion"
+import { cn } from "@/lib/utils/cn"
+
+type FaqItem = {
+    question: string
+    answer: string
+}
+
+const FAQ_ITEMS: FaqItem[] = [
+    {
+        question: "Mes clients doivent-ils télécharger une application ?",
+        answer: "Non. WaitLight fonctionne entièrement dans le navigateur web. Vos clients scannent le QR Code avec leur appareil photo et accèdent immédiatement à leur file d'attente — aucune installation, aucun compte requis.",
+    },
+    {
+        question: "Comment fonctionne l'essai gratuit ?",
+        answer: "L'essai dure 14 jours et vous accédez à toutes les fonctionnalités de WaitLight. À l'issue des 14 jours, votre abonnement commence automatiquement.",
+    },
+    {
+        question: "Y a-t-il un plan gratuit permanent ?",
+        answer: "Non. WaitLight propose un seul plan à 29 €/mois par établissement, précédé d'un essai gratuit de 14 jours. Ce modèle nous permet de vous offrir un support prioritaire et toutes les fonctionnalités sans restriction.",
+    },
+    {
+        question: "Comment mes clients sont-ils notifiés quand c'est leur tour ?",
+        answer: "Des que c'est leur tour, leur navigateur envoie une notification. Ils peuvent donc s'eloigner du comptoir, faire autre chose, et revenir juste a temps.",
+    },
+    {
+        question: "Puis-je personnaliser l'interface avec mon logo et mes couleurs ?",
+        answer: "Oui, c'est inclus dans le plan. Vous pouvez uploader votre logo, choisir votre couleur principale et votre police. Vos clients voient uniquement votre marque — WaitLight reste invisible.",
+    },
+    {
+        question: "Comment est calculé le temps d'attente estimé ?",
+        answer: "Notre algorithme analyse la cadence de service en temps réel : durée moyenne des derniers passages, nombre de clients en attente, et variations selon les heures de pointe. L'estimation s'affine continuellement tout au long de la journée.",
+    },
+    {
+        question: "Puis-je gérer plusieurs établissements ?",
+        answer: "Le plan couvre un établissement. Si vous gérez plusieurs points de vente, contactez-nous à contact@waitlight.fr pour un tarif multi-établissements adapté à votre structure.",
+    },
+    {
+        question: "Mes données et celles de mes clients sont-elles sécurisées ?",
+        answer: "Oui. WaitLight est hébergé sur Supabase, avec chiffrement en transit, des politiques de sécurité au niveau des lignes et une architecture où les clients ne collectent aucun compte. Nous respectons le RGPD et ne collectons que le strict minimum (prénom pour la file d'attente).",
+    },
+]
+
+/**
+ * FaqSection — accordion-style FAQ with native details/summary.
+ * Client Component for open/close state.
+ */
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
+export function FaqSection({ id }: { id?: string }) {
+    const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+    const toggle = (idx: number) => setOpenIndex(openIndex === idx ? null : idx)
+
+    return (
+        <section
+            id={id}
+            className="py-24 md:py-32 bg-white"
+            aria-labelledby="faq-heading"
+        >
+            <div className="max-w-3xl mx-auto px-6">
+                {/* Header */}
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
+                        FAQ
+                    </span>
+                    <h2
+                        id="faq-heading"
+                        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
+                    >
+                        Questions fréquentes
+                    </h2>
+                </motion.div>
+
+                {/* Accordion */}
+                <motion.div
+                    className="divide-y divide-border-default border border-border-default rounded-2xl overflow-hidden"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+                >
+                    {FAQ_ITEMS.map((item, idx) => (
+                        <div key={idx} className="group">
+                            <button
+                                id={`faq-btn-${idx}`}
+                                aria-expanded={openIndex === idx}
+                                aria-controls={`faq-panel-${idx}`}
+                                onClick={() => toggle(idx)}
+                                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-[#F9FAFB] transition-colors duration-200"
+                            >
+                                <span className="font-semibold text-[#111827] text-sm md:text-base leading-snug">
+                                    {item.question}
+                                </span>
+                                <span
+                                    className={cn(
+                                        "flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-[#4F46E5] border border-[#C7D2FE] bg-[#EEF2FF] transition-transform duration-200",
+                                        openIndex === idx && "rotate-45"
+                                    )}
+                                    aria-hidden="true"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </span>
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                                {openIndex === idx ? (
+                                    <motion.div
+                                        id={`faq-panel-${idx}`}
+                                        role="region"
+                                        aria-labelledby={`faq-btn-${idx}`}
+                                        initial={{ height: 0, opacity: 0, y: -4 }}
+                                        animate={{ height: "auto", opacity: 1, y: 0 }}
+                                        exit={{ height: 0, opacity: 0, y: -4 }}
+                                        transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
+                                        className="overflow-hidden bg-white"
+                                    >
+                                        <div className="px-6 pb-5 text-sm text-[#374151] leading-relaxed">
+                                            <p>{item.answer}</p>
+                                        </div>
+                                    </motion.div>
+                                ) : null}
+                            </AnimatePresence>
+                        </div>
+                    ))}
+                </motion.div>
+
+                {/* Contact nudge */}
+                <p className="mt-8 text-center text-sm text-[#374151]">
+                    Une autre question ?{" "}
+                    <Link href="/contact" className="text-[#4F46E5] font-medium hover:underline">
+                        Contactez-nous
+                    </Link>
+                </p>
+            </div>
+        </section>
+    )
+}
