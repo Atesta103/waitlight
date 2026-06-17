@@ -265,7 +265,15 @@ function OnboardingForm({
             {isStep2 ? (
                 /* Step 2 — two-column layout */
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-stretch">
-                    {/* Left — form + navigation */}
+                    {/* Left — phone mockup */}
+                    <div className="flex justify-center lg:sticky lg:top-8 lg:justify-center">
+                        <JoinPhoneMockup
+                            name={data.name}
+                            welcomeMessage={data.welcomeMessage}
+                        />
+                    </div>
+
+                    {/* Right — form + navigation */}
                     <div className="flex flex-col gap-4">
                         <Card className="flex-1">
                             <CardContent className="pt-4">
@@ -303,7 +311,7 @@ function OnboardingForm({
                                 </div>
                             </CardContent>
                         </Card>
-                        {/* Navigation inside left column for step 2 */}
+                        {/* Navigation inside right column for step 2 */}
                         <div className="flex justify-between">
                             <Button variant="ghost" onClick={handleBack}>
                                 <ArrowLeft size={16} aria-hidden="true" />
@@ -318,14 +326,6 @@ function OnboardingForm({
                                 Créer mon établissement
                             </Button>
                         </div>
-                    </div>
-
-                    {/* Right — phone mockup, sticky so it stays visible while scrolling */}
-                    <div className="flex justify-center lg:sticky lg:top-8 lg:justify-center">
-                        <JoinPhoneMockup
-                            name={data.name}
-                            welcomeMessage={data.welcomeMessage}
-                        />
                     </div>
                 </div>
             ) : (
