@@ -27,9 +27,6 @@ export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
             </DialogHeader>
             <DialogContent>
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-center rounded-xl bg-surface-base p-6">
-                        <Sparkles size={40} className="text-brand-primary" aria-hidden="true" />
-                    </div>
                     <div className="space-y-1.5">
                         <p className="font-semibold text-text-primary">
                             Ouvrez votre file d&apos;attente avec WaitLight Pro
