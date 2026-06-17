@@ -62,7 +62,7 @@ const SETTINGS_LINKS = [
     {
         title: "Notifications",
         description: "Canaux, son et alerte avant le passage.",
-        href: "/dashboard/settings#notification-prefs",
+        href: "/dashboard/settings#notifications",
         icon: BellRing,
     },
     {

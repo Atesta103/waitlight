@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { DashboardHeader } from "@/components/sections/DashboardHeader"
 import { QueueList } from "@/components/sections/QueueList"
 import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
 import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
+import { UpgradeModal } from "@/components/composed/UpgradeModal"
 import {
     toggleQueueOpenAction,
     getQueueAction,
@@ -21,6 +23,7 @@ type QueueSectionProps = {
     merchantSlug: string
     initialIsOpen: boolean
     initialItems: QueueItem[]
+    hasSubscription: boolean
 }
 
 /**
@@ -37,8 +40,10 @@ export function QueueSection({
     merchantSlug,
     initialIsOpen,
     initialItems,
+    hasSubscription,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false)
     const wording = getBusinessWording(businessType)
     // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
     // to share 'isOpen' across components without an actual HTTP request.
@@ -87,6 +92,14 @@ export function QueueSection({
         },
     })
 
+    function handleRequestOpen() {
+        if (!hasSubscription) {
+            setShowUpgradeModal(true)
+            return
+        }
+        toggleMutation.mutate(true)
+    }
+
     const manualTicketMutation = useMutation({
         mutationFn: (customerName: string) =>
             createManualTicketAction({ customerName }),
@@ -112,19 +125,20 @@ export function QueueSection({
 
     return (
         <div className="flex flex-col gap-6">
+            <UpgradeModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             <DashboardHeader
                 merchantName={merchantName}
                 businessType={businessType}
                 isOpen={isOpen}
                 waitingCount={waitingCount}
-                onToggleOpen={(v) => toggleMutation.mutate(v)}
+                onToggleOpen={(v) => v ? handleRequestOpen() : toggleMutation.mutate(false)}
                 isUpdatingOpenState={toggleMutation.isPending}
             />
 
             {!isOpen && (
                 <ClosedQueueGuidance
                     customerLabelPlural={wording.plural}
-                    onOpenQueue={() => toggleMutation.mutate(true)}
+                    onOpenQueue={handleRequestOpen}
                     isOpening={toggleMutation.isPending}
                 />
             )}

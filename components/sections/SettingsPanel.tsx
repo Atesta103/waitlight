@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef, useCallback } from "react"
+import { useState, useEffect, useTransition, useRef, useCallback } from "react"
 import type { ElementType, ReactNode } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/Card"
@@ -443,6 +443,19 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [activeTab, setActiveTab] =
         useState<(typeof NAV_SECTIONS)[number]["id"]>("identity")
 
+    useEffect(() => {
+        const validIds = NAV_SECTIONS.map((s) => s.id)
+        const applyHash = () => {
+            const hash = window.location.hash.slice(1)
+            if (validIds.includes(hash as (typeof NAV_SECTIONS)[number]["id"])) {
+                setActiveTab(hash as (typeof NAV_SECTIONS)[number]["id"])
+            }
+        }
+        applyHash()
+        window.addEventListener("hashchange", applyHash)
+        return () => window.removeEventListener("hashchange", applyHash)
+    }, [])
+
     // ── Identity ──────────────────────────────────────────────────────────────
     const [identity, setIdentity] = useState({
         merchantName: initialData.merchantName,
@@ -847,7 +860,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                         <li key={id}>
                             <button
-                                onClick={() => setActiveTab(id)}
+                                onClick={() => { setActiveTab(id); window.location.hash = id }}
                                 className={cn(
                                     "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium",
                                     activeTab === id
@@ -872,7 +885,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                             <li key={id}>
                                 <button
-                                    onClick={() => setActiveTab(id)}
+                                    onClick={() => { setActiveTab(id); window.location.hash = id }}
                                     className={cn(
                                         "flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
                                         activeTab === id

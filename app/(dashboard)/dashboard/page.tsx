@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
+import { isActiveStatus } from "@/lib/subscription-status"
 import { getQueueAction } from "@/lib/actions/queue"
 import { QueueSection } from "./QueueSection"
 
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
     // Fetch merchant profile (name, slug, open state)
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("id, name, slug, is_open, business_type")
+        .select("id, name, slug, is_open, business_type, bypass_paywall")
         .eq("id", user!.id)
         .single()
 
@@ -35,6 +36,17 @@ export default async function DashboardPage() {
         return null // layout already redirects if not found
     }
 
+    let hasSubscription = merchant.bypass_paywall
+    if (!hasSubscription) {
+        const { data: subRaw } = await supabase
+            .from("subscriptions")
+            .select("status")
+            .eq("merchant_id", user!.id)
+            .maybeSingle()
+        const sub = subRaw as { status: string } | null
+        hasSubscription = !!sub && isActiveStatus(sub.status)
+    }
+
     return (
         <QueueSection
             merchantId={merchant.id}
@@ -43,6 +55,7 @@ export default async function DashboardPage() {
             merchantSlug={merchant.slug}
             initialIsOpen={merchant.is_open}
             initialItems={initialItems}
+            hasSubscription={hasSubscription}
         />
     )
 }
