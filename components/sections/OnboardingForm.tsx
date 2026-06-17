@@ -209,8 +209,8 @@ function OnboardingForm({
 
     return (
         <div className={cn("flex flex-col gap-6", className)}>
-            {/* Stepper — toujours centré max-w-lg */}
-            <div className={cn("flex flex-col gap-3", !isStep2 && "mx-auto w-full max-w-lg")}>
+            {/* Stepper — toujours pleine largeur */}
+            <div className="flex flex-col gap-3">
                 <ActiveLine value={step + 1} max={STEPS.length} label="Progression de l'onboarding" />
                 <div className="flex items-center justify-between">
                     {STEPS.map((s, i) => {
@@ -257,47 +257,64 @@ function OnboardingForm({
             {/* Step content */}
             {isStep2 ? (
                 /* Step 2 — two-column layout */
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-                    {/* Left — form */}
-                    <Card>
-                        <CardContent className="pt-4">
-                            <div className="flex flex-col gap-4">
-                                <h3 className="text-lg font-semibold text-text-primary">
-                                    Configurez votre file
-                                </h3>
-                                <Input
-                                    label="Capacité maximale"
-                                    type="number"
-                                    min={1}
-                                    max={500}
-                                    value={data.maxCapacity}
-                                    onChange={(e) =>
-                                        setData((d) => ({
-                                            ...d,
-                                            maxCapacity: Number(e.target.value),
-                                        }))
-                                    }
-                                    error={errors.maxCapacity}
-                                    hint="Nombre maximum de personnes dans la file."
-                                />
-                                <Textarea
-                                    label="Message d'accueil"
-                                    placeholder="Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."
-                                    value={data.welcomeMessage}
-                                    onChange={(e) =>
-                                        setData((d) => ({
-                                            ...d,
-                                            welcomeMessage: e.target.value,
-                                        }))
-                                    }
-                                    hint="Affiché aux clients lorsqu'ils scannent votre QR code."
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-stretch">
+                    {/* Left — form + navigation */}
+                    <div className="flex flex-col gap-4">
+                        <Card className="flex-1">
+                            <CardContent className="pt-4">
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-lg font-semibold text-text-primary">
+                                        Configurez votre file
+                                    </h3>
+                                    <Input
+                                        label="Capacité maximale"
+                                        type="number"
+                                        min={1}
+                                        max={500}
+                                        value={data.maxCapacity}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                maxCapacity: Number(e.target.value),
+                                            }))
+                                        }
+                                        error={errors.maxCapacity}
+                                        hint="Nombre maximum de personnes dans la file."
+                                    />
+                                    <Textarea
+                                        label="Message d'accueil"
+                                        placeholder="Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."
+                                        value={data.welcomeMessage}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                welcomeMessage: e.target.value,
+                                            }))
+                                        }
+                                        hint="Affiché aux clients lorsqu'ils scannent votre QR code."
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Navigation inside left column for step 2 */}
+                        <div className="flex justify-between">
+                            <Button variant="ghost" onClick={handleBack}>
+                                <ArrowLeft size={16} aria-hidden="true" />
+                                Retour
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleNext}
+                                isLoading={isSubmitting}
+                            >
+                                <Check size={16} aria-hidden="true" />
+                                Créer mon établissement
+                            </Button>
+                        </div>
+                    </div>
 
-                    {/* Right — phone mockup */}
-                    <div className="flex justify-center lg:justify-end">
+                    {/* Right — phone mockup, sticky so it stays visible while scrolling */}
+                    <div className="flex justify-center lg:sticky lg:top-8 lg:justify-center">
                         <JoinPhoneMockup
                             name={data.name}
                             welcomeMessage={data.welcomeMessage}
@@ -391,8 +408,8 @@ function OnboardingForm({
                 </div>
             )}
 
-            {/* Navigation */}
-            <div className={cn("flex justify-between", !isStep2 && "mx-auto w-full max-w-lg")}>
+            {/* Navigation — steps 0 & 1 only (step 2 has nav inside left column) */}
+            {!isStep2 && <div className="mx-auto flex w-full max-w-lg justify-between">
                 <Button variant="ghost" onClick={handleBack}>
                     <ArrowLeft size={16} aria-hidden="true" />
                     Retour
@@ -420,7 +437,7 @@ function OnboardingForm({
                         </>
                     )}
                 </Button>
-            </div>
+            </div>}
         </div>
     )
 }
