@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils/cn"
 
 export function ThemeSwitcher() {
     const [mounted, setMounted] = useState(false)
-    const { resolvedTheme, setTheme } = useTheme()
+    const { theme, setTheme } = useTheme()
 
     // Pour éviter l'erreur d'hydratation Next.js
     useEffect(() => {
@@ -28,7 +28,7 @@ export function ThemeSwitcher() {
     return (
         <div className="flex w-full items-center rounded-md border border-border-default bg-surface-base p-1">
             {options.map(({ value, label, icon: Icon }) => {
-                const isActive = resolvedTheme === value
+                const isActive = theme === value
                 return (
                     <button
                         key={value}
