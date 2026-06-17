@@ -33,7 +33,7 @@ export default async function DashboardLayout({
     const { data: merchant, error } = await supabase
         .from("merchants")
         .select("id, name, slug, is_open, bypass_paywall")
-        .eq("id", user!.id)
+        .eq("id", user.id)
         .maybeSingle()
 
     if (error) {
@@ -47,19 +47,17 @@ export default async function DashboardLayout({
         redirect("/onboarding")
     }
 
-    // Subscription gate — must have an active or trialing subscription, OR bypass flag.
-    if (!merchant.bypass_paywall) {
+    // Check subscription status — used to gate queue launch, not dashboard access.
+    let hasSubscription = merchant!.bypass_paywall
+    if (!hasSubscription) {
         const { data: subscriptionRaw } = await supabase
             .from("subscriptions")
             .select("status")
-            .eq("merchant_id", user.id)
+            .eq("merchant_id", user!.id)
             .maybeSingle()
 
         const subscription = subscriptionRaw as { status: string } | null
-
-        if (!subscription || !isActiveStatus(subscription.status)) {
-            redirect("/subscribe")
-        }
+        hasSubscription = !!subscription && isActiveStatus(subscription.status)
     }
 
     return (
@@ -105,6 +103,7 @@ export default async function DashboardLayout({
                             initialIsOpen={merchant.is_open}
                             merchantSlug={merchant.slug}
                             merchantId={merchant.id}
+                            hasSubscription={hasSubscription}
                         />
 
                         {/* Right — user menu */}

@@ -1,24 +1,29 @@
 "use client"
 
+import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QrCode, Play } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toggleQueueOpenAction } from "@/lib/actions/queue"
+import { UpgradeModal } from "@/components/composed/UpgradeModal"
 
 type HeaderQueueControlProps = {
     initialIsOpen: boolean
     merchantSlug: string
     merchantId: string
+    hasSubscription?: boolean
 }
 
 export function HeaderQueueControl({
     initialIsOpen,
     merchantSlug: _merchantSlug,
     merchantId,
+    hasSubscription = true,
 }: HeaderQueueControlProps) {
     const router = useRouter()
     const queryClient = useQueryClient()
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
     // Sync is_open status with other components (like QueueSection)
     const { data: isOpen } = useQuery({
@@ -43,24 +48,35 @@ export function HeaderQueueControl({
             router.push("/dashboard/qr-display")
         },
         onSettled: () => {
-            // Invalidate the query to ensure we're synced with the server
-            // Note: Since this query uses a static initialData fallback without an active fetch function right now, 
-            // the state will remain optimistically correct for this window.
             queryClient.invalidateQueries({ queryKey: ["queue-status", merchantId] })
         }
     })
 
+    function handleOpenClick() {
+        if (!hasSubscription) {
+            setShowUpgradeModal(true)
+            return
+        }
+        toggleMutation.mutate()
+    }
+
     if (!isOpen) {
         return (
-            <button
-                onClick={() => toggleMutation.mutate()}
-                disabled={toggleMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:opacity-50"
-            >
-                <Play size={18} aria-hidden="true" />
-                <span className="hidden sm:inline">Ouvrir la file et afficher le QR Code</span>
-                <span className="sm:hidden">Ouvrir</span>
-            </button>
+            <>
+                <button
+                    onClick={handleOpenClick}
+                    disabled={toggleMutation.isPending}
+                    className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                >
+                    <Play size={18} aria-hidden="true" />
+                    <span className="hidden sm:inline">Ouvrir la file et afficher le QR Code</span>
+                    <span className="sm:hidden">Ouvrir</span>
+                </button>
+                <UpgradeModal
+                    open={showUpgradeModal}
+                    onClose={() => setShowUpgradeModal(false)}
+                />
+            </>
         )
     }
 
