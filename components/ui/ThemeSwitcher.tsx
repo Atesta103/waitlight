@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
-import { Sun, Moon, Monitor } from "lucide-react"
+import { Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 export function ThemeSwitcher() {
@@ -22,7 +22,6 @@ export function ThemeSwitcher() {
     const options = [
         { value: "light", label: "Clair", icon: Sun },
         { value: "dark", label: "Sombre", icon: Moon },
-        { value: "system", label: "Système", icon: Monitor },
     ]
 
     return (
