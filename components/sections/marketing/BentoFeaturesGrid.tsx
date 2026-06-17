@@ -5,29 +5,34 @@ import { useReducedMotion, motion } from "framer-motion"
 import { Smartphone, BellRing, TrendingUp, Users, Clock } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
 type BentoCardProps = {
     className?: string
     children: React.ReactNode
+    delay?: number
 }
 
-/**
- * Reusable Bento Grid card with glassmorphism styling.
- * Static — no hover animation (cards are not clickable).
- */
-export function BentoCard({ className, children }: BentoCardProps) {
+export function BentoCard({ className, children, delay = 0 }: BentoCardProps) {
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, delay, ease: EASE }}
+            whileHover={{ y: -4, transition: { duration: 0.25, ease: "easeOut" } }}
             className={cn(
                 "relative overflow-hidden rounded-3xl",
-                "bg-white/80 backdrop-blur-xl",
-                "border border-[#E5E7EB]",
-                "shadow-[0_2px_16px_rgba(0,0,0,0.05)]",
+                "bg-white",
+                "border border-[#E5E7EB] hover:border-[#C7D2FE]",
+                "shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_40px_rgba(99,102,241,0.10)]",
+                "transition-[border-color,box-shadow] duration-300",
                 "p-6",
                 className
             )}
         >
             {children}
-        </div>
+        </motion.div>
     )
 }
 
@@ -296,10 +301,6 @@ function LargePhoneMockup() {
 }
 
 
-/**
- * Bento Grid features section.
- * 6-card glass grid showcasing WaitLight capabilities.
- */
 export function BentoFeaturesGrid({ id }: { id?: string }) {
     return (
         <section
@@ -309,26 +310,33 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
         >
             <div className="max-w-6xl mx-auto px-6">
                 {/* Section header */}
-                <div className="text-center mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-4">
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
                         Fonctionnalités
                     </span>
                     <h2
                         id="features-heading"
-                        className="text-4xl md:text-5xl font-black tracking-tighter text-[#111827]"
+                        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
                     >
                         Simple pour vos clients,
                         <br />
                         <span className="text-[#6366F1]">puissant pour vous.</span>
                     </h2>
-                </div>
+                    <p className="mt-4 text-base md:text-lg text-[#4B5563] max-w-lg mx-auto">
+                        Tout ce qu&apos;il faut pour gérer votre file, sans friction ni complexité.
+                    </p>
+                </motion.div>
 
                 {/* Bento grid */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-auto">
                     {/* Card 1 — Large: Phone mockup (col-span-7) */}
-                    <BentoCard
-                        className="md:col-span-7 md:row-span-2 md:min-h-[420px] flex flex-col"
-                    >
+                    <BentoCard className="md:col-span-7 md:row-span-2 md:min-h-[420px] flex flex-col" delay={0}>
                         <div className="flex-1 flex flex-col">
                             <div className="mb-2">
                                 <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Interface client</span>
@@ -348,7 +356,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                     </BentoCard>
 
                     {/* Card 2 — Small: Notification reminders (col-span-5) */}
-                    <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between">
+                    <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between" delay={0.08}>
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Notifications</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Rappels &amp; alertes</h3>
@@ -369,7 +377,7 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                     </BentoCard>
 
                     {/* Card 3 — Medium: Algorithm (col-span-5) */}
-                    <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between">
+                    <BentoCard className="md:col-span-5 min-h-[190px] flex flex-col justify-between" delay={0.16}>
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Algorithme</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Estimation intelligente</h3>
@@ -382,8 +390,8 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         </div>
                     </BentoCard>
 
-                    {/* Card 4 — Small: QR Code — centered, large */}
-                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col items-center text-center">
+                    {/* Card 4 — Small: QR Code */}
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col items-center text-center" delay={0.06}>
                         <div className="max-w-[240px]">
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Simplicité</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Zéro installation</h3>
@@ -398,8 +406,8 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         </div>
                     </BentoCard>
 
-                    {/* Card 5 — Small: White label (col-span-4) */}
-                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between">
+                    {/* Card 5 — Small: White label */}
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between" delay={0.12}>
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Personnalisation</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Marque blanche</h3>
@@ -412,8 +420,8 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         </div>
                     </BentoCard>
 
-                    {/* Card 6 — Small: Stats (col-span-4) */}
-                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between">
+                    {/* Card 6 — Small: Stats */}
+                    <BentoCard className="md:col-span-4 min-h-[180px] flex flex-col justify-between" delay={0.18}>
                         <div>
                             <span className="text-xs font-semibold text-[#4F46E5] uppercase tracking-wider">Analytics</span>
                             <h3 className="text-xl font-black text-[#111827] mt-1 tracking-tight">Stats en direct</h3>

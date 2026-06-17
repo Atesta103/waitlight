@@ -6,6 +6,8 @@ import { Utensils, Stethoscope, ShoppingBag, FerrisWheel } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
 type UseCase = {
     Icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
     id: string
@@ -110,25 +112,37 @@ export function UseCasesGrid({ id }: { id?: string }) {
         >
             <div className="max-w-6xl mx-auto px-6">
                 {/* Header */}
-                <div className="text-center mb-12 md:mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-4">
+                <motion.div
+                    className="text-center mb-12 md:mb-16"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
                         Cas d&apos;usage
                     </span>
                     <h2
                         id="usecases-heading"
-                        className="text-4xl md:text-5xl font-black tracking-tighter text-[#111827]"
+                        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
                     >
                         Fait pour votre secteur,
                         <br className="hidden sm:block" />
                         <span className="text-[#6366F1] sm:ml-2">adapté à vos clients.</span>
                     </h2>
-                    <p className="mt-4 text-base md:text-lg text-[#374151] max-w-lg mx-auto">
+                    <p className="mt-4 text-base md:text-lg text-[#4B5563] max-w-lg mx-auto">
                         WaitLight s&apos;adapte à chaque contexte où l&apos;attente freine l&apos;expérience client.
                     </p>
-                </div>
+                </motion.div>
 
                 {/* ── MOBILE: Vertical accordion ── */}
-                <div className="md:hidden flex flex-col gap-3">
+                <motion.div
+                    className="md:hidden flex flex-col gap-3"
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+                >
                     {USE_CASES.map((uc, i) => {
                         const isOpen = mobileActiveIndex === i
                         return (
@@ -226,12 +240,16 @@ export function UseCasesGrid({ id }: { id?: string }) {
                             </motion.article>
                         )
                     })}
-                </div>
+                </motion.div>
 
                 {/* ── DESKTOP: 4 cards expand on hover — all closed by default ── */}
-                <div
+                <motion.div
                     className="hidden md:flex gap-3 h-[480px]"
                     onMouseLeave={() => setHoveredIndex(null)}
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.65, delay: 0.1, ease: EASE }}
                 >
                     {USE_CASES.map((uc, index) => {
                         const isExpanded = hoveredIndex === index
@@ -336,7 +354,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                             </motion.article>
                         )
                     })}
-                </div>
+                </motion.div>
             </div>
         </section>
     )

@@ -458,18 +458,32 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     return (
         <section ref={sectionRef} id={id} className="py-24 sm:py-32 bg-white relative overflow-hidden">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-10">
-                    <span className="text-[#6366F1] font-bold tracking-wider uppercase text-sm mb-4 block">Démonstration</span>
-                    <h2 className="text-3xl font-black tracking-tight text-[#111827] sm:text-5xl">
+                <motion.div
+                    className="mx-auto max-w-2xl text-center mb-10"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
+                        Démonstration
+                    </span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1">
                         Un parcours sans friction.
                     </h2>
-                    <p className="mt-6 text-lg leading-8 text-[#4B5563]">
+                    <p className="mt-4 text-base md:text-lg leading-relaxed text-[#4B5563]">
                         Découvrez comment WaitLight fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
                     </p>
-                </div>
+                </motion.div>
 
                 {/* Target Tabs */}
-                <div className="mb-10">
+                <motion.div
+                    className="mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                >
                     {/* Mobile: 2×2 grid */}
                     <div className="grid grid-cols-2 gap-2 sm:hidden">
                         {TARGETS.map(t => (
@@ -509,7 +523,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             ))}
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 <div className="bg-[#F8F9FA] rounded-[2rem] border border-[#E5E7EB] p-6 sm:p-10 lg:p-12 relative">
                     

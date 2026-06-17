@@ -49,6 +49,8 @@ const FAQ_ITEMS: FaqItem[] = [
  * FaqSection — accordion-style FAQ with native details/summary.
  * Client Component for open/close state.
  */
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
 export function FaqSection({ id }: { id?: string }) {
     const [openIndex, setOpenIndex] = useState<number | null>(null)
 
@@ -62,28 +64,40 @@ export function FaqSection({ id }: { id?: string }) {
         >
             <div className="max-w-3xl mx-auto px-6">
                 {/* Header */}
-                <div className="text-center mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-4">
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
                         FAQ
                     </span>
                     <h2
                         id="faq-heading"
-                        className="text-4xl md:text-5xl font-black tracking-tighter text-[#111827]"
+                        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
                     >
                         Questions fréquentes
                     </h2>
-                </div>
+                </motion.div>
 
                 {/* Accordion */}
-                <div className="divide-y divide-border-default border border-border-default rounded-2xl overflow-hidden">
+                <motion.div
+                    className="divide-y divide-border-default border border-border-default rounded-2xl overflow-hidden"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+                >
                     {FAQ_ITEMS.map((item, idx) => (
-                        <div key={idx}>
+                        <div key={idx} className="group">
                             <button
                                 id={`faq-btn-${idx}`}
                                 aria-expanded={openIndex === idx}
                                 aria-controls={`faq-panel-${idx}`}
                                 onClick={() => toggle(idx)}
-                                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-[#F8F9FA] transition-colors duration-150"
+                                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-[#F9FAFB] transition-colors duration-200"
                             >
                                 <span className="font-semibold text-[#111827] text-sm md:text-base leading-snug">
                                     {item.question}
@@ -121,7 +135,7 @@ export function FaqSection({ id }: { id?: string }) {
                             </AnimatePresence>
                         </div>
                     ))}
-                </div>
+                </motion.div>
 
                 {/* Contact nudge */}
                 <p className="mt-8 text-center text-sm text-[#374151]">
