@@ -56,7 +56,7 @@ export function HeaderQueueControl({
     })
 
     function handleOpenClick() {
-        if (!hasSubscription) {
+if (!hasSubscription) {
             setShowUpgradeModal(true)
             return
         }
