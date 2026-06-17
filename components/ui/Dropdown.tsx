@@ -58,9 +58,8 @@ function Dropdown({
             ref={containerRef}
             className={cn("relative inline-block", className)}
         >
-            <div
-                role="button"
-                tabIndex={0}
+            <button
+                type="button"
                 onClick={() => setOpen((prev) => !prev)}
                 onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -73,7 +72,7 @@ function Dropdown({
                 className="cursor-pointer"
             >
                 {trigger}
-            </div>
+            </button>
 
             {open ? (
                 <div
@@ -86,7 +85,7 @@ function Dropdown({
                 >
                     {items.map((item, index) => (
                         <button
-                            key={index}
+                            key={item.label ?? index}
                             role="menuitem"
                             type="button"
                             disabled={item.disabled}

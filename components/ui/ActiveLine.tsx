@@ -31,7 +31,7 @@ function ActiveLine({ value, max, className, label = "Progression" }: ActiveLine
                     const isActive = index + 1 <= clamped
                     return (
                         <span
-                            key={index}
+                            key={`dot-${index}`}
                             className={cn(
                                 "h-8 w-8 rounded-full border-2 transition-colors duration-300",
                                 isActive

@@ -8,6 +8,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { requireAuth } from "@/lib/supabase/require-auth"
 import { adminSupabase } from "@/lib/supabase/admin"
 import {
     MerchantIdentitySchema,
@@ -109,14 +110,7 @@ export type MerchantSettingsData = {
 export async function getMerchantSettingsAction(): Promise<
     { data: MerchantSettingsData } | { error: string }
 > {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
@@ -228,14 +222,7 @@ export async function updateMerchantIdentityAction(
         }
     }
 
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     // Fetch current slug and last-changed timestamp to enforce the rate limit.
     const { data: current, error: fetchError } = await supabase
@@ -322,14 +309,7 @@ export async function updateQueueSettingsAction(
         }
     }
 
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { error } = await supabase
         .from("settings")
@@ -364,14 +344,7 @@ export async function updateQueueSettingsAction(
 export async function deleteLogoAction(): Promise<
     { data: null } | { error: string }
 > {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     // List all files in the merchant's folder (handles any extension).
     const { data: files, error: listError } = await supabase.storage
@@ -449,14 +422,7 @@ export async function checkSlugAvailabilitySettingsAction(
 export async function resetAvgPrepTimeAction(): Promise<
     { data: null } | { error: string }
 > {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { error } = await supabase
         .from("merchants")
@@ -491,14 +457,7 @@ export type BannedWord = {
 export async function getBannedWordsAction(): Promise<
     { data: BannedWord[] } | { error: string }
 > {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { user } = await requireAuth()
 
     const { data, error } = await adminSupabase
         .from("banned_words")
@@ -525,14 +484,7 @@ export async function addBannedWordAction(
         return { error: "Le mot ne peut pas être vide." }
     }
 
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { user } = await requireAuth()
 
     const { data, error } = await adminSupabase
         .from("banned_words")
@@ -569,14 +521,7 @@ export async function addBannedWordAction(
 export async function removeBannedWordAction(
     wordId: string,
 ): Promise<{ data: null } | { error: string }> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { user } = await requireAuth()
 
     const { error } = await adminSupabase
         .from("banned_words")
@@ -601,18 +546,11 @@ export async function removeBannedWordAction(
 export async function updateScheduleAction(
     schedule: ScheduleData | null,
 ): Promise<{ data: null } | { error: string }> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { error } = await supabase
         .from("settings")
-        .update({ schedule: schedule as unknown as string })
+        .update({ schedule: JSON.stringify(schedule) })
         .eq("merchant_id", user.id)
 
     if (error) {
@@ -632,14 +570,7 @@ export async function updateScheduleAction(
 export async function updateThankYouMessageAction(
     message: string | null,
 ): Promise<{ data: null } | { error: string }> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const trimmed = message?.trim() || null
 
@@ -668,14 +599,7 @@ export async function updateThankYouTitleAction(
         }
     }
 
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const trimmed = parsed.data?.trim() || null
 
@@ -710,14 +634,7 @@ export type NotificationPreferencesInput = {
 export async function updateNotificationPreferencesAction(
     input: NotificationPreferencesInput,
 ): Promise<{ data: null } | { error: string }> {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { error } = await supabase
         .from("settings")
@@ -751,14 +668,7 @@ export async function updateNotificationPreferencesAction(
 export async function deleteBackgroundAction(): Promise<
     { data: null } | { error: string }
 > {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: "Session expirée. Veuillez vous reconnecter." }
-    }
+    const { supabase, user } = await requireAuth()
 
     const { data: files, error: listError } = await supabase.storage
         .from("merchant-backgrounds")

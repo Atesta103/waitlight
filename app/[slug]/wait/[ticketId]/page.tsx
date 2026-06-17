@@ -33,6 +33,7 @@ export default async function WaitPage({ params }: WaitPageProps) {
                 approaching_position_threshold,
                 approaching_time_enabled,
                 approaching_time_threshold_min,
+                thank_you_title,
                 thank_you_message
             )
         `)
@@ -57,8 +58,7 @@ export default async function WaitPage({ params }: WaitPageProps) {
 
     return (
         <WaitClient
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            merchant={merchant as any}
+            merchant={merchant}
             ticketId={ticketId}
         />
     )

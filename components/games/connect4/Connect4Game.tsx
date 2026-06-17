@@ -106,6 +106,7 @@ export function Connect4Game({ merchantId, roomCode, playerNum, ticketId, myName
 
     const onMessage = useCallback(
         (payload: Record<string, unknown>) => {
+            if (!payload || typeof payload !== 'object' || !('type' in payload)) return
             const msg = payload as unknown as GameMsg
             if (msg.type === "hello") {
                 if (msg.player !== playerNum) setOpponentName(msg.name)
