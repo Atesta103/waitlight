@@ -16,7 +16,7 @@ type Props = {
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
     return (
-        <div className="relative w-[240px] shrink-0">
+        <div className="relative w-[240px] max-w-full shrink-0">
             <div className="bg-[#111827] rounded-[2.5rem] p-3 shadow-[0_32px_80px_-12px_rgba(0,0,0,0.28),0_0_0_1px_rgba(255,255,255,0.06)]">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#111827] rounded-b-3xl z-10" aria-hidden="true" />
                 <div className="rounded-[2.1rem] overflow-hidden bg-[#F9FAFB] aspect-[9/19.5] flex flex-col">

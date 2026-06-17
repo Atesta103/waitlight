@@ -1373,7 +1373,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             >
                                 <Card>
                                     <CardContent>
-                                        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
                                             <div className="flex flex-col gap-5 pt-1">
                                                 <Input
                                                     label="Capacité maximale"
