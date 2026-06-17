@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
 import { SlugInput } from "@/components/composed/SlugInput"
-import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
+import { QueuePhoneMockup } from "@/components/composed/QueuePhoneMockup"
 import { cn } from "@/lib/utils/cn"
 import { duration, ease } from "@/lib/utils/motion"
 import {
@@ -1373,8 +1373,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             >
                                 <Card>
                                     <CardContent>
-                                        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-                                            <div className="flex flex-col gap-5 pt-1">
+                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
+                                            <div className="flex h-full flex-col gap-5 pt-1">
                                                 <Input
                                                     label="Capacité maximale"
                                                     type="number"
@@ -1428,36 +1428,13 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 />
                                             </div>
 
-                                            <div className="rounded-2xl border border-border-default bg-surface-base p-4 shadow-sm">
-                                                <div className="mb-4 flex flex-col gap-1">
-                                                    <h3 className="text-sm font-semibold text-text-primary">
-                                                        Aperçu client
-                                                    </h3>
-                                                    <p className="text-sm text-text-secondary">
-                                                        Voici ce que verra le
-                                                        client une fois servi.
-                                                    </p>
-                                                </div>
-                                                <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card p-3">
-                                                    <CustomerWaitView
-                                                        status="done"
-                                                        position={null}
-                                                        totalWaiting={null}
-                                                        estimatedWaitMinutes={
-                                                            null
-                                                        }
-                                                        connectionState="connected"
-                                                        customerName="Marie"
-                                                        slug={initialData.slug}
-                                                        ticketId="preview"
-                                                        thankYouTitle={
-                                                            queue.thankYouTitle
-                                                        }
-                                                        thankYouMessage={
-                                                            queue.thankYouMessage
-                                                        }
-                                                    />
-                                                </div>
+                                            <div className="flex h-full items-center justify-center">
+                                                <QueuePhoneMockup
+                                                    name={identity.merchantName}
+                                                    welcomeMessage={queue.welcomeMessage}
+                                                    thankYouTitle={queue.thankYouTitle}
+                                                    thankYouMessage={queue.thankYouMessage}
+                                                />
                                             </div>
                                         </div>
                                     </CardContent>
