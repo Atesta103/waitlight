@@ -49,6 +49,7 @@ import {
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
+import { type MerchantIdentityInput } from "@/lib/validators/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
 import {
     ScheduleEditor,
@@ -673,12 +674,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 slug: identity.slug,
                 logo_url: identity.logoUrl ?? undefined,
                 brand_color: identity.brand_color ?? "#4F46E5",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                font_family: (identity.font_family as any) ?? "Inter",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                border_radius: (identity.border_radius as any) ?? "0.5rem",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                theme_pattern: (identity.theme_pattern as any) ?? "none",
+                font_family: (identity.font_family ?? "Inter") as MerchantIdentityInput["font_family"],
+                border_radius: (identity.border_radius ?? "0.5rem") as MerchantIdentityInput["border_radius"],
+                theme_pattern: (identity.theme_pattern ?? "none") as MerchantIdentityInput["theme_pattern"],
                 default_prep_time_min: identity.defaultPrepTimeMin,
             })
             if ("error" in result) {
