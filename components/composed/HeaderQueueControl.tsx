@@ -19,7 +19,7 @@ export function HeaderQueueControl({
     initialIsOpen,
     merchantSlug: _merchantSlug,
     merchantId,
-    hasSubscription = true,
+    hasSubscription = false,
 }: HeaderQueueControlProps) {
     const router = useRouter()
     const queryClient = useQueryClient()
