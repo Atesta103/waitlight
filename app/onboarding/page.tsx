@@ -38,8 +38,8 @@ export default async function OnboardingPage() {
     if (merchant) redirect("/dashboard")
 
     return (
-        <div className="flex h-screen items-center justify-center overflow-hidden bg-surface-base px-4">
-            <div className="w-full max-w-lg">
+        <div className="flex min-h-screen items-center justify-center bg-surface-base px-4 py-8">
+            <div className="w-full max-w-4xl">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold text-text-primary">
                         Bienvenue&nbsp;! Configurez votre établissement
