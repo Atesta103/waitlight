@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Store, Sparkles, CheckCircle2 } from "lucide-react"
+import { Store, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
 
 type Tab = "welcome" | "thankyou"
 
@@ -76,25 +77,6 @@ function WelcomeScreen({ name, welcomeMessage }: { name: string; welcomeMessage:
     )
 }
 
-function ThankYouScreen({ thankYouTitle, thankYouMessage }: { thankYouTitle: string; thankYouMessage: string }) {
-    const displayTitle = thankYouTitle || "Merci !"
-    const displayMessage = thankYouMessage || "Vous avez été pris en charge. À bientôt !"
-
-    return (
-        <div className="flex flex-col items-center gap-4 px-4 py-8 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D1FAE5]">
-                <CheckCircle2 size={28} className="text-[#10B981]" aria-hidden="true" />
-            </div>
-            <div className="flex flex-col gap-1">
-                <p className="text-[13px] font-bold text-[#111827]">{displayTitle}</p>
-                <p className="text-[9px] leading-relaxed text-[#6B7280]">{displayMessage}</p>
-            </div>
-            <div className="w-full rounded-xl bg-[#F3F4F6] px-3 py-2">
-                <p className="text-[8px] text-[#9CA3AF]">Marie • Ticket #42</p>
-            </div>
-        </div>
-    )
-}
 
 export function QueuePhoneMockup({ name, welcomeMessage, thankYouTitle, thankYouMessage }: Props) {
     const [tab, setTab] = useState<Tab>("welcome")
@@ -127,7 +109,18 @@ export function QueuePhoneMockup({ name, welcomeMessage, thankYouTitle, thankYou
                 {tab === "welcome" ? (
                     <WelcomeScreen name={name} welcomeMessage={welcomeMessage} />
                 ) : (
-                    <ThankYouScreen thankYouTitle={thankYouTitle} thankYouMessage={thankYouMessage} />
+                    <CustomerWaitView
+                        status="done"
+                        position={null}
+                        totalWaiting={null}
+                        estimatedWaitMinutes={null}
+                        connectionState="connected"
+                        customerName="Marie"
+                        slug=""
+                        ticketId="preview"
+                        thankYouTitle={thankYouTitle}
+                        thankYouMessage={thankYouMessage}
+                    />
                 )}
             </PhoneFrame>
         </div>
