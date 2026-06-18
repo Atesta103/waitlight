@@ -30,11 +30,11 @@ export const metadata: Metadata = {
     shortcut: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   openGraph: {
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "WaitLight" }],
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "WaitLight" }],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
   },
 };
 
