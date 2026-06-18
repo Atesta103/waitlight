@@ -14,7 +14,7 @@ export default async function GamesLayout(props: {
     children: ReactNode
     params: Promise<{ slug: string; ticketId: string }>
 }) {
-    const { ticketId } = await props.params
+    const { slug, ticketId } = await props.params
     const supabase = await createClient()
 
     const { data: ticket } = await supabase
@@ -54,9 +54,10 @@ export default async function GamesLayout(props: {
     return (
         <>
             {ticket && (
-                <GamesQueueWatcher 
+                <GamesQueueWatcher
                     merchantId={ticket.merchant_id}
                     ticketId={ticketId}
+                    slug={slug}
                     customerName={ticket.customer_name}
                     notificationChannels={notificationChannels}
                     notificationSound={notificationSound}
