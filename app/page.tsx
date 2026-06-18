@@ -27,6 +27,13 @@ export const metadata: Metadata = {
         type: "website",
         siteName: "WaitLight",
         locale: "fr_FR",
+        images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "WaitLight" }],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "WaitLight — L'attente devient un plaisir.",
+        description: "File d'attente digitale par QR Code. Zéro installation, notifications en temps réel.",
+        images: ["/og-image.png"],
     },
     alternates: {
         canonical: "/",
