@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils/cn"
 import { Toast, type ToastVariant } from "@/components/ui/Toast"
 import { QueueStatusStrip } from "@/components/composed/QueueStatusStrip"
 import {
@@ -199,7 +200,15 @@ function GamesQueueWatcher({
 
     return (
         <>
-            <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex justify-center px-4">
+            {/* Strip en haut quand "called" pour ne pas bloquer le bouton Rejouer du GameResultModal */}
+            <div
+                className={cn(
+                    "pointer-events-none fixed inset-x-0 z-[110] flex justify-center px-4",
+                    ticket?.status === "called"
+                        ? "top-[calc(1rem+env(safe-area-inset-top))]"
+                        : "bottom-[calc(1rem+env(safe-area-inset-bottom))]",
+                )}
+            >
                 <QueueStatusStrip
                     className="pointer-events-auto w-full max-w-[18rem] shadow-xl sm:max-w-md"
                     position={position ?? null}
