@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import { cn } from "@/lib/utils/cn"
 import { Toast, type ToastVariant } from "@/components/ui/Toast"
 import { QueueStatusStrip } from "@/components/composed/QueueStatusStrip"
@@ -36,6 +37,7 @@ type MerchantNotificationChannels = {
 type GamesQueueWatcherProps = {
     merchantId: string
     ticketId: string
+    slug: string
     customerName: string
     notificationChannels: MerchantNotificationChannels
     notificationSound: SoundChoice
@@ -48,6 +50,7 @@ type GamesQueueWatcherProps = {
 function GamesQueueWatcher({
     merchantId,
     ticketId,
+    slug,
     customerName,
     notificationChannels,
     notificationSound,
@@ -209,11 +212,17 @@ function GamesQueueWatcher({
                         : "bottom-[calc(1rem+env(safe-area-inset-bottom))]",
                 )}
             >
-                <QueueStatusStrip
-                    className="pointer-events-auto w-full max-w-[18rem] shadow-xl sm:max-w-md"
-                    position={position ?? null}
-                    status={ticket?.status as "waiting" | "called" | "done" | "cancelled" | undefined}
-                />
+                <Link
+                    href={`/${slug}/wait/${ticketId}`}
+                    className="pointer-events-auto w-full max-w-[18rem] sm:max-w-md"
+                    aria-label="Retour à la file d'attente"
+                >
+                    <QueueStatusStrip
+                        className="shadow-xl transition-opacity hover:opacity-90 active:opacity-75"
+                        position={position ?? null}
+                        status={ticket?.status as "waiting" | "called" | "done" | "cancelled" | undefined}
+                    />
+                </Link>
             </div>
 
             <div className="pointer-events-none fixed left-4 right-4 top-4 z-[100] flex flex-col items-center gap-2 md:left-auto md:right-4 md:items-end">
