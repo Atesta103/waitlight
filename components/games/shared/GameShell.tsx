@@ -14,13 +14,13 @@ export function GameShell({ title, children, className }: GameShellProps) {
     const router = useRouter()
 
     return (
-        <div className={cn("min-h-screen bg-surface-base flex flex-col", className)}>
+        <div className={cn("h-dvh overflow-hidden bg-surface-base flex flex-col touch-none select-none", className)}>
             {/* Header */}
-            <div className="px-4 pt-4">
+            <div className="px-4 pt-4 shrink-0">
                 <header className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-card px-4 py-3">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-base transition-colors shrink-0"
+                        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-base transition-colors shrink-0 touch-auto"
                         aria-label="Retour"
                     >
                         <ArrowLeft className="w-5 h-5 text-text-primary" />
@@ -32,8 +32,8 @@ export function GameShell({ title, children, className }: GameShellProps) {
                 </header>
             </div>
 
-            {/* Content */}
-            <main className="flex-1 flex flex-col items-center justify-center p-4">
+            {/* Content — flex-1 min-h-0 pour que le jeu occupe tout l'espace restant sans déborder */}
+            <main className="flex-1 min-h-0 flex flex-col items-center justify-center p-4">
                 {children}
             </main>
         </div>
