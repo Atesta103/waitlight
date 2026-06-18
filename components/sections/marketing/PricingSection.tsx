@@ -1,4 +1,10 @@
+"use client"
+
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { CheckCircle } from "lucide-react"
+
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 const FEATURES = [
     "Files d'attente illimitées",
@@ -11,10 +17,6 @@ const FEATURES = [
     "Algorithme de temps d'attente",
 ]
 
-/**
- * PricingSection — single plan at 29€/month.
- * Pure Server Component.
- */
 export function PricingSection({ id }: { id?: string }) {
     return (
         <section
@@ -24,73 +26,91 @@ export function PricingSection({ id }: { id?: string }) {
         >
             <div className="max-w-6xl mx-auto px-6">
                 {/* Header */}
-                <div className="text-center mb-16">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-4">
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
                         Tarifs
                     </span>
                     <h2
                         id="pricing-heading"
-                        className="text-4xl md:text-5xl font-black tracking-tighter text-[#111827]"
+                        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
                     >
                         Un seul plan,
                         <span className="text-[#6366F1]"> tout inclus.</span>
                     </h2>
-                    <p className="mt-4 text-lg text-[#374151] max-w-md mx-auto">
+                    <p className="mt-4 text-base md:text-lg text-[#4B5563] max-w-md mx-auto">
                         Pas de formules compliquées. Un tarif clair, toutes fonctionnalités incluses.
                     </p>
-                </div>
+                </motion.div>
 
-                {/* Pricing card — centered, generous width */}
-                <div className="max-w-2xl mx-auto">
-                    <div className="relative rounded-3xl bg-[#6366F1] text-white p-10 shadow-[0_0_60px_rgba(99,102,241,0.35)]">
+                {/* Pricing card */}
+                <motion.div
+                    className="max-w-2xl mx-auto"
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+                >
+                    <div className="relative rounded-3xl bg-[#111827] text-white p-10 shadow-[0_24px_64px_-16px_rgba(17,24,39,0.5)]">
                         {/* Badge */}
-                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center px-4 py-1 rounded-full bg-white text-[#4F46E5] text-xs font-bold shadow-sm border border-[#C7D2FE]">
+                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center px-4 py-1 rounded-full bg-[#6366F1] text-white text-xs font-bold shadow-[0_4px_14px_rgba(99,102,241,0.4)]">
                             14 jours gratuits
                         </span>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            {/* Left — price & description */}
+                            {/* Left */}
                             <div>
-                                <div className="text-sm font-semibold uppercase tracking-wider text-white/80 mb-2">
+                                <div className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-2">
                                     Plan unique
                                 </div>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-6xl font-black">29€</span>
-                                    <span className="text-white/80 text-base">/ mois</span>
+                                    <span className="text-white/50 text-base">/ mois</span>
                                 </div>
-                                <p className="mt-3 text-white/80 text-sm leading-relaxed">
-                                    Par établissement. Incluant toutes les fonctionnalités, sans limite de tickets ni de files.
+                                <p className="mt-3 text-white/60 text-sm leading-relaxed">
+                                    Par établissement. Toutes les fonctionnalités, sans limite de tickets ni de files.
                                 </p>
 
-                                <Link
-                                    href="/login"
-                                    id="pricing-cta"
-                                    className="mt-8 w-full inline-flex items-center justify-center px-6 py-4 rounded-xl bg-white text-[#4F46E5] font-bold text-sm shadow-[0_0_12px_rgba(255,255,255,0.2)] hover:bg-white/90 transition-colors duration-150"
-                                >
-                                    Démarrer l&apos;essai gratuit →
-                                </Link>
+                                <motion.div className="mt-8" whileTap={{ scale: 0.97 }}>
+                                    <Link
+                                        href="/login"
+                                        id="pricing-cta"
+                                        className="w-full inline-flex items-center justify-center px-6 py-4 rounded-xl bg-[#6366F1] text-white font-bold text-sm hover:bg-[#4F46E5] hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all duration-200"
+                                    >
+                                        Démarrer l&apos;essai gratuit →
+                                    </Link>
+                                </motion.div>
+
+                                <div className="mt-4 flex items-center gap-2">
+                                    <CheckCircle size={13} className="text-[#10B981]" />
+                                    <span className="text-xs text-white/50">Sans engagement · Résiliation à tout moment</span>
+                                </div>
                             </div>
 
-                            {/* Right — feature list */}
+                            {/* Right — feature list with stagger */}
                             <ul className="space-y-2.5">
-                                {FEATURES.map((feature) => (
-                                    <li key={feature} className="flex items-center gap-2.5 text-sm">
-                                        <svg
-                                            className="w-4 h-4 flex-shrink-0 text-white"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                            aria-hidden="true"
-                                        >
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                        <span className="text-white/90">{feature}</span>
-                                    </li>
+                                {FEATURES.map((feature, i) => (
+                                    <motion.li
+                                        key={feature}
+                                        initial={{ opacity: 0, x: 12 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true, margin: "-40px" }}
+                                        transition={{ duration: 0.4, delay: 0.2 + i * 0.05, ease: EASE }}
+                                        className="flex items-center gap-2.5 text-sm"
+                                    >
+                                        <CheckCircle size={15} className="flex-shrink-0 text-[#10B981]" aria-hidden="true" />
+                                        <span className="text-white/80">{feature}</span>
+                                    </motion.li>
                                 ))}
                             </ul>
                         </div>
                     </div>
 
-                    {/* Fine print */}
                     <p className="mt-5 text-center text-sm text-[#6B7280]">
                         Vous avez plusieurs établissements ?{" "}
                         <Link href="/contact" className="text-[#4F46E5] font-medium hover:underline">
@@ -98,7 +118,7 @@ export function PricingSection({ id }: { id?: string }) {
                         </Link>{" "}
                         pour un tarif adapté.
                     </p>
-                </div>
+                </motion.div>
             </div>
         </section>
     )

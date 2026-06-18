@@ -27,6 +27,7 @@ type CustomerWaitViewProps = {
     backgroundUrl?: string | null
     businessType?: string | null
     className?: string
+    compact?: boolean
 }
 
 function CustomerWaitView({
@@ -43,6 +44,7 @@ function CustomerWaitView({
     backgroundUrl,
     businessType,
     className,
+    compact = false,
 }: CustomerWaitViewProps) {
     const prefersReduced = useReducedMotion()
     const wording = getBusinessWording(businessType)
@@ -98,6 +100,7 @@ function CustomerWaitView({
                             variant="done"
                             title={thankYouTitle?.trim() || "Merci !"}
                             description={thankYouMessage || "Votre visite est terminée. Bonne journée !"}
+                            className={compact ? "[&_h2]:text-sm [&_p]:text-xs py-4 gap-2" : undefined}
                         />
                     </motion.div>
                 ) : status === "cancelled" ? (

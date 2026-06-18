@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef, useCallback } from "react"
+import { useState, useEffect, useTransition, useRef, useCallback } from "react"
 import type { ElementType, ReactNode } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/Card"
@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/Button"
 import { Toggle } from "@/components/ui/Toggle"
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher"
 import { SlugInput } from "@/components/composed/SlugInput"
-import { CustomerWaitView } from "@/components/sections/CustomerWaitView"
+import { QueuePhoneMockup } from "@/components/composed/QueuePhoneMockup"
 import { cn } from "@/lib/utils/cn"
 import { duration, ease } from "@/lib/utils/motion"
 import {
@@ -49,6 +49,7 @@ import {
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
+import { type MerchantIdentityInput } from "@/lib/validators/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
 import {
     ScheduleEditor,
@@ -443,6 +444,19 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [activeTab, setActiveTab] =
         useState<(typeof NAV_SECTIONS)[number]["id"]>("identity")
 
+    useEffect(() => {
+        const validIds = NAV_SECTIONS.map((s) => s.id)
+        const applyHash = () => {
+            const hash = window.location.hash.slice(1)
+            if (validIds.includes(hash as (typeof NAV_SECTIONS)[number]["id"])) {
+                setActiveTab(hash as (typeof NAV_SECTIONS)[number]["id"])
+            }
+        }
+        applyHash()
+        window.addEventListener("hashchange", applyHash)
+        return () => window.removeEventListener("hashchange", applyHash)
+    }, [])
+
     // ── Identity ──────────────────────────────────────────────────────────────
     const [identity, setIdentity] = useState({
         merchantName: initialData.merchantName,
@@ -660,12 +674,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 slug: identity.slug,
                 logo_url: identity.logoUrl ?? undefined,
                 brand_color: identity.brand_color ?? "#4F46E5",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                font_family: (identity.font_family as any) ?? "Inter",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                border_radius: (identity.border_radius as any) ?? "0.5rem",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                theme_pattern: (identity.theme_pattern as any) ?? "none",
+                font_family: (identity.font_family ?? "Inter") as MerchantIdentityInput["font_family"],
+                border_radius: (identity.border_radius ?? "0.5rem") as MerchantIdentityInput["border_radius"],
+                theme_pattern: (identity.theme_pattern ?? "none") as MerchantIdentityInput["theme_pattern"],
                 default_prep_time_min: identity.defaultPrepTimeMin,
             })
             if ("error" in result) {
@@ -847,7 +858,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                         <li key={id}>
                             <button
-                                onClick={() => setActiveTab(id)}
+                                onClick={() => { setActiveTab(id); window.location.hash = id }}
                                 className={cn(
                                     "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium",
                                     activeTab === id
@@ -872,7 +883,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
                             <li key={id}>
                                 <button
-                                    onClick={() => setActiveTab(id)}
+                                    onClick={() => { setActiveTab(id); window.location.hash = id }}
                                     className={cn(
                                         "flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
                                         activeTab === id
@@ -1360,8 +1371,8 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             >
                                 <Card>
                                     <CardContent>
-                                        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-                                            <div className="flex flex-col gap-5 pt-1">
+                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
+                                            <div className="flex h-full flex-col gap-5 pt-1">
                                                 <Input
                                                     label="Capacité maximale"
                                                     type="number"
@@ -1415,36 +1426,13 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 />
                                             </div>
 
-                                            <div className="rounded-2xl border border-border-default bg-surface-base p-4 shadow-sm">
-                                                <div className="mb-4 flex flex-col gap-1">
-                                                    <h3 className="text-sm font-semibold text-text-primary">
-                                                        Aperçu client
-                                                    </h3>
-                                                    <p className="text-sm text-text-secondary">
-                                                        Voici ce que verra le
-                                                        client une fois servi.
-                                                    </p>
-                                                </div>
-                                                <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card p-3">
-                                                    <CustomerWaitView
-                                                        status="done"
-                                                        position={null}
-                                                        totalWaiting={null}
-                                                        estimatedWaitMinutes={
-                                                            null
-                                                        }
-                                                        connectionState="connected"
-                                                        customerName="Marie"
-                                                        slug={initialData.slug}
-                                                        ticketId="preview"
-                                                        thankYouTitle={
-                                                            queue.thankYouTitle
-                                                        }
-                                                        thankYouMessage={
-                                                            queue.thankYouMessage
-                                                        }
-                                                    />
-                                                </div>
+                                            <div className="flex h-full items-center justify-center">
+                                                <QueuePhoneMockup
+                                                    name={identity.merchantName}
+                                                    welcomeMessage={queue.welcomeMessage}
+                                                    thankYouTitle={queue.thankYouTitle}
+                                                    thankYouMessage={queue.thankYouMessage}
+                                                />
                                             </div>
                                         </div>
                                     </CardContent>

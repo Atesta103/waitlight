@@ -352,6 +352,8 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const tickRef = useRef(0)
     const totalTicks = AUTO_PLAY_INTERVAL_MS / 50
+    const sectionRef = useRef<HTMLElement>(null)
+    const isVisibleRef = useRef(false)
 
     const FLOW_STEPS = TARGET_CONTENT[targetId]
 
@@ -374,17 +376,13 @@ export function FlowCarouselSection({ id }: { id?: string }) {
         })
     }, [FLOW_STEPS.length])
 
-    // Auto-play: tick every 50ms to update the progress bar smoothly
-    useEffect(() => {
-        tickRef.current = 0
-
+    const startTimer = useCallback(() => {
+        if (timerRef.current) return
         timerRef.current = setInterval(() => {
             tickRef.current += 1
             const p = Math.min(tickRef.current / totalTicks, 1)
             setProgress(p)
-
             if (p >= 1) {
-                // Auto-advance to next
                 setCurrentStep((prev) => {
                     const next = (prev + 1) % FLOW_STEPS.length
                     setDirection(1)
@@ -394,11 +392,43 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                 })
             }
         }, 50)
+    }, [FLOW_STEPS.length, totalTicks])
 
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current)
+    const stopTimer = useCallback(() => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current)
+            timerRef.current = null
         }
-    }, [FLOW_STEPS.length, totalTicks, targetId])
+    }, [])
+
+    // IntersectionObserver: start timer when section enters viewport, stop when it leaves
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                isVisibleRef.current = entry.isIntersecting
+                if (entry.isIntersecting) {
+                    startTimer()
+                } else {
+                    stopTimer()
+                }
+            },
+            { threshold: 0.3 }
+        )
+        const el = sectionRef.current
+        if (el) observer.observe(el)
+        return () => {
+            observer.disconnect()
+            stopTimer()
+        }
+    }, [startTimer, stopTimer])
+
+    // Reset and restart timer when targetId changes
+    useEffect(() => {
+        tickRef.current = 0
+        setProgress(0)
+        stopTimer()
+        if (isVisibleRef.current) startTimer()
+    }, [targetId, startTimer, stopTimer])
 
     const handleTargetChange = (newTarget: keyof typeof TARGET_CONTENT) => {
         setTargetId(newTarget)
@@ -426,20 +456,34 @@ export function FlowCarouselSection({ id }: { id?: string }) {
     const slug = SECTOR_SLUGS[targetId] ?? targetId
 
     return (
-        <section id={id} className="py-24 sm:py-32 bg-white relative overflow-hidden">
+        <section ref={sectionRef} id={id} className="py-24 sm:py-32 bg-white relative overflow-hidden">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-10">
-                    <span className="text-[#6366F1] font-bold tracking-wider uppercase text-sm mb-4 block">Démonstration</span>
-                    <h2 className="text-3xl font-black tracking-tight text-[#111827] sm:text-5xl">
+                <motion.div
+                    className="mx-auto max-w-2xl text-center mb-10"
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase mb-5">
+                        Démonstration
+                    </span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1">
                         Un parcours sans friction.
                     </h2>
-                    <p className="mt-6 text-lg leading-8 text-[#4B5563]">
+                    <p className="mt-4 text-base md:text-lg leading-relaxed text-[#4B5563]">
                         Découvrez comment WaitLight fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
                     </p>
-                </div>
+                </motion.div>
 
                 {/* Target Tabs */}
-                <div className="mb-10">
+                <motion.div
+                    className="mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                >
                     {/* Mobile: 2×2 grid */}
                     <div className="grid grid-cols-2 gap-2 sm:hidden">
                         {TARGETS.map(t => (
@@ -479,7 +523,7 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                             ))}
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 <div className="bg-[#F8F9FA] rounded-[2rem] border border-[#E5E7EB] p-6 sm:p-10 lg:p-12 relative">
                     

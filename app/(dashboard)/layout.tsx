@@ -48,36 +48,34 @@ export default async function DashboardLayout({
         redirect("/onboarding")
     }
 
-    // Subscription gate — must have an active or trialing subscription, OR bypass flag.
-    if (!merchant.bypass_paywall) {
+    // Check subscription status — used to gate queue launch, not dashboard access.
+    let hasSubscription = merchant!.bypass_paywall
+    if (!hasSubscription) {
         const { data: subscriptionRaw } = await supabase
             .from("subscriptions")
             .select("status")
-            .eq("merchant_id", user.id)
+            .eq("merchant_id", user!.id)
             .maybeSingle()
 
         const subscription = subscriptionRaw as { status: string } | null
-
-        if (!subscription || !isActiveStatus(subscription.status)) {
-            redirect("/subscribe")
-        }
+        hasSubscription = !!subscription && isActiveStatus(subscription.status)
     }
 
     const defaultColor = "#4F46E5"
     let brandColor = defaultColor
     let contrastColor = "#FFFFFF"
 
-    if (merchant.brand_color && isValidHexCode(merchant.brand_color)) {
-        brandColor = merchant.brand_color
-        contrastColor = getContrastYIQ(merchant.brand_color) === "white" ? "#FFFFFF" : "#000000"
+    if (merchant!.brand_color && isValidHexCode(merchant!.brand_color)) {
+        brandColor = merchant!.brand_color
+        contrastColor = getContrastYIQ(merchant!.brand_color) === "white" ? "#FFFFFF" : "#000000"
     }
-    
-    const fontFamily = merchant.font_family || "Inter"
-    const borderRadius = merchant.border_radius || "0.5rem"
+
+    const fontFamily = merchant!.font_family || "Inter"
+    const borderRadius = merchant!.border_radius || "0.5rem"
 
     return (
         <QueryProvider>
-            <div 
+            <div
                 id="dashboard-root"
                 className="min-h-screen bg-surface-base"
                 style={{
@@ -120,17 +118,18 @@ export default async function DashboardLayout({
 
                             <div className="min-w-0 flex-1">
                                 <HeaderQueueControl
-                                    initialIsOpen={merchant.is_open}
-                                    merchantSlug={merchant.slug}
-                                    merchantId={merchant.id}
+                                    initialIsOpen={merchant!.is_open}
+                                    merchantSlug={merchant!.slug}
+                                    merchantId={merchant!.id}
+                                    hasSubscription={hasSubscription}
                                     mode="mobile"
                                 />
                             </div>
 
                             <div className="shrink-0">
                                 <UserMenu
-                                    name={merchant.name}
-                                    logoUrl={merchant.logo_url}
+                                    name={merchant!.name}
+                                    logoUrl={merchant!.logo_url}
                                     dropdownSide="top"
                                 />
                             </div>
@@ -172,14 +171,15 @@ export default async function DashboardLayout({
                             </nav>
 
                             <HeaderQueueControl
-                                initialIsOpen={merchant.is_open}
-                                merchantSlug={merchant.slug}
-                                merchantId={merchant.id}
+                                initialIsOpen={merchant!.is_open}
+                                merchantSlug={merchant!.slug}
+                                merchantId={merchant!.id}
+                                hasSubscription={hasSubscription}
                             />
 
                             {/* Right — user menu */}
                             <div className="flex justify-end">
-                                <UserMenu name={merchant.name} logoUrl={merchant.logo_url} />
+                                <UserMenu name={merchant!.name} logoUrl={merchant!.logo_url} />
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
@@ -10,10 +11,11 @@ import { Select } from "@/components/ui/Select"
 import { SlugInput, type SlugStatus } from "@/components/composed/SlugInput"
 import { cn } from "@/lib/utils/cn"
 import { BusinessTypeSchema, type BusinessType } from "@/lib/validators/business"
+import { QueuePhoneMockup } from "@/components/composed/QueuePhoneMockup"
 import {
-    Store,
     Link,
     Settings,
+    Store,
     ArrowRight,
     ArrowLeft,
     Check,
@@ -40,12 +42,24 @@ const STEPS = [
     { label: "Configuration", icon: Settings },
 ] as const
 
+function slugify(name: string): string {
+    return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 50)
+}
+
+
 function OnboardingForm({
     onComplete,
     checkSlugAvailability,
     isSubmitting = false,
     className,
 }: OnboardingFormProps) {
+    const router = useRouter()
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
         name: "",
@@ -97,6 +111,9 @@ function OnboardingForm({
 
     const handleNext = () => {
         if (!validateStep()) return
+        if (step === 0 && !data.slug) {
+            setData((d) => ({ ...d, slug: slugify(d.name) }))
+        }
         if (step < STEPS.length - 1) {
             setStep((s) => s + 1)
         } else {
@@ -105,6 +122,10 @@ function OnboardingForm({
     }
 
     const handleBack = () => {
+        if (step === 0) {
+            router.push("/")
+            return
+        }
         setStep((s) => Math.max(0, s - 1))
     }
 
@@ -112,50 +133,57 @@ function OnboardingForm({
         step === 1 && (data.slug.length < 3 || slugStatus !== "available")
     const isCheckingSlug = step === 1 && slugStatus === "checking"
 
+    const isStep2 = step === 2
+
     return (
         <div className={cn("flex flex-col gap-6", className)}>
-            {/* Stepper */}
+            {/* Stepper — toujours pleine largeur */}
             <div className="flex flex-col gap-3">
                 <ActiveLine value={step + 1} max={STEPS.length} label="Progression de l'onboarding" />
-                <div className="flex items-center justify-between">
+                <div className="flex items-start">
                     {STEPS.map((s, i) => {
                         const Icon = s.icon
                         const isCompleted = i < step
                         const isCurrent = i === step
                         return (
-                            <div
-                                key={s.label}
-                                className="flex flex-1 items-center gap-2"
-                            >
-                                <div
-                                    className={cn(
-                                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors",
-                                        isCompleted
-                                            ? "bg-feedback-success text-text-inverse"
-                                            : isCurrent
-                                              ? "bg-brand-primary text-text-inverse"
-                                              : "bg-border-default text-text-secondary",
-                                    )}
-                                >
-                                    {isCompleted ? (
-                                        <Check size={16} aria-hidden="true" />
-                                    ) : (
-                                        <Icon size={16} aria-hidden="true" />
-                                    )}
+                            <div key={s.label} className="flex flex-1 items-start">
+                                {/* Connector before (not on first) */}
+                                {i > 0 && (
+                                    <div className="mt-4 h-px flex-1 bg-border-default" />
+                                )}
+                                {/* Dot + label stacked */}
+                                <div className="flex flex-col items-center gap-1 shrink-0">
+                                    <div
+                                        className={cn(
+                                            "flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-colors",
+                                            isCompleted
+                                                ? "bg-feedback-success text-text-inverse"
+                                                : isCurrent
+                                                  ? "bg-brand-primary text-text-inverse"
+                                                  : "bg-border-default text-text-secondary",
+                                        )}
+                                    >
+                                        {isCompleted ? (
+                                            <Check size={16} aria-hidden="true" />
+                                        ) : (
+                                            <Icon size={16} aria-hidden="true" />
+                                        )}
+                                    </div>
+                                    <span
+                                        className={cn(
+                                            "hidden text-xs sm:inline",
+                                            isCurrent
+                                                ? "font-medium text-text-primary"
+                                                : "text-text-secondary",
+                                        )}
+                                    >
+                                        {s.label}
+                                    </span>
                                 </div>
-                                <span
-                                    className={cn(
-                                        "hidden text-sm sm:inline",
-                                        isCurrent
-                                            ? "font-medium text-text-primary"
-                                            : "text-text-secondary",
-                                    )}
-                                >
-                                    {s.label}
-                                </span>
-                                {i < STEPS.length - 1 ? (
-                                    <div className="mx-2 h-px flex-1 bg-border-default sm:hidden" />
-                                ) : null}
+                                {/* Connector after (not on last) */}
+                                {i < STEPS.length - 1 && (
+                                    <div className="mt-4 h-px flex-1 bg-border-default" />
+                                )}
                             </div>
                         )
                     })}
@@ -163,124 +191,164 @@ function OnboardingForm({
             </div>
 
             {/* Step content */}
-            <Card>
-                <CardContent className="pt-4">
-                    {step === 0 ? (
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-lg font-semibold text-text-primary">
-                                Nommez votre établissement
-                            </h3>
-                            <Input
-                                label="Nom du commerce"
-                                placeholder="Ex : Boulangerie Martin"
-                                value={data.name}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        name: e.target.value,
-                                    }))
-                                }
-                                error={errors.name}
-                            />
-                            <Select
-                                label="Type d'activité"
-                                value={data.businessType}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        businessType: BusinessTypeSchema.parse(
-                                            e.target.value,
-                                        ),
-                                    }))
-                                }
-                                options={[
-                                    { value: "food", label: "Alimentaire" },
-                                    { value: "healthcare", label: "Santé" },
-                                    { value: "retail", label: "Commerce" },
-                                    {
-                                        value: "public_service",
-                                        label: "Administration / services",
-                                    },
-                                ]}
-                                error={errors.businessType}
-                            />
-                        </div>
-                    ) : step === 1 ? (
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-lg font-semibold text-text-primary">
-                                Choisissez votre slug
-                            </h3>
-                            <p className="text-sm text-text-secondary">
-                                C&apos;est l&apos;adresse que vos clients
-                                utiliseront pour accéder à votre file
-                                d&apos;attente.
-                            </p>
-                            <SlugInput
-                                value={data.slug}
-                                onChange={(slug) => {
-                                    setData((d) => ({ ...d, slug }))
-                                    setSlugStatus("idle")
-                                    setErrors((current) => ({
-                                        ...current,
-                                        slug: undefined,
-                                    }))
-                                }}
-                                checkAvailability={checkSlugAvailability}
-                                onStatusChange={setSlugStatus}
-                            />
-                            {errors.slug ? (
-                                <p
-                                    className="text-sm text-feedback-error"
-                                    role="alert"
-                                >
-                                    {errors.slug}
-                                </p>
-                            ) : null}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-lg font-semibold text-text-primary">
-                                Configurez votre file
-                            </h3>
-                            <Input
-                                label="Capacité maximale"
-                                type="number"
-                                min={1}
-                                max={500}
-                                value={data.maxCapacity}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        maxCapacity: Number(e.target.value),
-                                    }))
-                                }
-                                error={errors.maxCapacity}
-                                hint="Nombre maximum de personnes dans la file."
-                            />
-                            <Textarea
-                                label="Message d'accueil"
-                                placeholder="Bienvenue ! Merci de patienter, votre tour arrive."
-                                value={data.welcomeMessage}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        welcomeMessage: e.target.value,
-                                    }))
-                                }
-                                hint="Affiché aux clients lorsqu'ils scannent votre QR code."
-                            />
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            {isStep2 ? (
+                /* Step 2 — two-column layout */
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-stretch">
+                    {/* Left — phone mockup */}
+                    <div className="flex justify-center lg:sticky lg:top-8 lg:justify-center">
+                        <QueuePhoneMockup
+                            name={data.name}
+                            welcomeMessage={data.welcomeMessage}
+                            thankYouTitle=""
+                            thankYouMessage=""
+                        />
+                    </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between">
-                <Button
-                    variant="ghost"
-                    onClick={handleBack}
-                    disabled={step === 0}
-                >
+                    {/* Right — form + navigation */}
+                    <div className="flex flex-col gap-4">
+                        <Card className="flex-1">
+                            <CardContent className="pt-4">
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-lg font-semibold text-text-primary">
+                                        Configurez votre file
+                                    </h3>
+                                    <Input
+                                        label="Capacité maximale"
+                                        type="number"
+                                        min={1}
+                                        max={500}
+                                        value={data.maxCapacity}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                maxCapacity: Number(e.target.value),
+                                            }))
+                                        }
+                                        error={errors.maxCapacity}
+                                        hint="Nombre maximum de personnes dans la file."
+                                    />
+                                    <Textarea
+                                        label="Message d'accueil"
+                                        placeholder="Bienvenue ! Merci de patienter, nous vous accueillerons très bientôt."
+                                        value={data.welcomeMessage}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                welcomeMessage: e.target.value,
+                                            }))
+                                        }
+                                        hint="Affiché aux clients lorsqu'ils scannent votre QR code."
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Navigation inside right column for step 2 */}
+                        <div className="flex justify-between">
+                            <Button variant="ghost" onClick={handleBack}>
+                                <ArrowLeft size={16} aria-hidden="true" />
+                                Retour
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleNext}
+                                isLoading={isSubmitting}
+                            >
+                                <Check size={16} aria-hidden="true" />
+                                Créer mon établissement
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                /* Steps 0 & 1 — centered narrow card */
+                <div className="mx-auto w-full max-w-lg">
+                    <Card>
+                        <CardContent className="pt-4">
+                            {step === 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-lg font-semibold text-text-primary">
+                                        Nommez votre établissement
+                                    </h3>
+                                    <Input
+                                        label="Nom du commerce"
+                                        placeholder="Ex : Boulangerie Martin"
+                                        value={data.name}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                name: e.target.value,
+                                            }))
+                                        }
+                                        error={errors.name}
+                                    />
+                                    <Select
+                                        label="Type d'activité"
+                                        value={data.businessType}
+                                        onChange={(e) =>
+                                            setData((d) => ({
+                                                ...d,
+                                                businessType: BusinessTypeSchema.parse(
+                                                    e.target.value,
+                                                ),
+                                            }))
+                                        }
+                                        options={[
+                                            { value: "food", label: "Alimentaire" },
+                                            { value: "healthcare", label: "Santé" },
+                                            { value: "retail", label: "Commerce" },
+                                            {
+                                                value: "public_service",
+                                                label: "Administration / services",
+                                            },
+                                        ]}
+                                        error={errors.businessType}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-lg font-semibold text-text-primary">
+                                        Choisissez votre slug
+                                    </h3>
+                                    <p className="text-sm text-text-secondary">
+                                        C&apos;est l&apos;identifiant unique de votre établissement dans l&apos;URL partagée à vos clients.
+                                    </p>
+                                    <SlugInput
+                                        value={data.slug}
+                                        onChange={(slug) => {
+                                            setData((d) => ({ ...d, slug }))
+                                            setSlugStatus("idle")
+                                            setErrors((current) => ({
+                                                ...current,
+                                                slug: undefined,
+                                            }))
+                                        }}
+                                        checkAvailability={checkSlugAvailability}
+                                        onStatusChange={setSlugStatus}
+                                    />
+                                    {errors.slug ? (
+                                        <p className="text-sm text-feedback-error" role="alert">
+                                            {errors.slug}
+                                        </p>
+                                    ) : null}
+                                    {data.slug && (
+                                        <div className="flex items-center gap-2 rounded-lg border border-border-default bg-surface-base px-3 py-2">
+                                            <Link size={13} className="shrink-0 text-text-tertiary" aria-hidden="true" />
+                                            <p className="truncate text-xs text-text-secondary">
+                                                <span className="text-text-tertiary">waitlight.fr/</span>
+                                                <span className="font-medium text-text-primary">{data.slug}</span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Navigation — steps 0 & 1 only (step 2 has nav inside left column) */}
+            {!isStep2 && <div className="mx-auto flex w-full max-w-lg justify-between">
+                <Button variant="ghost" onClick={handleBack}>
                     <ArrowLeft size={16} aria-hidden="true" />
                     Retour
                 </Button>
@@ -307,7 +375,7 @@ function OnboardingForm({
                         </>
                     )}
                 </Button>
-            </div>
+            </div>}
         </div>
     )
 }

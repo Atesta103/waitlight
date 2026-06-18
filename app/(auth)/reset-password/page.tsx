@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 import { ResetPasswordForm } from "@/components/sections/ResetPasswordForm"
 import { resetPasswordAction } from "@/lib/actions/auth"
 
@@ -8,16 +9,28 @@ export const metadata: Metadata = {
         "Choisissez un nouveau mot de passe pour votre compte WaitLight.",
 }
 
+type ResetPasswordPageProps = {
+    searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
 /**
  * Reset-password page (Server Component).
  * Reached via the e-mail link sent by the forgot-password flow.
  * Delegates UI to the ResetPasswordForm organism; injects the server action.
  *
- * TODO: validate the Supabase `code` query param via middleware before rendering
- * this page. Invalid or expired codes should redirect to /forgot-password
- * with an `?error=expired` param.
+ * Guards against invalid or missing Supabase `code` query params by
+ * redirecting to /login when no code is present.
  */
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage({
+    searchParams,
+}: ResetPasswordPageProps) {
+    const params = await searchParams
+    const code = params?.code
+
+    if (!code) {
+        redirect("/login")
+    }
+
     return (
         <>
             <div className="mb-6 text-center">
