@@ -62,7 +62,7 @@ export default function RootLayout({
             "description": "La file d'attente digitale pour votre commerce. Zéro installation, notifications en temps réel.",
             "url": "https://waitlight.fr",
             "inLanguage": "fr",
-            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            "offers": { "@type": "Offer", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
             "publisher": { "@type": "Organization", "name": "WaitLight", "url": "https://waitlight.fr" },
           }} />
           {children}

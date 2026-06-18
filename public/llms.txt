@@ -11,7 +11,7 @@ WaitLight permet à vos clients de rejoindre votre file d'attente via QR code, d
 - Mini-jeux pour patienter (Morpion, Connect 4, BombParty)
 - Tableau de bord marchand avec statistiques
 - Personnalisation de marque (couleurs, polices, motifs)
-- Abonnement SaaS (plans Free et Pro)
+- Abonnement SaaS (offre payante uniquement)
 - Multi-commerce : chaque établissement a son propre slug et QR code
 - Zéro installation côté client
 
@@ -21,8 +21,8 @@ Commerces de détail, boulangeries, restaurants, cliniques et cabinets médicaux
 
 ## Modèle tarifaire
 
-- Plan gratuit disponible
-- Plan Pro avec fonctionnalités avancées (personnalisation de marque, statistiques, capacité étendue)
+- Service payant par abonnement
+- Plusieurs formules disponibles selon la taille et les besoins de l'établissement
 
 ## Technologie
 
