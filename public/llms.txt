@@ -1,0 +1,37 @@
+# WaitLight
+
+> La file d'attente digitale pour commerces, restaurants, cliniques et services publics.
+
+WaitLight permet à vos clients de rejoindre votre file d'attente via QR code, de suivre leur position en temps réel, et d'être notifiés quand c'est leur tour — sans application à installer.
+
+## Fonctionnalités
+
+- File d'attente digitale par QR code
+- Suivi de position en temps réel (WebSocket)
+- Mini-jeux pour patienter (Morpion, Connect 4, BombParty)
+- Tableau de bord marchand avec statistiques
+- Personnalisation de marque (couleurs, polices, motifs)
+- Abonnement SaaS (plans Free et Pro)
+- Multi-commerce : chaque établissement a son propre slug et QR code
+- Zéro installation côté client
+
+## Public cible
+
+Commerces de détail, boulangeries, restaurants, cliniques et cabinets médicaux, administrations et services publics, salles de sport, événements.
+
+## Modèle tarifaire
+
+- Plan gratuit disponible
+- Plan Pro avec fonctionnalités avancées (personnalisation de marque, statistiques, capacité étendue)
+
+## Technologie
+
+Application web Next.js 15, temps réel via WebSocket (Supabase Realtime), hébergée sur Vercel.
+
+## URL principale
+
+https://waitlight.fr
+
+## Contact
+
+https://waitlight.fr/contact
