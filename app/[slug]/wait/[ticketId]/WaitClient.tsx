@@ -58,6 +58,7 @@ type WaitClientProps = {
 }
 
 const STORAGE_KEY_PREFIX = "waitlight_ticket_"
+const ALERTS_INIT_KEY = "waitlight_alerts_init_"
 
 function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const queryClient = useQueryClient()
@@ -70,7 +71,13 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     const hasNotifiedApproachingRef = useRef(false)
     const supabaseRef = useRef(createClient())
     const calledReminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-    const [alertsInitialized, setAlertsInitialized] = useState(false)
+    const [alertsInitialized, setAlertsInitialized] = useState(() => {
+        try {
+            return sessionStorage.getItem(`${ALERTS_INIT_KEY}${ticketId}`) === "1"
+        } catch {
+            return false
+        }
+    })
 
 
 
@@ -143,7 +150,12 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
         // Test haptic feedback
         playHapticBuzz()
-        
+
+        try {
+            sessionStorage.setItem(`${ALERTS_INIT_KEY}${ticketId}`, "1")
+        } catch {
+            // Ignore storage errors
+        }
         setAlertsInitialized(true)
     }
 

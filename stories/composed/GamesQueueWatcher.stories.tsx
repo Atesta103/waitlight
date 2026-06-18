@@ -24,6 +24,7 @@ const meta = {
     args: {
         merchantId: "00000000-0000-0000-0000-000000000001",
         ticketId: "00000000-0000-0000-0000-000000000101",
+        slug: "demo-commerce",
         customerName: "Marie",
         notificationChannels: {
             sound: false,
