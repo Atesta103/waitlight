@@ -74,7 +74,7 @@ export function GameResultModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
             {/* Backdrop */}
             <motion.div
                 className="absolute inset-0 bg-black/70 backdrop-blur-sm"
