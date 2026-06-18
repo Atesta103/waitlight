@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Roboto, Open_Sans, Lato, Poppins } from "next
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { JsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +29,13 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     shortcut: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
+  openGraph: {
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "WaitLight" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/api/og"],
+  },
 };
 
 export default function RootLayout({
@@ -45,6 +53,18 @@ export default function RootLayout({
           defaultTheme="light"
           disableTransitionOnChange
         >
+          <JsonLd data={{
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "WaitLight",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "La file d'attente digitale pour votre commerce. Zéro installation, notifications en temps réel.",
+            "url": "https://waitlight.fr",
+            "inLanguage": "fr",
+            "offers": { "@type": "Offer", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            "publisher": { "@type": "Organization", "name": "WaitLight", "url": "https://waitlight.fr" },
+          }} />
           {children}
           <Analytics />
           <SpeedInsights />

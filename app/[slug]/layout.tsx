@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 import { QueryProvider } from "@/components/providers/QueryProvider"
@@ -6,6 +7,23 @@ import { QueryProvider } from "@/components/providers/QueryProvider"
 type SlugLayoutProps = {
     children: ReactNode
     params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params
+    const supabase = await createClient()
+    const { data: merchant } = await supabase
+        .from("merchants")
+        .select("name")
+        .eq("slug", slug)
+        .maybeSingle()
+
+    const name = merchant?.name ?? "File d'attente"
+    return {
+        title: `${name} — File d'attente`,
+        description: `Rejoignez la file d'attente de ${name} via QR code. Suivez votre position en temps réel.`,
+        robots: { index: false, follow: false },
+    }
 }
 
 /**

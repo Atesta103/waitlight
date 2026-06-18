@@ -58,8 +58,8 @@ function Dropdown({
             ref={containerRef}
             className={cn("relative inline-block", className)}
         >
-            <button
-                type="button"
+            {/* Wrapper div — évite button>button quand trigger est déjà un <button> */}
+            <div
                 onClick={() => setOpen((prev) => !prev)}
                 onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -69,10 +69,9 @@ function Dropdown({
                 }}
                 aria-expanded={open}
                 aria-haspopup="menu"
-                className="cursor-pointer"
             >
                 {trigger}
-            </button>
+            </div>
 
             {open ? (
                 <div
