@@ -273,6 +273,7 @@ export async function updateMerchantIdentityAction(
         .eq("id", user.id)
 
     if (error) {
+        console.error("[updateMerchantIdentityAction] DB error:", error.message)
         if (error.code === "23505") {
             return {
                 error: "Ce slug est déjà utilisé. Choisissez-en un autre.",
@@ -322,6 +323,8 @@ export async function updateQueueSettingsAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateQueueSettingsAction] DB error:", error.message)
+        console.error("[updateQueueSettingsAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde. Veuillez réessayer." }
     }
 
@@ -352,6 +355,7 @@ export async function deleteLogoAction(): Promise<
         .list(user.id)
 
     if (listError) {
+        console.error("[deleteLogoAction] storage list error:", listError.message)
         return { error: "Erreur lors de la suppression du logo." }
     }
 
@@ -361,6 +365,7 @@ export async function deleteLogoAction(): Promise<
             .from("merchant-logos")
             .remove(paths)
         if (removeError) {
+            console.error("[deleteLogoAction] storage remove error:", removeError.message)
             return { error: "Erreur lors de la suppression du logo." }
         }
     }
@@ -371,6 +376,7 @@ export async function deleteLogoAction(): Promise<
         .eq("id", user.id)
 
     if (updateError) {
+        console.error("[deleteLogoAction] DB update error:", updateError.message)
         return { error: "Erreur lors de la mise à jour du profil." }
     }
 
@@ -433,6 +439,7 @@ export async function resetAvgPrepTimeAction(): Promise<
         .eq("id", user.id)
 
     if (error) {
+        console.error("[resetAvgPrepTimeAction] DB error:", error.message)
         return {
             error: "Erreur lors de la réinitialisation. Veuillez réessayer.",
         }
@@ -530,6 +537,7 @@ export async function removeBannedWordAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[removeBannedWordAction] DB error:", error.message)
         return { error: "Impossible de supprimer ce mot." }
     }
 
@@ -554,6 +562,7 @@ export async function updateScheduleAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateScheduleAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde des horaires." }
     }
 
@@ -580,6 +589,7 @@ export async function updateThankYouMessageAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateThankYouMessageAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde." }
     }
 
@@ -652,6 +662,7 @@ export async function updateNotificationPreferencesAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateNotificationPreferencesAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde des préférences." }
     }
 

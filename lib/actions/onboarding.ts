@@ -119,6 +119,7 @@ export async function createMerchantAction(formData: {
                 error: "Ce slug est déjà utilisé. Choisissez-en un autre.",
             }
         }
+        console.error("[createMerchantAction] merchant insert error:", merchantError.message)
         return { error: "Erreur lors de la création. Veuillez réessayer." }
     }
 
@@ -131,6 +132,7 @@ export async function createMerchantAction(formData: {
     })
 
     if (settingsError) {
+        console.error("[createMerchantAction] settings insert error:", settingsError.message)
         // Rollback merchant row to keep data consistent
         await supabase.from("merchants").delete().eq("id", user.id)
         return {

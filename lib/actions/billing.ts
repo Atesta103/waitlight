@@ -59,6 +59,7 @@ export async function getSubscriptionAction(): Promise<
         .maybeSingle()
 
     if (error) {
+        console.error("[getSubscriptionAction] DB error:", error.message)
         return { error: "Impossible de récupérer l'abonnement." }
     }
 

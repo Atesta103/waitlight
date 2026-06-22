@@ -58,6 +58,7 @@ export async function generateQrTokenAction(): Promise<
         .gte("created_at", oneMinuteAgo)
 
     if (countError) {
+        console.error("[generateQrTokenAction] rate-limit count error:", countError.message)
         return { error: "Erreur lors de la vérification des limites." }
     }
 
@@ -101,6 +102,7 @@ export async function generateQrTokenAction(): Promise<
     })
 
     if (insertError) {
+        console.error("[generateQrTokenAction] DB insert error:", insertError.message)
         return {
             error: "Impossible de générer le QR Code. Veuillez réessayer.",
         }
