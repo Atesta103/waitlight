@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { MerchantIdentitySchema, QueueSettingsSchema } from "../settings"
+import { MerchantIdentitySchema, QueueSettingsSchema, ThankYouTitleSchema } from "../settings"
 
 // ---------------------------------------------------------------------------
 // MerchantIdentitySchema
@@ -168,5 +168,91 @@ describe("QueueSettingsSchema", () => {
             notifications_enabled: "true",
         })
         expect(result.success).toBe(false)
+    })
+})
+
+// ---------------------------------------------------------------------------
+// MerchantIdentitySchema — optional branding fields
+// ---------------------------------------------------------------------------
+describe("MerchantIdentitySchema — optional branding fields", () => {
+    const valid = {
+        name: "Boulangerie du Coin",
+        business_type: "retail",
+        slug: "boulangerie-du-coin",
+        logo_url: null,
+        default_prep_time_min: 5,
+    }
+
+    it("accepts a valid hex brand_color", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, brand_color: "#4F46E5" }).success,
+        ).toBe(true)
+    })
+
+    it("rejects an invalid brand_color", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, brand_color: "red" }).success,
+        ).toBe(false)
+    })
+
+    it("accepts a valid font_family", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, font_family: "Roboto" }).success,
+        ).toBe(true)
+    })
+
+    it("rejects an unknown font_family", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, font_family: "Comic Sans" }).success,
+        ).toBe(false)
+    })
+
+    it("accepts a valid border_radius", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, border_radius: "1rem" }).success,
+        ).toBe(true)
+    })
+
+    it("rejects an unknown border_radius value", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, border_radius: "5px" }).success,
+        ).toBe(false)
+    })
+
+    it("accepts a valid theme_pattern", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, theme_pattern: "dots" }).success,
+        ).toBe(true)
+    })
+
+    it("rejects an unknown theme_pattern", () => {
+        expect(
+            MerchantIdentitySchema.safeParse({ ...valid, theme_pattern: "stripes" }).success,
+        ).toBe(false)
+    })
+})
+
+// ---------------------------------------------------------------------------
+// ThankYouTitleSchema
+// ---------------------------------------------------------------------------
+describe("ThankYouTitleSchema", () => {
+    it("accepts a valid title string", () => {
+        expect(ThankYouTitleSchema.safeParse("Merci !").success).toBe(true)
+    })
+
+    it("accepts null", () => {
+        expect(ThankYouTitleSchema.safeParse(null).success).toBe(true)
+    })
+
+    it("accepts undefined (optional)", () => {
+        expect(ThankYouTitleSchema.safeParse(undefined).success).toBe(true)
+    })
+
+    it("rejects a string longer than 80 characters", () => {
+        expect(ThankYouTitleSchema.safeParse("x".repeat(81)).success).toBe(false)
+    })
+
+    it("accepts exactly 80 characters", () => {
+        expect(ThankYouTitleSchema.safeParse("x".repeat(80)).success).toBe(true)
     })
 })
