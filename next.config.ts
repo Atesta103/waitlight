@@ -1,5 +1,7 @@
 import type { NextConfig } from "next"
 
+const isDev = process.env.NODE_ENV === "development"
+
 const securityHeaders = [
     { key: "X-DNS-Prefetch-Control", value: "on" },
     {
@@ -17,7 +19,7 @@ const securityHeaders = [
         key: "Content-Security-Policy",
         value: [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval required for dev mode / Next.js app router client code
+            `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
             "style-src 'self' 'unsafe-inline'",
             `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "*"} wss://*.supabase.co https://*.supabase.co`,
             `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://*.supabase.co"}`,
@@ -36,19 +38,20 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    // Add your local dev IP in .env.local as ALLOWED_DEV_ORIGINS if needed
     allowedDevOrigins: [
-        "10.15.4.159",
         "*.ngrok-free.dev",
         "*.ngrok.io",
-        "172.20.10.2",
-        "10.24.249.200", // adresse ip partage de connexion helios
     ],
     async headers() {
+        const baseHeaders = isDev
+            ? [{ key: "ngrok-skip-browser-warning", value: "true" }]
+            : []
         return [
             {
                 source: "/(.*)",
                 headers: [
-                    { key: "ngrok-skip-browser-warning", value: "true" },
+                    ...baseHeaders,
                     ...securityHeaders,
                 ],
             },
