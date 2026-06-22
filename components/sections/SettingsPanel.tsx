@@ -37,6 +37,7 @@ import {
     RotateCcw,
     ShieldAlert,
     CalendarClock,
+    DatabaseZap,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -51,6 +52,7 @@ import {
 } from "@/lib/actions/settings"
 import { type MerchantIdentityInput } from "@/lib/validators/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
+import { ExportDataButton } from "@/components/composed/ExportDataButton"
 import {
     ScheduleEditor,
     type ScheduleEditorHandle,
@@ -1719,6 +1721,19 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 </Button>
                                             </div>
                                         )}
+                                    </CardContent>
+                                </Card>
+                            </SectionBlock>
+
+                            <SectionBlock
+                                id="data-export"
+                                icon={DatabaseZap}
+                                title="Données & confidentialité"
+                                description="Téléchargez l'ensemble de vos données personnelles et commerciales au format JSON (conformité RGPD)."
+                            >
+                                <Card>
+                                    <CardContent className="p-4">
+                                        <ExportDataButton />
                                     </CardContent>
                                 </Card>
                             </SectionBlock>
