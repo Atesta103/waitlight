@@ -247,7 +247,7 @@ function LargePhoneMockup() {
                 {/* Phone body */}
                 <div className="bg-[#111827] rounded-[2rem] p-2.5 shadow-[0_20px_60px_-8px_rgba(0,0,0,0.3)]">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#111827] rounded-b-2xl z-10" aria-hidden="true" />
-                    <div className="rounded-[1.6rem] overflow-hidden bg-[#F9FAFB] aspect-[9/19.5]">
+                    <div className="rounded-[1.5rem] overflow-hidden bg-[#F9FAFB] aspect-[9/19.5]">
                         {/* Header */}
                         <div className="bg-white border-b border-[#E5E7EB] px-3 pt-6 pb-2 text-center">
                             <div className="text-[8px] text-[#6B7280] uppercase tracking-widest">Le Bistrot du Coin</div>
@@ -324,12 +324,12 @@ export function BentoFeaturesGrid({ id }: { id?: string }) {
                         id="features-heading"
                         className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1"
                     >
-                        Simple pour vos clients,
+                        Facile pour eux.
                         <br />
-                        <span className="text-[#6366F1]">puissant pour vous.</span>
+                        <span className="text-[#6366F1]">Efficace pour vous.</span>
                     </h2>
                     <p className="mt-4 text-base md:text-lg text-[#4B5563] max-w-lg mx-auto">
-                        Tout ce qu&apos;il faut pour gérer votre file, sans friction ni complexité.
+                        Tout ce qu&apos;il faut pour gérer votre file d&apos;attente, et rien de plus.
                     </p>
                 </motion.div>
 

@@ -48,7 +48,7 @@ const USE_CASES: UseCase[] = [
         sector: "Santé",
         title: "Médecins, cliniques et centres de soins",
         subtitle: "Rendre l'attente plus sereine pour les patients et l'accueil.",
-        valueProp: "Vous lissez les flux d'arrivée et réduisez la sensation d'attente subie.",
+        valueProp: "Vous organisez les arrivées et rendez l'attente plus légère pour les patients.",
         imageSrc: "/marketing/usecase-health.jpg",
         bullets: [
             "Moins de densité dans les zones d'attente",
@@ -344,7 +344,7 @@ export function UseCasesGrid({ id }: { id?: string }) {
                                             </span>
                                         </div>
                                         <h3
-                                            className="text-white text-[1.1rem] font-black tracking-tight leading-snug line-clamp-1"
+                                            className="text-white text-lg font-black tracking-tight leading-snug line-clamp-1"
                                             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.95)" }}
                                         >
                                             {uc.title}

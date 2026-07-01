@@ -9,9 +9,9 @@ import { FaqSection } from "@/components/sections/marketing/FaqSection"
 import { MarketingFooter } from "@/components/sections/marketing/MarketingFooter"
 
 export const metadata: Metadata = {
-    title: "WaitLight — La file d'attente digitale pour votre commerce",
+    title: "WaitLight, la file d'attente digitale pour votre commerce",
     description:
-        "Transformez l'attente en expérience. WaitLight est le logiciel de file d'attente digitale pour restaurants, cliniques, SAV et événements. Scan, attente libre, notification.",
+        "Faites de l'attente une expérience. WaitLight est le logiciel de file d'attente digitale pour restaurants, cliniques, SAV et événements. Scan, attente libre, notification.",
     keywords: [
         "file d'attente digitale",
         "logiciel file d'attente",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         "virtual queue",
     ],
     openGraph: {
-        title: "WaitLight — L'attente devient un plaisir.",
+        title: "WaitLight, l'attente devient un plaisir.",
         description:
             "File d'attente digitale par QR Code. Zéro installation, notifications en temps réel, marque blanche.",
         type: "website",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "WaitLight — L'attente devient un plaisir.",
+        title: "WaitLight, l'attente devient un plaisir.",
         description: "File d'attente digitale par QR Code. Zéro installation, notifications en temps réel.",
         images: ["/api/og"],
     },
