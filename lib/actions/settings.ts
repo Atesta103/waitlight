@@ -68,6 +68,8 @@ export type MerchantSettingsData = {
         theme_pattern: string | null
         default_prep_time_min: number
         is_open: boolean
+        /** Opt-in: discoverable by name in the public /retrouver search. */
+        is_public: boolean
         /** Auto-computed average prep time (IQR + EMA). `null` = not enough data yet. */
         calculated_avg_prep_time: number | null
         /** UTC timestamp of the last `calculate_avg_prep()` run. */
@@ -116,7 +118,7 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: merchant, error: merchantError } = await supabase
         .from("merchants")
         .select(
-            "id, name, business_type, slug, logo_url, background_url, brand_color, font_family, border_radius, theme_pattern, default_prep_time_min, is_open, calculated_avg_prep_time, avg_prep_computed_at",
+            "id, name, business_type, slug, logo_url, background_url, brand_color, font_family, border_radius, theme_pattern, default_prep_time_min, is_open, is_public, calculated_avg_prep_time, avg_prep_computed_at",
         )
         .eq("id", user.id)
         .single()
@@ -155,6 +157,7 @@ export async function getMerchantSettingsAction(): Promise<
                 theme_pattern: merchant.theme_pattern,
                 default_prep_time_min: merchant.default_prep_time_min,
                 is_open: merchant.is_open,
+                is_public: merchant.is_public ?? false,
                 calculated_avg_prep_time:
                     merchant.calculated_avg_prep_time ?? null,
                 avg_prep_computed_at: merchant.avg_prep_computed_at ?? null,
@@ -209,6 +212,33 @@ export async function updateQrModeAction(
         .from("settings")
         .update({ qr_mode: qrMode })
         .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde." }
+    }
+
+    return { data: null }
+}
+
+/**
+ * Toggle whether the merchant is discoverable by name in the public
+ * `/retrouver` search (and future discovery map). Opt-in — defaults to false.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la sauvegarde."` | Supabase update failed |
+ */
+export async function updatePublicListingAction(
+    isPublic: boolean,
+): Promise<{ data: null } | { error: string }> {
+    const { supabase, user } = await requireAuth()
+
+    const { error } = await supabase
+        .from("merchants")
+        .update({ is_public: isPublic })
+        .eq("id", user.id)
 
     if (error) {
         return { error: "Erreur lors de la sauvegarde." }

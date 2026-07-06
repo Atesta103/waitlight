@@ -39,6 +39,7 @@ import {
     CalendarClock,
     DatabaseZap,
     QrCode,
+    Search,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -49,6 +50,7 @@ import {
     updateThankYouMessageAction,
     updateThankYouTitleAction,
     updateQrModeAction,
+    updatePublicListingAction,
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
@@ -100,6 +102,7 @@ type SettingsData = {
     approachingTimeEnabled: boolean
     approachingTimeThresholdMin: number
     qrMode: "kiosk" | "assisted"
+    isPublic: boolean
 }
 
 type SettingsPanelProps = {
@@ -509,6 +512,20 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                 setQrModeError(result.error)
             } else {
                 setQrModeError(null)
+            }
+        })
+    }
+
+    // ── Public listing (opt-in directory) ──────────────────────────────────────
+    const [isPublic, setIsPublic] = useState(initialData.isPublic)
+    const [, startPublicTransition] = useTransition()
+
+    const handleTogglePublic = (next: boolean) => {
+        setIsPublic(next) // optimistic
+        startPublicTransition(async () => {
+            const result = await updatePublicListingAction(next)
+            if ("error" in result) {
+                setIsPublic(!next) // rollback
             }
         })
     }
@@ -1333,6 +1350,16 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                         </div>
                                     </CardContent>
                                 </Card>
+
+                                <div className="mt-4">
+                                    <ToggleRow
+                                        icon={Search}
+                                        label="Apparaître dans l'annuaire public"
+                                        description="Permet à vos clients de vous retrouver par votre nom sur la page « Retrouver ma file » de WaitLight."
+                                        checked={isPublic}
+                                        onChange={handleTogglePublic}
+                                    />
+                                </div>
                             </SectionBlock>
                         </motion.div>
                     )}

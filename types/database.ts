@@ -58,6 +58,7 @@ export type Database = {
                     font_family: string | null
                     id: string
                     is_open: boolean
+                    is_public: boolean
                     logo_url: string | null
                     name: string
                     slug: string
@@ -78,6 +79,7 @@ export type Database = {
                     font_family?: string | null
                     id: string
                     is_open?: boolean
+                    is_public?: boolean
                     logo_url?: string | null
                     name: string
                     slug: string
@@ -98,6 +100,7 @@ export type Database = {
                     font_family?: string | null
                     id?: string
                     is_open?: boolean
+                    is_public?: boolean
                     logo_url?: string | null
                     name?: string
                     slug?: string
