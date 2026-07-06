@@ -66,3 +66,23 @@ export const CreateManualTicketSchema = z.object({
 })
 
 export type CreateManualTicketInput = z.infer<typeof CreateManualTicketSchema>
+
+/**
+ * Schema for a customer recovering their tracking link with their first
+ * name + the short recovery code shown at join.
+ */
+export const RecoverTicketSchema = z.object({
+    slug: z.string().min(1, "Slug manquant."),
+    customerName: z
+        .string()
+        .trim()
+        .min(2, "Le prénom doit contenir au moins 2 caractères.")
+        .max(50, "Le prénom ne peut pas dépasser 50 caractères."),
+    code: z
+        .string()
+        .trim()
+        .min(1, "Le code est requis.")
+        .max(12, "Code invalide."),
+})
+
+export type RecoverTicketInput = z.infer<typeof RecoverTicketSchema>

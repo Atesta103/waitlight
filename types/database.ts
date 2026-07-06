@@ -189,6 +189,7 @@ export type Database = {
                     joined_at: string
                     merchant_id: string
                     name_flagged: boolean
+                    recovery_code: string | null
                     status: string
                 }
                 Insert: {
@@ -200,6 +201,7 @@ export type Database = {
                     joined_at?: string
                     merchant_id: string
                     name_flagged?: boolean
+                    recovery_code?: string | null
                     status?: string
                 }
                 Update: {
@@ -211,6 +213,7 @@ export type Database = {
                     joined_at?: string
                     merchant_id?: string
                     name_flagged?: boolean
+                    recovery_code?: string | null
                     status?: string
                 }
                 Relationships: [

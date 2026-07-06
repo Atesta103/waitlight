@@ -50,6 +50,7 @@ type TicketData = {
     joined_at: string
     called_at: string | null
     done_at: string | null
+    recovery_code: string | null
 }
 
 type WaitClientProps = {
@@ -93,7 +94,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             const supabase = supabaseRef.current
             const { data, error } = await supabase
                 .from("queue_items")
-                .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at")
+                .select("id, merchant_id, customer_name, name_flagged, status, joined_at, called_at, done_at, recovery_code")
                 .eq("id", ticketId)
                 .single()
 
@@ -370,6 +371,23 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                 backgroundUrl={merchant.background_url}
                 businessType={merchant.business_type}
             />
+
+            {(ticket.status === "waiting" || ticket.status === "called") &&
+                ticket.recovery_code && (
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border-default bg-surface-card p-4 shadow-sm">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                                Code de suivi
+                            </span>
+                            <span className="text-[11px] text-text-secondary">
+                                Notez-le pour retrouver votre place si vous fermez cette page.
+                            </span>
+                        </div>
+                        <span className="font-mono text-2xl font-bold tracking-[0.2em] text-text-primary">
+                            {ticket.recovery_code}
+                        </span>
+                    </div>
+                )}
 
             {ticket.status === "called" && !calledReminderAcknowledged && (
                 <Dialog open onClose={() => setCalledReminderAcknowledged(true)}>

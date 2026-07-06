@@ -8,6 +8,7 @@
  */
 "use server"
 
+import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
 import {
@@ -15,11 +16,46 @@ import {
     ToggleQueueSchema,
     JoinQueueSchema,
     CreateManualTicketSchema,
+    RecoverTicketSchema,
     type TicketIdInput,
     type ToggleQueueInput,
     type JoinQueueInput,
     type CreateManualTicketInput,
+    type RecoverTicketInput,
 } from "@/lib/validators/queue"
+import {
+    generateRecoveryCode,
+    normalizeRecoveryCode,
+} from "@/lib/utils/recovery-code"
+import { checkRateLimit } from "@/lib/utils/rate-limit"
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+/**
+ * Generate a recovery code that is not already in use by one of this
+ * merchant's active tickets (`waiting`/`called`). Falls back to a longer
+ * code if short ones keep colliding — collisions are near-impossible in
+ * practice for realistic queue sizes.
+ */
+async function generateUniqueRecoveryCode(
+    supabase: SupabaseServerClient,
+    merchantId: string,
+): Promise<string> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const code = generateRecoveryCode()
+        const { data } = await supabase
+            .from("queue_items")
+            .select("id")
+            .eq("merchant_id", merchantId)
+            .eq("recovery_code", code)
+            .in("status", ["waiting", "called"])
+            .maybeSingle()
+
+        if (!data) return code
+    }
+    // Extremely unlikely — widen the space to make a clash negligible.
+    return generateRecoveryCode(6)
+}
 
 /**
  * A live ticket in the queue (only `waiting` and `called` statuses are returned
@@ -34,6 +70,7 @@ export type QueueItem = {
     joined_at: string
     called_at: string | null
     done_at: string | null
+    recovery_code: string | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,7 +106,7 @@ export async function getQueueAction(): Promise<
     const { data, error } = await supabase
         .from("queue_items")
         .select(
-            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at",
+            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at, recovery_code",
         )
         .eq("merchant_id", user.id)
         .in("status", ["waiting", "called"])
@@ -142,6 +179,8 @@ export async function createManualTicketAction(
         }
     }
 
+    const recoveryCode = await generateUniqueRecoveryCode(supabase, user.id)
+
     const { data: ticket, error: insertError } = await supabase
         .from("queue_items")
         .insert({
@@ -150,9 +189,10 @@ export async function createManualTicketAction(
             status: "waiting",
             name_flagged: false,
             entry_source: "manual",
+            recovery_code: recoveryCode,
         })
         .select(
-            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at",
+            "id, merchant_id, customer_name, entry_source, status, joined_at, called_at, done_at, recovery_code",
         )
         .single()
 
@@ -384,7 +424,8 @@ export async function toggleQueueOpenAction(
 export async function joinQueueAction(
     input: JoinQueueInput,
 ): Promise<
-    { data: { ticketId: string; merchantId: string } } | { error: string }
+    | { data: { ticketId: string; merchantId: string; recoveryCode: string } }
+    | { error: string }
 > {
     const parsed = JoinQueueSchema.safeParse(input)
     if (!parsed.success) {
@@ -465,6 +506,8 @@ export async function joinQueueAction(
     }
 
     // ── 4. Insert ticket ─────────────────────────────────────────────────────
+    const recoveryCode = await generateUniqueRecoveryCode(supabase, merchant.id)
+
     const { data: ticket, error: insertError } = await supabase
         .from("queue_items")
         .insert({
@@ -473,6 +516,7 @@ export async function joinQueueAction(
             status: "waiting",
             name_flagged: false,
             entry_source: entrySource,
+            recovery_code: recoveryCode,
         })
         .select("id")
         .single()
@@ -483,7 +527,88 @@ export async function joinQueueAction(
         return { error: "Impossible de rejoindre la file. Veuillez réessayer." }
     }
 
-    return { data: { ticketId: ticket.id, merchantId: merchant.id } }
+    return {
+        data: {
+            ticketId: ticket.id,
+            merchantId: merchant.id,
+            recoveryCode,
+        },
+    }
+}
+
+/**
+ * Recover a customer's tracking link from their first name + recovery code.
+ * Used by the `/{slug}/retrouver` page when a customer lost their link.
+ *
+ * Security: the code is short and shown to the customer, so the first name
+ * acts as a second factor and the endpoint is IP rate-limited (5 attempts /
+ * minute) to make brute-forcing impractical. Only active tickets
+ * (`waiting`/`called`) are recoverable. No merchant auth — customers are anonymous.
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | Zod message or `"Données invalides."` | Validation failure |
+ * | `"Trop de tentatives. Veuillez patienter une minute."` | Rate limit exceeded |
+ * | `"Commerce introuvable."` | Slug not found |
+ * | `"Aucune place trouvée avec ce prénom et ce code."` | No matching active ticket |
+ */
+export async function findTicketByRecoveryCodeAction(
+    input: RecoverTicketInput,
+): Promise<{ data: { ticketId: string } } | { error: string }> {
+    const parsed = RecoverTicketSchema.safeParse(input)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0]?.message ?? "Données invalides.",
+        }
+    }
+
+    const { slug, customerName, code } = parsed.data
+
+    // ── Rate limit by IP to block code brute-forcing ─────────────────────────
+    const headersList = await headers()
+    const ip =
+        headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        headersList.get("x-real-ip") ??
+        "unknown"
+    if (!checkRateLimit(`recover:${ip}`, 5, 60_000)) {
+        return { error: "Trop de tentatives. Veuillez patienter une minute." }
+    }
+
+    const normalizedCode = normalizeRecoveryCode(code)
+    if (!normalizedCode) {
+        return { error: "Aucune place trouvée avec ce prénom et ce code." }
+    }
+
+    const supabase = await createClient()
+
+    const { data: merchant, error: merchantError } = await supabase
+        .from("merchants")
+        .select("id")
+        .eq("slug", slug)
+        .single()
+
+    if (merchantError || !merchant) {
+        return { error: "Commerce introuvable." }
+    }
+
+    // ilike (no wildcards) = case-insensitive exact match on the first name.
+    const { data: ticket } = await supabase
+        .from("queue_items")
+        .select("id")
+        .eq("merchant_id", merchant.id)
+        .eq("recovery_code", normalizedCode)
+        .ilike("customer_name", customerName.trim())
+        .in("status", ["waiting", "called"])
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+    if (!ticket) {
+        return { error: "Aucune place trouvée avec ce prénom et ce code." }
+    }
+
+    return { data: { ticketId: ticket.id } }
 }
 
 export async function reportTicketNameAction(
