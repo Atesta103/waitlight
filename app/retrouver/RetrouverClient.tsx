@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Store, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
 import { searchPublicMerchantsAction, type PublicMerchant } from "@/lib/actions/directory"
 
 /**
@@ -72,10 +73,10 @@ export function RetrouverClient() {
                 <ul className="flex flex-col gap-2">
                     {results.map((merchant) => (
                         <li key={merchant.slug}>
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
                                 onClick={() => router.push(`/${merchant.slug}/retrouver`)}
-                                className="flex w-full items-center gap-3 rounded-xl border border-border-default bg-surface-card p-3 text-left transition-colors hover:bg-surface-base"
+                                className="h-auto w-full justify-between gap-3 rounded-xl border border-border-default bg-surface-card p-3 text-left font-normal hover:bg-surface-base"
                             >
                                 {merchant.logo_url ? (
                                     // eslint-disable-next-line @next/next/no-img-element
@@ -93,7 +94,7 @@ export function RetrouverClient() {
                                     {merchant.name}
                                 </span>
                                 <ChevronRight size={16} className="shrink-0 text-text-secondary" aria-hidden="true" />
-                            </button>
+                            </Button>
                         </li>
                     ))}
                 </ul>
