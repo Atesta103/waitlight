@@ -469,10 +469,10 @@ export function FlowCarouselSection({ id }: { id?: string }) {
                         Démonstration
                     </span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-[#111827] mt-1">
-                        Un parcours sans friction.
+                        Un parcours pensé pour l&apos;attente.
                     </h2>
                     <p className="mt-4 text-base md:text-lg leading-relaxed text-[#4B5563]">
-                        Découvrez comment WaitLight fluidifie l&apos;attente, étape par étape, pour vous et pour vos clients.
+                        Voici comment WaitLight organise l&apos;attente, du côté de vos clients comme du côté de votre équipe.
                     </p>
                 </motion.div>
 

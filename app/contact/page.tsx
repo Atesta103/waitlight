@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, Clock, MessageCircle } from "lucide-react"
 import { ContactForm } from "@/components/sections/marketing/ContactForm"
 
 export const metadata: Metadata = {
-    title: "Contactez-nous — WaitLight",
+    title: "Contactez-nous, l'équipe WaitLight",
     description:
         "Une question, un problème technique, une suggestion ? Notre équipe vous répond rapidement.",
     alternates: {
@@ -55,7 +55,7 @@ export default function ContactPage() {
                         <span className="text-[#6366F1]">vous aider.</span>
                     </h1>
                     <p className="mt-2 text-sm md:text-base text-[#374151]">
-                        Remplissez le formulaire — notre équipe vous répond dès que possible.
+                        Remplissez le formulaire, notre équipe vous répond dès que possible.
                     </p>
                 </div>
 
@@ -87,7 +87,7 @@ export default function ContactPage() {
                         <div className="bg-[#EEF2FF] rounded-xl p-4">
                             <p className="text-sm font-bold text-[#4338CA] mb-1">Réponse rapide ?</p>
                             <p className="text-xs text-[#374151] mb-3 leading-snug">
-                                Consultez notre FAQ — la plupart des questions courantes y sont déjà répondues.
+                                Consultez notre FAQ : les questions courantes y trouvent déjà réponse.
                             </p>
                             <Link
                                 href="/#faq"

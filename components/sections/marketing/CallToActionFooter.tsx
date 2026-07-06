@@ -16,7 +16,7 @@ export function CallToActionFooter({ id }: CallToActionFooterProps) {
                         Faites vivre une meilleure attente à vos clients
                     </h2>
                     <p className="mt-4 max-w-2xl text-base text-text-secondary sm:text-lg">
-                        Donnez une image moderne à votre accueil et fluidifiez vos heures de rush,
+                        Donnez une image moderne à votre accueil et gérez mieux vos heures de rush,
                         sans complexité pour votre équipe.
                     </p>
 

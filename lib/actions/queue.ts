@@ -29,7 +29,7 @@ export type QueueItem = {
     id: string
     merchant_id: string
     customer_name: string
-    entry_source: "qr" | "manual"
+    entry_source: "qr" | "manual" | "assisted"
     status: "waiting" | "called" | "done" | "cancelled"
     joined_at: string
     called_at: string | null
@@ -76,6 +76,7 @@ export async function getQueueAction(): Promise<
         .order("joined_at", { ascending: true })
 
     if (error) {
+        console.error("[getQueueAction] DB error:", error.message)
         return { error: "Impossible de charger la file d'attente." }
     }
 
@@ -216,6 +217,7 @@ export async function callTicketAction(
         .eq("status", "waiting") // idempotency guard
 
     if (error) {
+        console.error("[callTicketAction] DB error:", error.message)
         return { error: "Impossible d'appeler ce client. Veuillez réessayer." }
     }
 
@@ -268,6 +270,7 @@ export async function completeTicketAction(
         .eq("status", "called") // only called tickets can be completed
 
     if (error) {
+        console.error("[completeTicketAction] DB error:", error.message)
         return {
             error: "Impossible de terminer ce ticket. Veuillez réessayer.",
         }
@@ -317,6 +320,7 @@ export async function cancelTicketAction(
         .in("status", ["waiting", "called"]) // only active tickets
 
     if (error) {
+        console.error("[cancelTicketAction] DB error:", error.message)
         return {
             error: "Impossible d'annuler ce ticket. Veuillez réessayer.",
         }
@@ -363,6 +367,7 @@ export async function toggleQueueOpenAction(
         .eq("id", user.id)
 
     if (error) {
+        console.error("[toggleQueueOpenAction] DB error:", error.message)
         return {
             error: "Impossible de modifier l'état de la file. Veuillez réessayer.",
         }
@@ -405,6 +410,7 @@ export async function joinQueueAction(
         .single()
 
     if (merchantError || !merchant) {
+        if (merchantError) console.error("[joinQueueAction] merchant lookup error:", merchantError.message)
         return { error: "Commerce introuvable." }
     }
 
@@ -421,10 +427,21 @@ export async function joinQueueAction(
     )
 
     if (tokenError || !tokenData) {
+        if (tokenError) console.error("[joinQueueAction] QR token validation error:", tokenError.message)
         return {
             error: "Ce QR code a expiré ou a déjà été utilisé. Veuillez scanner le QR code actuel.",
         }
     }
+
+    // The token is already consumed at this point (used = true), so reading
+    // its source is safe: it can no longer be validated or reused by anyone.
+    const { data: consumedToken } = await supabase
+        .from("qr_tokens")
+        .select("source")
+        .eq("nonce", token)
+        .single()
+
+    const entrySource = consumedToken?.source === "assisted" ? "assisted" : "qr"
 
     // ── 3. Check capacity ────────────────────────────────────────────────────
     const { data: settings } = await supabase
@@ -455,7 +472,7 @@ export async function joinQueueAction(
             customer_name: customerName,
             status: "waiting",
             name_flagged: false,
-            entry_source: "qr",
+            entry_source: entrySource,
         })
         .select("id")
         .single()

@@ -18,7 +18,7 @@ type TicketStatus = "waiting" | "called" | "done" | "cancelled"
 type TicketCardProps = {
     id: string
     customerName: string
-    entrySource?: "qr" | "manual"
+    entrySource?: "qr" | "manual" | "assisted"
     status: TicketStatus
     position?: number
     joinedAt: string
@@ -84,6 +84,11 @@ function TicketCard({
                         {entrySource === "manual" && (
                             <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold text-brand-primary">
                                 Ajout manuel
+                            </span>
+                        )}
+                        {entrySource === "assisted" && (
+                            <span className="rounded-full bg-feedback-success/10 px-2 py-0.5 text-[10px] font-semibold text-feedback-success">
+                                Scan assisté
                             </span>
                         )}
                     </div>

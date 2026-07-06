@@ -8,6 +8,7 @@ import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
 import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
 import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
 import { UpgradeModal } from "@/components/composed/UpgradeModal"
+import { QrModeToggle } from "@/components/composed/QrModeToggle"
 import {
     toggleQueueOpenAction,
     getQueueAction,
@@ -24,6 +25,7 @@ type QueueSectionProps = {
     initialIsOpen: boolean
     initialItems: QueueItem[]
     hasSubscription: boolean
+    initialQrMode: "kiosk" | "assisted"
 }
 
 /**
@@ -41,9 +43,11 @@ export function QueueSection({
     initialIsOpen,
     initialItems,
     hasSubscription,
+    initialQrMode,
 }: QueueSectionProps) {
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+    const [displayMode, setDisplayMode] = useState<"kiosk" | "assisted">(initialQrMode)
     const wording = getBusinessWording(businessType)
     // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
     // to share 'isOpen' across components without an actual HTTP request.
@@ -155,11 +159,16 @@ export function QueueSection({
                     {/* Right — QR code panel */}
                     <div className="flex flex-col items-center gap-3">
                         <QRCodeDisplay
+                            key={displayMode}
                             slug={merchantSlug}
                             size={220}
                             businessType={businessType}
+                            mode={displayMode}
                         />
-                        {manualTicketDialog}
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {manualTicketDialog}
+                            <QrModeToggle mode={displayMode} onModeChange={setDisplayMode} />
+                        </div>
                     </div>
                 </div>
             )}

@@ -63,6 +63,7 @@ export async function createMerchantAction(formData: {
     slug: string
     maxCapacity: number
     welcomeMessage: string
+    qrMode?: "kiosk" | "assisted"
 }): Promise<{ error: string } | never> {
     const parsed = OnboardingSchema.safeParse({
         name: formData.name,
@@ -70,6 +71,7 @@ export async function createMerchantAction(formData: {
         slug: formData.slug,
         max_capacity: formData.maxCapacity,
         welcome_message: formData.welcomeMessage || undefined,
+        qr_mode: formData.qrMode,
     })
 
     if (!parsed.success) {
@@ -119,6 +121,7 @@ export async function createMerchantAction(formData: {
                 error: "Ce slug est déjà utilisé. Choisissez-en un autre.",
             }
         }
+        console.error("[createMerchantAction] merchant insert error:", merchantError.message)
         return { error: "Erreur lors de la création. Veuillez réessayer." }
     }
 
@@ -128,9 +131,11 @@ export async function createMerchantAction(formData: {
         max_capacity: parsed.data.max_capacity,
         welcome_message: parsed.data.welcome_message ?? null,
         qr_regenerated_at: null,
+        qr_mode: parsed.data.qr_mode,
     })
 
     if (settingsError) {
+        console.error("[createMerchantAction] settings insert error:", settingsError.message)
         // Rollback merchant row to keep data consistent
         await supabase.from("merchants").delete().eq("id", user.id)
         return {

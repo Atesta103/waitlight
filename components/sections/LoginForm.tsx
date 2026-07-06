@@ -34,6 +34,15 @@ type LoginFormProps = {
     initialError?: string
 }
 
+// ─── Validation helpers ─────────────────────────────────────────────────────
+
+function validateEmail(val: string): string | null {
+    if (!val.trim()) return "L'adresse e-mail est requise."
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))
+        return "Adresse e-mail invalide."
+    return null
+}
+
 /**
  * Organism — Login form section.
  * Manages pending/error state; delegates auth logic to the injected Server Action.
@@ -49,9 +58,16 @@ function LoginForm({
 }: LoginFormProps) {
     const [error, setError] = useState<string | null>(initialError ?? null)
     const [isPending, startTransition] = useTransition()
+    const [email, setEmail] = useState("")
+    const [emailError, setEmailError] = useState<string | null>(null)
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
+
+        const eErr = validateEmail(email)
+        setEmailError(eErr)
+        if (eErr) return
+
         const formData = new FormData(e.currentTarget)
         setError(null)
 
@@ -92,6 +108,13 @@ function LoginForm({
                 required
                 placeholder="vous@exemple.com"
                 disabled={isPending}
+                value={email}
+                error={emailError ?? undefined}
+                onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (emailError) setEmailError(validateEmail(e.target.value))
+                }}
+                onBlur={(e) => setEmailError(validateEmail(e.target.value))}
             />
 
             <PasswordInput

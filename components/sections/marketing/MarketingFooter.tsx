@@ -46,9 +46,9 @@ export function MarketingFooter() {
                                 Prêt à commencer ?
                             </p>
                             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.05]">
-                                Transformez l&apos;attente
+                                Faites de l&apos;attente
                                 <br />
-                                <span className="text-[#6366F1]">en avantage.</span>
+                                <span className="text-[#6366F1]">un avantage.</span>
                             </h2>
                             <p className="mt-4 text-white/50 text-sm md:text-base max-w-sm">
                                 14 jours gratuits. Sans engagement. Configuration en 2 minutes.

@@ -193,7 +193,11 @@ export async function POST(request: Request) {
         }
     } catch (err) {
         console.error("Webhook handler error:", err)
-        // Return 200 to prevent Stripe retries — log internally via monitoring.
+        // Return 500 so Stripe retries on transient DB failures.
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 },
+        )
     }
 
     return NextResponse.json({ received: true }, { status: 200 })

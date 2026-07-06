@@ -37,6 +37,8 @@ import {
     RotateCcw,
     ShieldAlert,
     CalendarClock,
+    DatabaseZap,
+    QrCode,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -46,11 +48,13 @@ import {
     resetAvgPrepTimeAction,
     updateThankYouMessageAction,
     updateThankYouTitleAction,
+    updateQrModeAction,
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
 import { type MerchantIdentityInput } from "@/lib/validators/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
+import { ExportDataButton } from "@/components/composed/ExportDataButton"
 import {
     ScheduleEditor,
     type ScheduleEditorHandle,
@@ -95,6 +99,7 @@ type SettingsData = {
     approachingPositionThreshold: number
     approachingTimeEnabled: boolean
     approachingTimeThresholdMin: number
+    qrMode: "kiosk" | "assisted"
 }
 
 type SettingsPanelProps = {
@@ -110,6 +115,7 @@ const NAV_SECTIONS = [
     { id: "identity", label: "Identité", icon: User },
     { id: "display", label: "Affichage", icon: Sparkles },
     { id: "queue", label: "File d'attente", icon: Layers },
+    { id: "qr", label: "Mode QR", icon: QrCode },
     { id: "schedule", label: "Horaires", icon: CalendarClock },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "bannedwords", label: "Noms bannis", icon: ShieldAlert },
@@ -487,6 +493,25 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
     const [, setQueueError] = useState<string | null>(null)
     const [, setQueueSuccess] = useState(false)
     const [isQueuePending, startQueueTransition] = useTransition()
+
+    // ── QR mode ───────────────────────────────────────────────────────────────
+    const [qrMode, setQrMode] = useState<"kiosk" | "assisted">(
+        initialData.qrMode,
+    )
+    const [isQrModePending, startQrModeTransition] = useTransition()
+    const [qrModeError, setQrModeError] = useState<string | null>(null)
+    const qrModeChanged = qrMode !== initialData.qrMode
+
+    const handleSaveQrMode = () => {
+        startQrModeTransition(async () => {
+            const result = await updateQrModeAction(qrMode)
+            if ("error" in result) {
+                setQrModeError(result.error)
+            } else {
+                setQrModeError(null)
+            }
+        })
+    }
 
     const [scheduleDirty, setScheduleDirty] = useState(false)
     const [notificationDirty, setNotificationDirty] = useState(false)
@@ -1441,6 +1466,89 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         </motion.div>
                     )}
 
+                    {/* ── QR mode ───────────────────────────────────────── */}
+                    {activeTab === "qr" && (
+                        <motion.div
+                            custom={2}
+                            initial="hidden"
+                            animate="visible"
+                            variants={sectionVariants}
+                        >
+                            <SectionBlock
+                                id="qr"
+                                icon={QrCode}
+                                title="Mode QR"
+                                description="Choisissez comment vos clients scannent votre QR code pour rejoindre la file."
+                                badge={
+                                    qrModeChanged ? (
+                                        <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-xs font-medium text-brand-primary">
+                                            Modifié
+                                        </span>
+                                    ) : null
+                                }
+                            >
+                                <Card>
+                                    <CardContent className="flex flex-col gap-4 pt-4">
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setQrMode("kiosk")}
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
+                                                    qrMode === "kiosk"
+                                                        ? "border-brand-primary/40 bg-brand-primary/10"
+                                                        : "border-border-default bg-surface-base",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Kiosque
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    Un QR affiché en libre-service sur un écran, renouvelé
+                                                    automatiquement toutes les 15 secondes.
+                                                </span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setQrMode("assisted")}
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
+                                                    qrMode === "assisted"
+                                                        ? "border-brand-primary/40 bg-brand-primary/10"
+                                                        : "border-border-default bg-surface-base",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Assisté
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    Vous montrez un QR à usage unique à chaque client au
+                                                    moment de le prendre en charge.
+                                                </span>
+                                            </button>
+                                        </div>
+                                        {qrModeError ? (
+                                            <p className="text-sm text-feedback-error" role="alert">
+                                                {qrModeError}
+                                            </p>
+                                        ) : null}
+                                        <div className="flex justify-end">
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                disabled={!qrModeChanged}
+                                                isLoading={isQrModePending}
+                                                onClick={handleSaveQrMode}
+                                            >
+                                                Enregistrer
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </SectionBlock>
+                        </motion.div>
+                    )}
+
                     {/* ── Schedule ──────────────────────────────────────── */}
                     {activeTab === "schedule" && (
                         <motion.div
@@ -1719,6 +1827,19 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 </Button>
                                             </div>
                                         )}
+                                    </CardContent>
+                                </Card>
+                            </SectionBlock>
+
+                            <SectionBlock
+                                id="data-export"
+                                icon={DatabaseZap}
+                                title="Données & confidentialité"
+                                description="Téléchargez l'ensemble de vos données personnelles et commerciales au format JSON (conformité RGPD)."
+                            >
+                                <Card>
+                                    <CardContent className="p-4">
+                                        <ExportDataButton />
                                     </CardContent>
                                 </Card>
                             </SectionBlock>

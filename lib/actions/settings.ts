@@ -88,6 +88,7 @@ export type MerchantSettingsData = {
         approaching_position_threshold: number
         approaching_time_enabled: boolean
         approaching_time_threshold_min: number
+        qr_mode: "kiosk" | "assisted"
     }
 }
 
@@ -128,7 +129,7 @@ export async function getMerchantSettingsAction(): Promise<
     const { data: settings, error: settingsError } = await supabase
         .from("settings")
         .select(
-            "max_capacity, welcome_message, thank_you_title, thank_you_message, qr_regenerated_at, notifications_enabled, auto_close_enabled, schedule, notification_channels, notification_sound, approaching_position_enabled, approaching_position_threshold, approaching_time_enabled, approaching_time_threshold_min",
+            "max_capacity, welcome_message, thank_you_title, thank_you_message, qr_regenerated_at, notifications_enabled, auto_close_enabled, schedule, notification_channels, notification_sound, approaching_position_enabled, approaching_position_threshold, approaching_time_enabled, approaching_time_threshold_min, qr_mode",
         )
         .eq("merchant_id", user.id)
         .single()
@@ -183,9 +184,37 @@ export async function getMerchantSettingsAction(): Promise<
                     settings.approaching_time_enabled ?? false,
                 approaching_time_threshold_min:
                     settings.approaching_time_threshold_min ?? 5,
+                qr_mode: settings.qr_mode === "assisted" ? "assisted" : "kiosk",
             },
         },
     }
+}
+
+/**
+ * Update the merchant's default QR display mode: `kiosk` (rotating QR on a
+ * public screen) or `assisted` (single-use QR shown by staff at intake).
+ *
+ * **Errors:**
+ * | `error` string | Cause |
+ * |---|---|
+ * | `"Session expirée. Veuillez vous reconnecter."` | No authenticated user |
+ * | `"Erreur lors de la sauvegarde."` | Supabase update failed |
+ */
+export async function updateQrModeAction(
+    qrMode: "kiosk" | "assisted",
+): Promise<{ data: null } | { error: string }> {
+    const { supabase, user } = await requireAuth()
+
+    const { error } = await supabase
+        .from("settings")
+        .update({ qr_mode: qrMode })
+        .eq("merchant_id", user.id)
+
+    if (error) {
+        return { error: "Erreur lors de la sauvegarde." }
+    }
+
+    return { data: null }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -273,6 +302,7 @@ export async function updateMerchantIdentityAction(
         .eq("id", user.id)
 
     if (error) {
+        console.error("[updateMerchantIdentityAction] DB error:", error.message)
         if (error.code === "23505") {
             return {
                 error: "Ce slug est déjà utilisé. Choisissez-en un autre.",
@@ -322,6 +352,8 @@ export async function updateQueueSettingsAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateQueueSettingsAction] DB error:", error.message)
+        console.error("[updateQueueSettingsAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde. Veuillez réessayer." }
     }
 
@@ -352,6 +384,7 @@ export async function deleteLogoAction(): Promise<
         .list(user.id)
 
     if (listError) {
+        console.error("[deleteLogoAction] storage list error:", listError.message)
         return { error: "Erreur lors de la suppression du logo." }
     }
 
@@ -361,6 +394,7 @@ export async function deleteLogoAction(): Promise<
             .from("merchant-logos")
             .remove(paths)
         if (removeError) {
+            console.error("[deleteLogoAction] storage remove error:", removeError.message)
             return { error: "Erreur lors de la suppression du logo." }
         }
     }
@@ -371,6 +405,7 @@ export async function deleteLogoAction(): Promise<
         .eq("id", user.id)
 
     if (updateError) {
+        console.error("[deleteLogoAction] DB update error:", updateError.message)
         return { error: "Erreur lors de la mise à jour du profil." }
     }
 
@@ -433,6 +468,7 @@ export async function resetAvgPrepTimeAction(): Promise<
         .eq("id", user.id)
 
     if (error) {
+        console.error("[resetAvgPrepTimeAction] DB error:", error.message)
         return {
             error: "Erreur lors de la réinitialisation. Veuillez réessayer.",
         }
@@ -530,6 +566,7 @@ export async function removeBannedWordAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[removeBannedWordAction] DB error:", error.message)
         return { error: "Impossible de supprimer ce mot." }
     }
 
@@ -554,6 +591,7 @@ export async function updateScheduleAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateScheduleAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde des horaires." }
     }
 
@@ -580,6 +618,7 @@ export async function updateThankYouMessageAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateThankYouMessageAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde." }
     }
 
@@ -652,6 +691,7 @@ export async function updateNotificationPreferencesAction(
         .eq("merchant_id", user.id)
 
     if (error) {
+        console.error("[updateNotificationPreferencesAction] DB error:", error.message)
         return { error: "Erreur lors de la sauvegarde des préférences." }
     }
 

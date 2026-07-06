@@ -3,7 +3,7 @@ import { ArrowRight, CheckCircle, Clock, BellRing, ChevronUp } from "lucide-reac
 
 export function MerchantDashboardMockup({ businessName = "Le Bistrot du Coin" }: { businessName?: string } = {}) {
     return (
-        <div className="w-[320px] sm:w-[380px] lg:w-[460px] rounded-[1.3rem] border border-[#E5E7EB] bg-white p-3 shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)]">
+        <div className="w-[320px] sm:w-[380px] lg:w-[460px] rounded-[1.25rem] border border-[#E5E7EB] bg-white p-3 shadow-[0_24px_70px_-16px_rgba(17,24,39,0.35)]">
             <div className="rounded-[1rem] border border-[#E5E7EB] bg-[#F8F9FA] p-3">
                 <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                     <div>
@@ -65,7 +65,7 @@ export function PhoneMockup({ showNotification = true }: { showNotification?: bo
                         aria-hidden="true"
                     />
                     {/* Screen */}
-                    <div className="rounded-[2.1rem] overflow-hidden bg-[#F9FAFB] aspect-[9/19.5]">
+                    <div className="rounded-[2rem] overflow-hidden bg-[#F9FAFB] aspect-[9/19.5]">
                         {/* Status bar */}
                         <div className="bg-white flex justify-between items-center px-5 pt-7 pb-2 text-[9px] font-semibold text-[#6B7280]">
                             <span>9:41</span>
@@ -175,7 +175,7 @@ export function PhoneMockup({ showNotification = true }: { showNotification?: bo
 /** The raw UI of the customer view without the phone frame, for compact layout */
 export function ClientWidgetMockup({ showNotification = true, businessName = "Le Bistrot du Coin" }: { showNotification?: boolean; businessName?: string } = {}) {
     return (
-        <div className="relative w-[320px] sm:w-[380px] bg-white rounded-[1.3rem] shadow-[0_24px_70px_-18px_rgba(17,24,39,0.35)] border border-[#E5E7EB] overflow-hidden">
+        <div className="relative w-[320px] sm:w-[380px] bg-white rounded-[1.25rem] shadow-[0_24px_70px_-16px_rgba(17,24,39,0.35)] border border-[#E5E7EB] overflow-hidden">
             {/* App header */}
             <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
                 <div className="text-[10px] font-bold text-[#111827] uppercase tracking-widest text-center">{businessName}</div>
@@ -247,7 +247,7 @@ export function ClientWidgetMockup({ showNotification = true, businessName = "Le
 
             {/* Notification overlay */}
             {showNotification && (
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-[#E5E7EB] text-center w-full max-w-[280px]">
                         <div className="w-14 h-14 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner shadow-white/20">
                             <BellRing size={28} className="text-white" />
@@ -296,7 +296,7 @@ export function HeroSection({ id }: { id?: string }) {
                         {/* Label pill */}
                         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] text-[#4338CA] text-xs font-semibold tracking-wide uppercase w-fit">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1] animate-pulse" aria-hidden="true" />
-                            File d&apos;attente digitale — Scan &amp; Go
+                            File d&apos;attente digitale, Scan &amp; Go
                         </span>
 
                         {/* H1 */}

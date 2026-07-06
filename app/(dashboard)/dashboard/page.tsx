@@ -36,6 +36,13 @@ export default async function DashboardPage() {
         return null // layout already redirects if not found
     }
 
+    const { data: settingsRow } = await supabase
+        .from("settings")
+        .select("qr_mode")
+        .eq("merchant_id", user!.id)
+        .single()
+    const initialQrMode = settingsRow?.qr_mode === "assisted" ? "assisted" : "kiosk"
+
     let hasSubscription = merchant.bypass_paywall
     if (!hasSubscription) {
         const { data: subRaw } = await supabase
@@ -56,6 +63,7 @@ export default async function DashboardPage() {
             initialIsOpen={merchant.is_open}
             initialItems={initialItems}
             hasSubscription={hasSubscription}
+            initialQrMode={initialQrMode}
         />
     )
 }

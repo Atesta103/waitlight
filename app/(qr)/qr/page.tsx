@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { QRCodeDisplay } from "@/components/composed/QRCodeDisplay"
+import { QrFullscreenDisplay } from "@/components/composed/QrFullscreenDisplay"
 
 export const metadata: Metadata = {
     title: "QR Code — WaitLight",
@@ -40,7 +40,7 @@ export default async function QrFullscreenPage({
     // Fetch the authenticated merchant's own slug from DB.
     const { data: merchant } = await supabase
         .from("merchants")
-        .select("slug")
+        .select("slug, is_open")
         .eq("id", user.id)
         .single()
 
@@ -48,6 +48,13 @@ export default async function QrFullscreenPage({
     if (!merchant) {
         redirect("/onboarding")
     }
+
+    const { data: settingsRow } = await supabase
+        .from("settings")
+        .select("qr_mode")
+        .eq("merchant_id", user.id)
+        .single()
+    const qrMode = settingsRow?.qr_mode === "assisted" ? "assisted" : "kiosk"
 
     // If no slug param was provided OR it doesn't match the authenticated merchant's slug,
     // show a clear error — do NOT render the QR display.
@@ -65,15 +72,22 @@ export default async function QrFullscreenPage({
         )
     }
 
+    if (!merchant.is_open) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-4 text-center">
+                <p className="text-lg font-semibold text-text-primary">
+                    File d&apos;attente fermée
+                </p>
+                <p className="max-w-sm text-sm text-text-secondary">
+                    Ouvrez votre file d&apos;attente depuis le tableau de bord pour afficher le QR code.
+                </p>
+            </div>
+        )
+    }
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-surface-base px-4">
-            <QRCodeDisplay slug={slug} size={300} />
-
-            <p className="max-w-xs text-center text-xs text-text-secondary">
-                Le QR code se renouvelle automatiquement toutes les
-                15&nbsp;secondes. Chaque code n&apos;est valable qu&apos;une
-                seule fois.
-            </p>
+            <QrFullscreenDisplay slug={slug} size={300} initialMode={qrMode} />
         </div>
     )
 }
