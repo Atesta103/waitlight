@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
     getUser: vi.fn(),
     settingsSingle: vi.fn(),
     countIn: vi.fn(),
+    recoveryMaybeSingle: vi.fn(),
     insertSingle: vi.fn(),
     insert: vi.fn(),
 }))
@@ -26,11 +27,25 @@ vi.mock("@/lib/supabase/server", () => ({
 
             if (table === "queue_items") {
                 return {
-                    select: () => ({
-                        eq: () => ({
-                            in: mocks.countIn,
-                        }),
-                    }),
+                    select: (
+                        _cols?: string,
+                        opts?: { count?: string; head?: boolean },
+                    ) => {
+                        // Capacity count: .select("*", { count }).eq().in()
+                        if (opts?.count) {
+                            return { eq: () => ({ in: mocks.countIn }) }
+                        }
+                        // Recovery-code uniqueness: .select("id").eq().eq().in().maybeSingle()
+                        return {
+                            eq: () => ({
+                                eq: () => ({
+                                    in: () => ({
+                                        maybeSingle: mocks.recoveryMaybeSingle,
+                                    }),
+                                }),
+                            }),
+                        }
+                    },
                     insert: mocks.insert,
                 }
             }
@@ -53,6 +68,8 @@ describe("createManualTicketAction", () => {
             error: null,
         })
         mocks.countIn.mockResolvedValue({ count: 2, error: null })
+        // No collision → the generated recovery code is free to use.
+        mocks.recoveryMaybeSingle.mockResolvedValue({ data: null, error: null })
         mocks.insert.mockReturnValue({
             select: () => ({
                 single: mocks.insertSingle,
@@ -68,6 +85,7 @@ describe("createManualTicketAction", () => {
                 joined_at: "2026-05-04T10:00:00.000Z",
                 called_at: null,
                 done_at: null,
+                recovery_code: "4F2K",
             },
             error: null,
         })
@@ -114,6 +132,7 @@ describe("createManualTicketAction", () => {
             status: "waiting",
             name_flagged: false,
             entry_source: "manual",
+            recovery_code: expect.any(String),
         })
         expect(result).toEqual({
             data: {
@@ -125,6 +144,7 @@ describe("createManualTicketAction", () => {
                 joined_at: "2026-05-04T10:00:00.000Z",
                 called_at: null,
                 done_at: null,
+                recovery_code: "4F2K",
             },
         })
     })
