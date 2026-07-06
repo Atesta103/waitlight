@@ -29,7 +29,7 @@ export type QueueItem = {
     id: string
     merchant_id: string
     customer_name: string
-    entry_source: "qr" | "manual"
+    entry_source: "qr" | "manual" | "assisted"
     status: "waiting" | "called" | "done" | "cancelled"
     joined_at: string
     called_at: string | null
@@ -433,6 +433,16 @@ export async function joinQueueAction(
         }
     }
 
+    // The token is already consumed at this point (used = true), so reading
+    // its source is safe: it can no longer be validated or reused by anyone.
+    const { data: consumedToken } = await supabase
+        .from("qr_tokens")
+        .select("source")
+        .eq("nonce", token)
+        .single()
+
+    const entrySource = consumedToken?.source === "assisted" ? "assisted" : "qr"
+
     // ── 3. Check capacity ────────────────────────────────────────────────────
     const { data: settings } = await supabase
         .from("settings")
@@ -462,7 +472,7 @@ export async function joinQueueAction(
             customer_name: customerName,
             status: "waiting",
             name_flagged: false,
-            entry_source: "qr",
+            entry_source: entrySource,
         })
         .select("id")
         .single()

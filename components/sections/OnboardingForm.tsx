@@ -27,6 +27,7 @@ type OnboardingData = {
     slug: string
     maxCapacity: number
     welcomeMessage: string
+    qrMode: "kiosk" | "assisted"
 }
 
 type OnboardingFormProps = {
@@ -67,6 +68,7 @@ function OnboardingForm({
         slug: "",
         maxCapacity: 20,
         welcomeMessage: "",
+        qrMode: "kiosk",
     })
     const [errors, setErrors] = useState<
         Partial<Record<keyof OnboardingData, string>>
@@ -239,6 +241,54 @@ function OnboardingForm({
                                         }
                                         hint="Affiché aux clients lorsqu'ils scannent votre QR code."
                                     />
+                                    <div className="flex flex-col gap-2">
+                                        <span className="text-sm font-medium text-text-primary">
+                                            Mode d&apos;affichage du QR
+                                        </span>
+                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData((d) => ({ ...d, qrMode: "kiosk" }))
+                                                }
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+                                                    data.qrMode === "kiosk"
+                                                        ? "border-brand-primary bg-brand-primary/5"
+                                                        : "border-border-default",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Kiosque
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    QR affiché en libre-service, renouvelé automatiquement.
+                                                </span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData((d) => ({ ...d, qrMode: "assisted" }))
+                                                }
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+                                                    data.qrMode === "assisted"
+                                                        ? "border-brand-primary bg-brand-primary/5"
+                                                        : "border-border-default",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Assisté
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    Vous montrez le QR à chaque client à son arrivée.
+                                                </span>
+                                            </button>
+                                        </div>
+                                        <span className="text-xs text-text-tertiary">
+                                            Modifiable à tout moment dans les paramètres.
+                                        </span>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

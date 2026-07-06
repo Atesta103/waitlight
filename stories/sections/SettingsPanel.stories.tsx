@@ -48,6 +48,7 @@ const meta = {
             approachingPositionThreshold: 3,
             approachingTimeEnabled: false,
             approachingTimeThresholdMin: 5,
+            qrMode: "kiosk",
         },
     },
 } satisfies Meta<typeof SettingsPanel>
@@ -89,6 +90,7 @@ export const WithLogo: Story = {
             approachingPositionThreshold: 2,
             approachingTimeEnabled: false,
             approachingTimeThresholdMin: 5,
+            qrMode: "kiosk",
         },
     },
 }

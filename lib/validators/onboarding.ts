@@ -27,6 +27,7 @@ export const OnboardingSchema = z.object({
         .min(1, "Minimum 1 personne.")
         .max(500, "Maximum 500 personnes."),
     welcome_message: z.string().max(500, "500 caractères maximum.").optional(),
+    qr_mode: z.enum(["kiosk", "assisted"]).default("kiosk"),
 })
 
 export type OnboardingInput = z.infer<typeof OnboardingSchema>

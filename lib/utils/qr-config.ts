@@ -20,3 +20,10 @@ export const QR_MAX_VALID_TOKENS = 2
 
 /** Max token generations per minute per merchant before rate-limiting. */
 export const QR_MAX_TOKENS_PER_MINUTE = 10
+
+/**
+ * Seconds an assisted-mode token remains valid (10 min comfort window).
+ * No rotation in this mode — the token is single-use, shown to one
+ * customer at intake, so a short TTL isn't needed for security.
+ */
+export const QR_ASSISTED_TOKEN_TTL_SECONDS = 600

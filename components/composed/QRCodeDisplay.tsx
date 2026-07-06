@@ -1,18 +1,25 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { QRCodeCanvas } from "qrcode.react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils/cn"
 import { Camera } from "lucide-react"
 import { Skeleton } from "@/components/ui/Skeleton"
+import { Button } from "@/components/ui/Button"
 import { QR_ROTATION_INTERVAL_MS } from "@/lib/utils/qr-config"
-import { generateQrTokenAction } from "@/lib/actions/qr"
+import {
+    generateQrTokenAction,
+    generateAssistedQrTokenAction,
+    checkQrTokenUsedAction,
+} from "@/lib/actions/qr"
 import { getBusinessWording } from "@/lib/utils/business-wording"
 
 /** Shared with server-side validation — see lib/utils/qr-token.ts */
 const REFRESH_INTERVAL_MS = QR_ROTATION_INTERVAL_MS
 const TOTAL_S = REFRESH_INTERVAL_MS / 1000
+/** Poll interval to detect that the currently displayed assisted QR was scanned. */
+const ASSISTED_POLL_INTERVAL_MS = 2000
 
 type QRCodeDisplayProps = {
     slug: string
@@ -23,6 +30,12 @@ type QRCodeDisplayProps = {
     className?: string
     /** Si true, désactive les appels API et l'intervalle de rafraîchissement (pour les démos marketing) */
     mockMode?: boolean
+    /**
+     * "kiosk" (défaut) : QR rotatif toutes les 15s, affiché en libre-service.
+     * "assisted" : QR unique généré à la volée, montré par le commerçant à
+     * un client précis au moment de la prise en charge. Pas de rotation.
+     */
+    mode?: "kiosk" | "assisted"
 }
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
@@ -33,7 +46,9 @@ function QRCodeDisplay({
     size = 220,
     className,
     mockMode = false,
+    mode = "kiosk",
 }: QRCodeDisplayProps) {
+    const isAssisted = mode === "assisted"
     const wording = getBusinessWording(businessType)
     const [token, setToken] = useState<string | null>(null)
     const [fetchedAt, setFetchedAt] = useState<number | null>(null)
@@ -44,15 +59,26 @@ function QRCodeDisplay({
     const url = `${baseUrl}/${slug}/join`
     const qrValue = token ? `${url}?t=${token}` : url
 
+    // Guards against overlapping fetchToken calls (e.g. React StrictMode's
+    // double effect invocation in dev, or rapid manual clicks): only the
+    // most recently started request is allowed to apply its result.
+    const requestIdRef = useRef(0)
+
     const fetchToken = useCallback(async () => {
         if (mockMode) return
 
+        const requestId = ++requestIdRef.current
+
         // Defer setState to avoid synchronous setState in effect body
         setTimeout(() => setQrVisible(false), 0)
-        const result = await generateQrTokenAction()
+        const result = isAssisted
+            ? await generateAssistedQrTokenAction()
+            : await generateQrTokenAction()
 
         // Wait for skeleton animation
         setTimeout(() => {
+            if (requestIdRef.current !== requestId) return // superseded by a newer fetch
+
             if ("data" in result) {
                 setToken(result.data.nonce)
                 setFetchedAt(Date.now())
@@ -61,9 +87,10 @@ function QRCodeDisplay({
             setProgress(1)
             setQrVisible(true)
         }, 300)
-    }, [mockMode])
+    }, [mockMode, isAssisted])
 
-    /* Rotate token every REFRESH_INTERVAL_MS */
+    /* Rotate token every REFRESH_INTERVAL_MS — kiosk mode only. Assisted mode
+       fetches once and waits for the merchant to request the next code. */
     useEffect(() => {
         if (mockMode) {
             // Defer to avoid synchronous setState inside effect
@@ -76,15 +103,18 @@ function QRCodeDisplay({
 
         fetchToken() // Initial fetch
 
+        if (isAssisted) return
+
         const tick = setInterval(() => {
             fetchToken()
         }, REFRESH_INTERVAL_MS)
         return () => clearInterval(tick)
-    }, [mockMode, fetchToken])
+    }, [mockMode, isAssisted, fetchToken])
 
-    /* Precision timer — visual countdown based on rotation interval, not token TTL */
+    /* Precision timer — visual countdown based on rotation interval, not token TTL.
+       Not relevant in assisted mode since there's no rotation to count down to. */
     useEffect(() => {
-        if (!token || !fetchedAt) return
+        if (isAssisted || !token || !fetchedAt) return
 
         const visualExpiry = fetchedAt + REFRESH_INTERVAL_MS
 
@@ -98,7 +128,22 @@ function QRCodeDisplay({
         }, 50) // 20fps for progress updates
 
         return () => clearInterval(timer)
-    }, [token, fetchedAt])
+    }, [isAssisted, token, fetchedAt])
+
+    /* Assisted mode: poll to detect the current QR was scanned, then
+       auto-generate a fresh one for the next customer. */
+    useEffect(() => {
+        if (mockMode || !isAssisted || !token) return
+
+        const poll = setInterval(async () => {
+            const result = await checkQrTokenUsedAction(token)
+            if ("data" in result && result.data.used) {
+                fetchToken()
+            }
+        }, ASSISTED_POLL_INTERVAL_MS)
+
+        return () => clearInterval(poll)
+    }, [mockMode, isAssisted, token, fetchToken])
 
     const color =
         countdown >= 7
@@ -156,51 +201,59 @@ function QRCodeDisplay({
 
             {/* ── QR zone ─────────────────────────────────────────────────── */}
             <div className="flex flex-col items-center gap-6 px-6 py-8">
-                {/* Countdown Label - Centered above QR */}
-                <div className="flex flex-col items-center gap-1">
-                    <span
-                        className="text-2xl font-bold tabular-nums transition-colors duration-300"
-                        style={{ color }}
-                    >
-                        {countdown}s
-                    </span>
+                {/* Countdown Label - Centered above QR (kiosk mode only) */}
+                {isAssisted ? (
                     <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
-                        Prochain code
+                        QR à usage unique
                     </span>
-                </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-1">
+                        <span
+                            className="text-2xl font-bold tabular-nums transition-colors duration-300"
+                            style={{ color }}
+                        >
+                            {countdown}s
+                        </span>
+                        <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
+                            Prochain code
+                        </span>
+                    </div>
+                )}
 
                 {/* QR Container */}
                 <div
                     className="relative flex items-center justify-center"
                     style={{ width: viewSize, height: viewSize }}
                 >
-                    {/* SVG Progress Border */}
-                    <div className="absolute inset-0 z-0">
-                        <svg
-                            width={viewSize}
-                            height={viewSize}
-                            viewBox={`0 0 ${viewSize} ${viewSize}`}
-                            className="h-full w-full"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            {/* Background track - subtle but visible */}
-                            <path d={d} stroke="currentColor" strokeWidth={strokeWidth} className={mockMode ? "text-[#D1D5DB]" : "text-text-secondary/10"} />
-                            {/* Animated path */}
-                            <motion.path
-                                d={d}
-                                stroke={color}
-                                strokeWidth={strokeWidth}
-                                strokeLinecap="round"
-                                initial={{ pathLength: 1 }}
-                                animate={{ pathLength: progress }}
-                                transition={{
-                                    duration: progress > 0.95 ? 0 : 0.05,
-                                    ease: "linear",
-                                }}
-                            />
-                        </svg>
-                    </div>
+                    {/* SVG Progress Border — kiosk mode only, no rotation to show in assisted mode */}
+                    {!isAssisted && (
+                        <div className="absolute inset-0 z-0">
+                            <svg
+                                width={viewSize}
+                                height={viewSize}
+                                viewBox={`0 0 ${viewSize} ${viewSize}`}
+                                className="h-full w-full"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                {/* Background track - subtle but visible */}
+                                <path d={d} stroke="currentColor" strokeWidth={strokeWidth} className={mockMode ? "text-[#D1D5DB]" : "text-text-secondary/10"} />
+                                {/* Animated path */}
+                                <motion.path
+                                    d={d}
+                                    stroke={color}
+                                    strokeWidth={strokeWidth}
+                                    strokeLinecap="round"
+                                    initial={{ pathLength: 1 }}
+                                    animate={{ pathLength: progress }}
+                                    transition={{
+                                        duration: progress > 0.95 ? 0 : 0.05,
+                                        ease: "linear",
+                                    }}
+                                />
+                            </svg>
+                        </div>
+                    )}
 
                     {/* QR Code itself */}
                     <div
@@ -239,6 +292,12 @@ function QRCodeDisplay({
                     <Camera size={14} aria-hidden="true" className="shrink-0" />
                     <span>Flashez ce code avec votre appareil photo</span>
                 </div>
+
+                {isAssisted && !mockMode && (
+                    <Button type="button" variant="secondary" size="sm" onClick={fetchToken}>
+                        Générer un nouveau QR
+                    </Button>
+                )}
             </div>
         </div>
     )

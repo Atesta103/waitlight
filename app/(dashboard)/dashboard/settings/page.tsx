@@ -69,6 +69,7 @@ export default async function SettingsPage() {
                     approachingTimeEnabled: settings.approaching_time_enabled,
                     approachingTimeThresholdMin:
                         settings.approaching_time_threshold_min,
+                    qrMode: settings.qr_mode,
                 }}
             />
         </div>

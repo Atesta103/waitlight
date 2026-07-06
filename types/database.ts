@@ -148,6 +148,7 @@ export type Database = {
                     id: string
                     merchant_id: string
                     nonce: string
+                    source: string
                     used: boolean
                 }
                 Insert: {
@@ -156,6 +157,7 @@ export type Database = {
                     id?: string
                     merchant_id: string
                     nonce: string
+                    source?: string
                     used?: boolean
                 }
                 Update: {
@@ -164,6 +166,7 @@ export type Database = {
                     id?: string
                     merchant_id?: string
                     nonce?: string
+                    source?: string
                     used?: boolean
                 }
                 Relationships: [
@@ -232,6 +235,7 @@ export type Database = {
                     notification_channels: Json
                     notification_sound: string
                     notifications_enabled: boolean
+                    qr_mode: string
                     qr_regenerated_at: string | null
                     schedule: Json | null
                     thank_you_title: string | null
@@ -249,6 +253,7 @@ export type Database = {
                     notification_channels?: Json
                     notification_sound?: string
                     notifications_enabled?: boolean
+                    qr_mode?: string
                     qr_regenerated_at?: string | null
                     schedule?: Json | null
                     thank_you_title?: string | null
@@ -266,6 +271,7 @@ export type Database = {
                     notification_channels?: Json
                     notification_sound?: string
                     notifications_enabled?: boolean
+                    qr_mode?: string
                     qr_regenerated_at?: string | null
                     schedule?: Json | null
                     thank_you_title?: string | null

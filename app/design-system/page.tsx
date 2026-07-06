@@ -1247,6 +1247,7 @@ export default function DesignSystemPage() {
                                     approachingPositionThreshold: 3,
                                     approachingTimeEnabled: false,
                                     approachingTimeThresholdMin: 5,
+                                    qrMode: "kiosk",
                                 }}
                             />
                         </SubSection>
