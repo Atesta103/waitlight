@@ -70,6 +70,7 @@ export default async function SettingsPage() {
                     approachingTimeThresholdMin:
                         settings.approaching_time_threshold_min,
                     qrMode: settings.qr_mode,
+                    isPublic: merchant.is_public,
                 }}
             />
         </div>

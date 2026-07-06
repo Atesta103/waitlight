@@ -115,6 +115,20 @@ export function MarketingNav() {
                             ))}
                         </nav>
 
+                        <div className="mt-6 rounded-xl bg-[#EEF2FF] p-4">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-[#4338CA]">
+                                Vous êtes client ?
+                            </p>
+                            <Link
+                                href="/retrouver"
+                                onClick={closeMenu}
+                                className="mt-2 flex items-center justify-between text-sm font-semibold text-[#4F46E5] hover:text-[#4338CA]"
+                            >
+                                Retrouver ma file d&apos;attente
+                                <ChevronRight size={15} aria-hidden="true" />
+                            </Link>
+                        </div>
+
                         <div className="mt-8 grid gap-3">
                             <Link
                                 href="/login"

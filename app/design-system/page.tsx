@@ -1249,6 +1249,7 @@ export default function DesignSystemPage() {
                                     approachingTimeEnabled: false,
                                     approachingTimeThresholdMin: 5,
                                     qrMode: "kiosk",
+                                    isPublic: false,
                                 }}
                             />
                         </SubSection>
