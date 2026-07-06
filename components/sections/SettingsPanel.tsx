@@ -40,6 +40,7 @@ import {
     DatabaseZap,
     QrCode,
     Search,
+    Lock,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -114,15 +115,20 @@ type SettingsPanelProps = {
 // Nav sections definition
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Ordered by how often a merchant needs each section, from initial setup
+ * (identity, look) to day-to-day operation (queue, hours, notifications) to
+ * occasional fine-tuning (wait time, moderation, privacy).
+ */
 const NAV_SECTIONS = [
     { id: "identity", label: "Identité", icon: User },
-    { id: "display", label: "Affichage", icon: Sparkles },
+    { id: "appearance", label: "Apparence", icon: Sparkles },
     { id: "queue", label: "File d'attente", icon: Layers },
-    { id: "qr", label: "Mode QR", icon: QrCode },
     { id: "schedule", label: "Horaires", icon: CalendarClock },
     { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "bannedwords", label: "Noms bannis", icon: ShieldAlert },
     { id: "waittime", label: "Temps d'attente", icon: Clock },
+    { id: "bannedwords", label: "Noms bannis", icon: ShieldAlert },
+    { id: "privacy", label: "Confidentialité", icon: Lock },
 ] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,7 +158,7 @@ function SectionBlock({
             aria-labelledby={`${id}-heading`}
             className="scroll-mt-24"
         >
-            <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="mb-6 flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border-default bg-surface-card text-text-secondary shadow-sm">
                         <Icon size={17} aria-hidden="true" />
@@ -207,7 +213,7 @@ function ToggleRow({
             <div className="flex items-start gap-3">
                 <span
                     className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                        "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
                         checked
                             ? "border-brand-primary/40 bg-brand-primary/20 text-text-primary"
                             : "border-border-default bg-border-default/50 text-text-secondary",
@@ -220,7 +226,7 @@ function ToggleRow({
                     <p className="text-sm font-medium text-text-primary">
                         {label}
                     </p>
-                    <p className="mt-0.5 text-xs text-text-secondary">
+                    <p className="mt-1 text-xs text-text-secondary">
                         {description}
                     </p>
                 </div>
@@ -241,7 +247,7 @@ function ToggleRow({
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="flex items-center justify-between gap-4 py-2.5 text-sm first:pt-0 last:pb-0">
+        <div className="flex items-center justify-between gap-4 py-3 text-sm first:pt-0 last:pb-0">
             <span className="text-text-secondary">{label}</span>
             <span className="font-medium text-text-primary">{value}</span>
         </div>
@@ -344,7 +350,7 @@ function UploadZone({
                         </div>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center gap-1.5 text-text-secondary">
+                    <div className="flex flex-col items-center gap-2 text-text-secondary">
                         <Upload size={22} aria-hidden="true" />
                         <span className="text-center text-xs font-medium leading-tight">
                             Cliquer ou
@@ -434,7 +440,7 @@ function UploadZone({
 
 function ChangedBadge() {
     return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-brand-primary/40 bg-brand-primary/20 px-2 py-0.5 text-xs font-medium text-text-primary">
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand-primary/40 bg-brand-primary/20 px-2 py-1 text-xs font-medium text-text-primary">
             <span
                 className="h-1.5 w-1.5 rounded-full bg-brand-primary"
                 aria-hidden="true"
@@ -902,7 +908,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             <button
                                 onClick={() => { setActiveTab(id); window.location.hash = id }}
                                 className={cn(
-                                    "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium",
+                                    "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
                                     activeTab === id
                                         ? "bg-brand-primary/10 text-brand-primary"
                                         : "text-text-secondary hover:bg-surface-card hover:text-text-primary",
@@ -918,7 +924,14 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             </nav>
 
             {/* ── Main content ─────────────────────────────────────────── */}
-            <div className="min-w-0 flex-1 pb-32 md:pb-8">
+            {/* Extra bottom padding when the unsaved-changes bar is visible,
+                so it never overlaps fields or buttons near the end of a tab. */}
+            <div
+                className={cn(
+                    "min-w-0 flex-1",
+                    dirtySections.length > 0 ? "pb-30" : "pb-32 md:pb-8",
+                )}
+            >
                 {/* ── Mobile horizontal nav ────────────────────── */}
                 <div className="lg:hidden w-full overflow-x-auto no-scrollbar mb-6 pb-2">
                     <ul className="flex items-center gap-2 w-max">
@@ -961,11 +974,11 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                     ) : undefined
                                 }
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
-                                        <div className="flex flex-col gap-5 pt-1">
+                                        <div className="flex flex-col gap-6 pt-1">
                                             {/* Logo + Name + Slug — side by side */}
-                                            <div className="flex flex-col sm:flex-row sm:items-start gap-5">
+                                            <div className="flex flex-col sm:flex-row sm:items-start gap-6">
                                                 {/* Upload zone */}
                                                 <div className="shrink-0">
                                                     <UploadZone
@@ -999,7 +1012,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                 </div>
 
                                                 {/* Name + Slug stacked */}
-                                                <div className="flex flex-col gap-4 flex-1 min-w-0">
+                                                <div className="flex flex-col gap-6 flex-1 min-w-0">
                                                     <Input
                                                         label="Nom du commerce"
                                                         value={
@@ -1059,9 +1072,36 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                     />
                                                 </div>
                                             </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </SectionBlock>
+                        </motion.div>
+                    )}
 
-                                            <hr className="border-border-default" />
-
+                    {/* ── Appearance ─────────────────────────────────────── */}
+                    {activeTab === "appearance" && (
+                        <motion.div
+                            custom={0}
+                            initial="hidden"
+                            animate="visible"
+                            variants={sectionVariants}
+                            className="flex flex-col gap-10"
+                        >
+                            <SectionBlock
+                                id="appearance-brand"
+                                icon={Sparkles}
+                                title="Marque"
+                                description="Couleur, typographie et arrière-plan affichés à vos clients."
+                                badge={
+                                    identityChanged ? (
+                                        <ChangedBadge />
+                                    ) : undefined
+                                }
+                            >
+                                <Card className="p-6">
+                                    <CardContent>
+                                        <div className="flex flex-col gap-6 pt-1">
                                             {/* Visuals: colour / font / radius + background selector */}
                                             <div className="grid gap-4 md:grid-cols-[1fr_auto]">
                                                 {/* Left: colour + font + radius */}
@@ -1330,9 +1370,9 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                                 )}
                                                             </div>
                                                         )}
-                                                        <div className="absolute bottom-1.5 left-0 right-0 flex justify-center">
+                                                        <div className="absolute bottom-2 left-0 right-0 flex justify-center">
                                                             <span
-                                                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                                className="text-[10px] font-bold px-2 py-1 rounded-full"
                                                                 style={{
                                                                     backgroundColor:
                                                                         identity.brand_color ??
@@ -1350,37 +1390,17 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                         </div>
                                     </CardContent>
                                 </Card>
-
-                                <div className="mt-4">
-                                    <ToggleRow
-                                        icon={Search}
-                                        label="Apparaître dans l'annuaire public"
-                                        description="Permet à vos clients de vous retrouver par votre nom sur la page « Retrouver ma file » de WaitLight."
-                                        checked={isPublic}
-                                        onChange={handleTogglePublic}
-                                    />
-                                </div>
                             </SectionBlock>
-                        </motion.div>
-                    )}
 
-                    {/* ── Display mode ──────────────────────────────────── */}
-                    {activeTab === "display" && (
-                        <motion.div
-                            custom={0}
-                            initial="hidden"
-                            animate="visible"
-                            variants={sectionVariants}
-                        >
                             <SectionBlock
-                                id="display"
+                                id="appearance-dashboard"
                                 icon={Sparkles}
-                                title="Affichage"
-                                description="Mode clair ou sombre pour votre tableau de bord."
+                                title="Tableau de bord"
+                                description="Mode clair ou sombre pour votre espace de gestion."
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
-                                        <div className="flex flex-col gap-3 pt-1">
+                                        <div className="flex flex-col gap-4 pt-1">
                                             <div className="flex items-center justify-between gap-4">
                                                 <div>
                                                     <h4 className="text-sm font-medium text-text-primary">
@@ -1411,7 +1431,81 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                             initial="hidden"
                             animate="visible"
                             variants={sectionVariants}
+                            className="flex flex-col gap-10"
                         >
+                            <SectionBlock
+                                id="qr"
+                                icon={QrCode}
+                                title="Mode d'accès à la file"
+                                description="Choisissez comment vos clients scannent votre QR code pour rejoindre la file."
+                                badge={
+                                    qrModeChanged ? (
+                                        <span className="rounded-full bg-brand-primary/10 px-2 py-1 text-xs font-medium text-brand-primary">
+                                            Modifié
+                                        </span>
+                                    ) : null
+                                }
+                            >
+                                <Card className="p-6">
+                                    <CardContent className="flex flex-col gap-4 pt-4">
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setQrMode("kiosk")}
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
+                                                    qrMode === "kiosk"
+                                                        ? "border-brand-primary/40 bg-brand-primary/10"
+                                                        : "border-border-default bg-surface-base",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Kiosque
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    Un QR affiché en libre-service sur un écran, renouvelé
+                                                    automatiquement toutes les 15 secondes.
+                                                </span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setQrMode("assisted")}
+                                                className={cn(
+                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
+                                                    qrMode === "assisted"
+                                                        ? "border-brand-primary/40 bg-brand-primary/10"
+                                                        : "border-border-default bg-surface-base",
+                                                )}
+                                            >
+                                                <span className="text-sm font-semibold text-text-primary">
+                                                    Assisté
+                                                </span>
+                                                <span className="text-xs text-text-secondary">
+                                                    Vous montrez un QR à usage unique à chaque client au
+                                                    moment de le prendre en charge.
+                                                </span>
+                                            </button>
+                                        </div>
+                                        {qrModeError ? (
+                                            <p className="text-sm text-feedback-error" role="alert">
+                                                {qrModeError}
+                                            </p>
+                                        ) : null}
+                                        <div className="flex justify-end">
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                disabled={!qrModeChanged}
+                                                isLoading={isQrModePending}
+                                                onClick={handleSaveQrMode}
+                                            >
+                                                Enregistrer
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </SectionBlock>
+
                             <SectionBlock
                                 id="queue"
                                 icon={Layers}
@@ -1421,10 +1515,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                     queueChanged ? <ChangedBadge /> : undefined
                                 }
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
-                                        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
-                                            <div className="flex h-full flex-col gap-5 pt-1">
+                                        <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+                                            <div className="flex h-full flex-col gap-6 pt-1">
                                                 <Input
                                                     label="Capacité maximale"
                                                     type="number"
@@ -1493,89 +1587,6 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                         </motion.div>
                     )}
 
-                    {/* ── QR mode ───────────────────────────────────────── */}
-                    {activeTab === "qr" && (
-                        <motion.div
-                            custom={2}
-                            initial="hidden"
-                            animate="visible"
-                            variants={sectionVariants}
-                        >
-                            <SectionBlock
-                                id="qr"
-                                icon={QrCode}
-                                title="Mode QR"
-                                description="Choisissez comment vos clients scannent votre QR code pour rejoindre la file."
-                                badge={
-                                    qrModeChanged ? (
-                                        <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-xs font-medium text-brand-primary">
-                                            Modifié
-                                        </span>
-                                    ) : null
-                                }
-                            >
-                                <Card>
-                                    <CardContent className="flex flex-col gap-4 pt-4">
-                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => setQrMode("kiosk")}
-                                                className={cn(
-                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
-                                                    qrMode === "kiosk"
-                                                        ? "border-brand-primary/40 bg-brand-primary/10"
-                                                        : "border-border-default bg-surface-base",
-                                                )}
-                                            >
-                                                <span className="text-sm font-semibold text-text-primary">
-                                                    Kiosque
-                                                </span>
-                                                <span className="text-xs text-text-secondary">
-                                                    Un QR affiché en libre-service sur un écran, renouvelé
-                                                    automatiquement toutes les 15 secondes.
-                                                </span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setQrMode("assisted")}
-                                                className={cn(
-                                                    "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
-                                                    qrMode === "assisted"
-                                                        ? "border-brand-primary/40 bg-brand-primary/10"
-                                                        : "border-border-default bg-surface-base",
-                                                )}
-                                            >
-                                                <span className="text-sm font-semibold text-text-primary">
-                                                    Assisté
-                                                </span>
-                                                <span className="text-xs text-text-secondary">
-                                                    Vous montrez un QR à usage unique à chaque client au
-                                                    moment de le prendre en charge.
-                                                </span>
-                                            </button>
-                                        </div>
-                                        {qrModeError ? (
-                                            <p className="text-sm text-feedback-error" role="alert">
-                                                {qrModeError}
-                                            </p>
-                                        ) : null}
-                                        <div className="flex justify-end">
-                                            <Button
-                                                variant="primary"
-                                                size="sm"
-                                                disabled={!qrModeChanged}
-                                                isLoading={isQrModePending}
-                                                onClick={handleSaveQrMode}
-                                            >
-                                                Enregistrer
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </SectionBlock>
-                        </motion.div>
-                    )}
-
                     {/* ── Schedule ──────────────────────────────────────── */}
                     {activeTab === "schedule" && (
                         <motion.div
@@ -1590,7 +1601,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 title="Horaires d'ouverture"
                                 description="Configurez les horaires de la file par jour de la semaine et ajoutez des jours exceptionnels."
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
                                         <div className="mb-4 flex flex-col gap-1">
                                             <p className="text-sm font-medium text-text-primary">
@@ -1634,7 +1645,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 description="Regroupez ici les notifications clients, les canaux et les automatisations de file."
                             >
                                 <div className="flex flex-col gap-5">
-                                    <Card>
+                                    <Card className="p-6">
                                         <CardContent>
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-center gap-2 pl-1">
@@ -1708,7 +1719,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 title="Noms bannis"
                                 description="Les prénoms signalés sont automatiquement bloqués lors de l'inscription."
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
                                         <BannedWordsManager />
                                     </CardContent>
@@ -1732,7 +1743,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 description="L'algorithme ajuste le temps affiché aux clients en fonction de vos données réelles."
                                 badge={
                                     calcPrepTime !== null ? (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-feedback-success/35 bg-feedback-success/20 px-2.5 py-0.5 text-xs font-medium text-text-primary">
+                                        <span className="inline-flex items-center gap-2 rounded-full border border-feedback-success/35 bg-feedback-success/20 px-3 py-1 text-xs font-medium text-text-primary">
                                             <Sparkles
                                                 size={11}
                                                 className="text-feedback-success"
@@ -1741,13 +1752,13 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                             Ajusté auto
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border-default bg-surface-base px-2.5 py-0.5 text-xs font-medium text-text-primary">
+                                        <span className="inline-flex items-center gap-2 rounded-full border border-border-default bg-surface-base px-3 py-1 text-xs font-medium text-text-primary">
                                             Temps manuel
                                         </span>
                                     )
                                 }
                             >
-                                <Card>
+                                <Card className="p-6">
                                     <CardContent>
                                         <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
                                             <div>
@@ -1813,10 +1824,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                         </div>
 
                                         {/* Explainability note */}
-                                        <div className="mt-4 flex gap-2.5 rounded-lg border border-border-default bg-surface-base p-3">
+                                        <div className="mt-4 flex gap-3 rounded-lg border border-border-default bg-surface-base p-3">
                                             <Info
                                                 size={15}
-                                                className="mt-0.5 shrink-0 text-text-secondary"
+                                                className="mt-1 shrink-0 text-text-secondary"
                                                 aria-hidden="true"
                                             />
                                             <p className="text-sm text-text-secondary">
@@ -1857,15 +1868,41 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                     </CardContent>
                                 </Card>
                             </SectionBlock>
+                        </motion.div>
+                    )}
+
+                    {/* ── Privacy ────────────────────────────────────────── */}
+                    {activeTab === "privacy" && (
+                        <motion.div
+                            custom={0}
+                            initial="hidden"
+                            animate="visible"
+                            variants={sectionVariants}
+                            className="flex flex-col gap-10"
+                        >
+                            <SectionBlock
+                                id="privacy-directory"
+                                icon={Search}
+                                title="Annuaire public"
+                                description="Permettez à vos clients de vous retrouver s'ils ont perdu leur file d'attente."
+                            >
+                                <ToggleRow
+                                    icon={Search}
+                                    label="Apparaître dans l'annuaire public"
+                                    description="Permet à vos clients de vous retrouver par votre nom sur la page « Retrouver ma file » de WaitLight."
+                                    checked={isPublic}
+                                    onChange={handleTogglePublic}
+                                />
+                            </SectionBlock>
 
                             <SectionBlock
                                 id="data-export"
                                 icon={DatabaseZap}
-                                title="Données & confidentialité"
-                                description="Téléchargez l'ensemble de vos données personnelles et commerciales au format JSON (conformité RGPD)."
+                                title="Données & RGPD"
+                                description="Téléchargez l'ensemble de vos données personnelles et commerciales au format JSON."
                             >
-                                <Card>
-                                    <CardContent className="p-4">
+                                <Card className="p-6">
+                                    <CardContent>
                                         <ExportDataButton />
                                     </CardContent>
                                 </Card>
@@ -1927,7 +1964,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                     <div className="flex gap-3">
                         <RotateCcw
                             size={20}
-                            className="mt-0.5 shrink-0 text-text-secondary"
+                            className="mt-1 shrink-0 text-text-secondary"
                             aria-hidden="true"
                         />
                         <div>
