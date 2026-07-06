@@ -15,6 +15,7 @@ const mockItems: QueueItem[] = [
         called_at: ago(2),
         done_at: null,
         merchant_id: "mock-merchant",
+        recovery_code: null,
     },
     {
         id: "ticket-02",
@@ -25,6 +26,7 @@ const mockItems: QueueItem[] = [
         called_at: null,
         done_at: null,
         merchant_id: "mock-merchant",
+        recovery_code: null,
     },
     {
         id: "ticket-03",
@@ -35,6 +37,7 @@ const mockItems: QueueItem[] = [
         called_at: null,
         done_at: null,
         merchant_id: "mock-merchant",
+        recovery_code: null,
     },
     {
         id: "ticket-04",
@@ -45,6 +48,7 @@ const mockItems: QueueItem[] = [
         called_at: null,
         done_at: null,
         merchant_id: "mock-merchant",
+        recovery_code: null,
     },
 ]
 

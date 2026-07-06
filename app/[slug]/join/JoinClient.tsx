@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Card } from "@/components/ui/Card"
 import { JoinForm } from "@/components/composed/JoinForm"
 import { StatusBanner } from "@/components/composed/StatusBanner"
@@ -117,6 +118,15 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
                     </p>
                 </div>
 
+                <p className="text-xs text-text-secondary">
+                    Déjà dans la file ?{" "}
+                    <Link
+                        href={`/${merchant.slug}/retrouver`}
+                        className="font-semibold text-brand-primary hover:underline"
+                    >
+                        Retrouvez votre place
+                    </Link>
+                </p>
             </div>
         )
     }
@@ -204,6 +214,16 @@ function JoinClient({ merchant, settings, token }: JoinClientProps) {
             {error ? (
                 <StatusBanner variant="error" title="Erreur" description={error} />
             ) : null}
+
+            <p className="text-center text-xs text-text-secondary">
+                Déjà dans la file ?{" "}
+                <Link
+                    href={`/${merchant.slug}/retrouver`}
+                    className="font-semibold text-brand-primary hover:underline"
+                >
+                    Retrouvez votre place
+                </Link>
+            </p>
         </div>
     )
 }
