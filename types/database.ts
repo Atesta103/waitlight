@@ -45,6 +45,7 @@ export type Database = {
             }
             merchants: {
                 Row: {
+                    address: string | null
                     avg_prep_computed_at: string | null
                     avg_wait_time: number | null
                     background_url: string | null
@@ -59,6 +60,8 @@ export type Database = {
                     id: string
                     is_open: boolean
                     is_public: boolean
+                    latitude: number | null
+                    longitude: number | null
                     logo_url: string | null
                     name: string
                     slug: string
@@ -66,6 +69,7 @@ export type Database = {
                     theme_pattern: string
                 }
                 Insert: {
+                    address?: string | null
                     avg_prep_computed_at?: string | null
                     avg_wait_time?: number | null
                     background_url?: string | null
@@ -80,6 +84,8 @@ export type Database = {
                     id: string
                     is_open?: boolean
                     is_public?: boolean
+                    latitude?: number | null
+                    longitude?: number | null
                     logo_url?: string | null
                     name: string
                     slug: string
@@ -87,6 +93,7 @@ export type Database = {
                     theme_pattern?: string
                 }
                 Update: {
+                    address?: string | null
                     avg_prep_computed_at?: string | null
                     avg_wait_time?: number | null
                     background_url?: string | null
@@ -101,6 +108,8 @@ export type Database = {
                     id?: string
                     is_open?: boolean
                     is_public?: boolean
+                    latitude?: number | null
+                    longitude?: number | null
                     logo_url?: string | null
                     name?: string
                     slug?: string
@@ -419,6 +428,25 @@ export type Database = {
                 }[]
             }
             get_position: { Args: { ticket_id: string }; Returns: number }
+            nearby_public_merchants: {
+                Args: {
+                    p_lat: number
+                    p_limit?: number
+                    p_lng: number
+                    p_radius_km?: number
+                }
+                Returns: {
+                    address: string | null
+                    business_type: string
+                    distance_km: number
+                    is_open: boolean
+                    latitude: number
+                    logo_url: string | null
+                    longitude: number
+                    name: string
+                    slug: string
+                }[]
+            }
             validate_qr_token: {
                 Args: { p_nonce: string; p_slug: string }
                 Returns: boolean

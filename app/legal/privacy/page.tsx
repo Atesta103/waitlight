@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 export default function PrivacyPage() {
-    const lastUpdated = "17 avril 2026"
+    const lastUpdated = "20 juillet 2026"
 
     return (
         <article>
@@ -48,12 +48,50 @@ export default function PrivacyPage() {
                         <li><strong>Le prénom</strong> saisi volontairement pour être identifié dans la file.</li>
                         <li><strong>L&apos;horodatage</strong> d&apos;arrivée dans la file, d&apos;appel et de passage.</li>
                         <li>
-                            <strong>Aucune donnée de navigation</strong> (IP, cookies de traçage) n&apos;est collectée
-                            côté client final.
+                            <strong>Aucun cookie de traçage</strong> n&apos;est déposé, et aucun profil
+                            publicitaire n&apos;est constitué.
                         </li>
                     </ul>
 
-                    <h3 className="font-semibold text-[#111827] mt-5 mb-2">2.2 Marchands (compte professionnel)</h3>
+                    <h3 className="font-semibold text-[#111827] mt-5 mb-2">
+                        2.2 Visiteurs de la carte « Trouver un commerce près de moi »
+                    </h3>
+                    <p>
+                        La page <strong>/carte</strong> affiche les commerces proches de vous. Elle
+                        fonctionne de l&apos;une des deux façons suivantes, à votre choix :
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 mt-3 ml-2">
+                        <li>
+                            <strong>Votre position GPS</strong>, si vous l&apos;autorisez dans votre
+                            navigateur. Elle est transmise à notre serveur le temps de calculer la liste
+                            des commerces alentour, puis <strong>immédiatement écartée</strong> : elle
+                            n&apos;est jamais enregistrée en base ni associée à votre personne. Vous
+                            pouvez retirer cette autorisation à tout moment dans votre navigateur.
+                        </li>
+                        <li>
+                            <strong>Une adresse que vous saisissez</strong>, si vous préférez ne pas
+                            partager votre position. Elle est convertie en coordonnées par l&apos;API
+                            publique de la Base Adresse Nationale (api-adresse.data.gouv.fr, service de
+                            l&apos;État français) et n&apos;est pas conservée.
+                        </li>
+                        <li>
+                            <strong>Votre adresse IP</strong>, utilisée uniquement pour limiter le nombre
+                            de recherches par minute et empêcher l&apos;aspiration automatisée de
+                            l&apos;annuaire. Elle n&apos;est pas stockée durablement et ne sert à aucune
+                            autre finalité.
+                        </li>
+                    </ul>
+
+                    <h3 className="font-semibold text-[#111827] mt-5 mb-2">2.3 Mesure d&apos;audience</h3>
+                    <p>
+                        Nous utilisons <strong>Vercel Analytics</strong> et <strong>Vercel Speed
+                        Insights</strong> pour mesurer la fréquentation et les performances du site. Ces
+                        outils fonctionnent <strong>sans cookie</strong> et ne permettent pas de vous
+                        identifier ni de vous suivre d&apos;un site à l&apos;autre. Les données produites
+                        sont agrégées : pages consultées, temps de chargement, type d&apos;appareil.
+                    </p>
+
+                    <h3 className="font-semibold text-[#111827] mt-5 mb-2">2.4 Marchands (compte professionnel)</h3>
                     <p>Pour créer et gérer un compte Marchand, nous collectons :</p>
                     <ul className="list-disc list-inside space-y-1 mt-3 ml-2">
                         <li><strong>Adresse email</strong> (identifiant du compte).</li>
@@ -69,6 +107,15 @@ export default function PrivacyPage() {
                         <li>
                             <strong>Données analytiques agrégées</strong> : nombre de tickets, temps moyen de passage,
                             sans identification individuelle.
+                        </li>
+                        <li>
+                            <strong>Adresse de l&apos;établissement</strong> et ses coordonnées
+                            géographiques, uniquement si vous les renseignez. Elles servent à vous
+                            placer sur la carte publique et sont alors <strong>visibles de
+                            tous</strong>. Cette donnée est facultative : la saisir est un choix, et
+                            vous pouvez l&apos;effacer à tout moment depuis vos réglages, ce qui la
+                            supprime définitivement de nos serveurs. Il s&apos;agit d&apos;une donnée
+                            professionnelle, pas d&apos;une adresse personnelle.
                         </li>
                     </ul>
                 </section>
@@ -105,6 +152,46 @@ export default function PrivacyPage() {
                                     <td className="px-4 py-3 text-[#374151]">Intérêt légitime</td>
                                     <td className="px-4 py-3 text-[#374151]">Indéfinie (données anonymisées)</td>
                                 </tr>
+                                <tr>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Localisation du visiteur (carte de découverte)
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Consentement (autorisation du navigateur)
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Aucune conservation — traitée puis écartée
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Adresse du commerce sur la carte publique
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Consentement du marchand (saisie facultative)
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Jusqu&apos;à suppression par le marchand
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Limitation du nombre de recherches (adresse IP)
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Intérêt légitime (sécurité du service)
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">Quelques minutes</td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Mesure d&apos;audience sans cookie
+                                    </td>
+                                    <td className="px-4 py-3 text-[#374151]">Intérêt légitime</td>
+                                    <td className="px-4 py-3 text-[#374151]">
+                                        Agrégée, sans identification individuelle
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -120,8 +207,19 @@ export default function PrivacyPage() {
                     <p className="mt-3">Nos sous-traitants principaux :</p>
                     <ul className="list-disc list-inside space-y-1 mt-2 ml-2">
                         <li><strong>Supabase</strong> — Base de données, authentification (EU-West)</li>
-                        <li><strong>Vercel</strong> — Hébergement de l&apos;application (Edge Network)</li>
+                        <li>
+                            <strong>Vercel</strong> — Hébergement de l&apos;application (Edge Network) et
+                            mesure d&apos;audience sans cookie
+                        </li>
                         <li><strong>Stripe</strong> — Traitement des paiements (certifié PCI-DSS)</li>
+                        <li>
+                            <strong>Base Adresse Nationale</strong> (api-adresse.data.gouv.fr) — Conversion
+                            d&apos;une adresse saisie en coordonnées, service public de l&apos;État français
+                        </li>
+                        <li>
+                            <strong>OpenFreeMap</strong> — Fond cartographique de la page « Trouver un
+                            commerce près de moi »
+                        </li>
                     </ul>
                     <p className="mt-3">
                         Chacun de ces prestataires est soumis à des garanties contractuelles conformes au RGPD

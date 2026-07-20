@@ -127,6 +127,14 @@ export function MarketingNav() {
                                 Retrouver ma file d&apos;attente
                                 <ChevronRight size={15} aria-hidden="true" />
                             </Link>
+                            <Link
+                                href="/carte"
+                                onClick={closeMenu}
+                                className="mt-2 flex items-center justify-between text-sm font-semibold text-[#4F46E5] hover:text-[#4338CA]"
+                            >
+                                Trouver un commerce près de moi
+                                <ChevronRight size={15} aria-hidden="true" />
+                            </Link>
                         </div>
 
                         <div className="mt-8 grid gap-3">
