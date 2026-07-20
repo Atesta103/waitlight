@@ -26,7 +26,12 @@ export type PublicMerchant = {
 }
 
 export type NearbyMerchant = PublicMerchant & {
-    /** Rounded to ~3 decimals (~100m) — never the merchant's exact position. */
+    /**
+     * Exact geocoded position. Not blurred: the merchant's full postal address
+     * ships in the same payload by design, so rounding the coordinates would
+     * only be decorative — it would suggest a privacy guarantee the response
+     * does not actually make. Appearing here is opt-in (`is_public`).
+     */
     latitude: number
     longitude: number
     distance_km: number
@@ -38,11 +43,6 @@ function getClientIp(headersList: Headers): string {
         headersList.get("x-real-ip") ??
         "unknown"
     )
-}
-
-/** Rounds to ~100m precision — enough for a map marker, not enough to scrape exact addresses. */
-function roundCoordinate(value: number): number {
-    return Math.round(value * 1000) / 1000
 }
 
 /**
@@ -143,8 +143,8 @@ export async function getNearbyMerchantsAction(input: {
         logo_url: m.logo_url,
         is_open: m.is_open,
         address: m.address,
-        latitude: roundCoordinate(m.latitude),
-        longitude: roundCoordinate(m.longitude),
+        latitude: m.latitude,
+        longitude: m.longitude,
         distance_km: m.distance_km,
     }))
 
