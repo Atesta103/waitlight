@@ -41,6 +41,7 @@ import {
     QrCode,
     Search,
     Lock,
+    MapPin,
 } from "lucide-react"
 import {
     updateMerchantIdentityAction,
@@ -52,9 +53,11 @@ import {
     updateThankYouTitleAction,
     updateQrModeAction,
     updatePublicListingAction,
+    updateMerchantLocationAction,
     type ScheduleData,
     type NotificationChannels,
 } from "@/lib/actions/settings"
+import { AddressAutocomplete } from "@/components/composed/AddressAutocomplete"
 import { type MerchantIdentityInput } from "@/lib/validators/settings"
 import { BannedWordsManager } from "@/components/composed/BannedWordsManager"
 import { ExportDataButton } from "@/components/composed/ExportDataButton"
@@ -104,6 +107,9 @@ type SettingsData = {
     approachingTimeThresholdMin: number
     qrMode: "kiosk" | "assisted"
     isPublic: boolean
+    address: string | null
+    latitude: number | null
+    longitude: number | null
 }
 
 type SettingsPanelProps = {
@@ -532,6 +538,52 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
             const result = await updatePublicListingAction(next)
             if ("error" in result) {
                 setIsPublic(!next) // rollback
+            }
+        })
+    }
+
+    // ── Merchant location (discovery map) ────────────────────────────────────
+    const [address, setAddress] = useState(initialData.address)
+    const [, startLocationTransition] = useTransition()
+    const [locationError, setLocationError] = useState<string | null>(null)
+
+    const handleSelectAddress = (suggestion: {
+        label: string
+        latitude: number
+        longitude: number
+    }) => {
+        const previous = address
+        setAddress(suggestion.label) // optimistic
+        startLocationTransition(async () => {
+            const result = await updateMerchantLocationAction({
+                address: suggestion.label,
+                latitude: suggestion.latitude,
+                longitude: suggestion.longitude,
+            })
+            if ("error" in result) {
+                setLocationError(result.error)
+                setAddress(previous) // rollback
+            } else {
+                setLocationError(null)
+            }
+        })
+    }
+
+    /**
+     * Erases the stored address and coordinates. Turning off the public listing
+     * only hides the merchant; this is the one path that removes the data, which
+     * is what the privacy policy promises.
+     */
+    const handleRemoveAddress = () => {
+        const previous = address
+        setAddress(null) // optimistic
+        startLocationTransition(async () => {
+            const result = await updateMerchantLocationAction(null)
+            if ("error" in result) {
+                setLocationError(result.error)
+                setAddress(previous) // rollback
+            } else {
+                setLocationError(null)
             }
         })
     }
@@ -1886,13 +1938,64 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 title="Annuaire public"
                                 description="Permettez à vos clients de vous retrouver s'ils ont perdu leur file d'attente."
                             >
-                                <ToggleRow
-                                    icon={Search}
-                                    label="Apparaître dans l'annuaire public"
-                                    description="Permet à vos clients de vous retrouver par votre nom sur la page « Retrouver ma file » de WaitLight."
-                                    checked={isPublic}
-                                    onChange={handleTogglePublic}
-                                />
+                                <div className="flex flex-col gap-4">
+                                    <ToggleRow
+                                        icon={Search}
+                                        label="Apparaître dans l'annuaire public"
+                                        description="Permet à vos clients de vous retrouver par votre nom sur la page « Retrouver ma file » de WaitLight."
+                                        checked={isPublic}
+                                        onChange={handleTogglePublic}
+                                    />
+
+                                    {isPublic ? (
+                                        <Card className="p-6">
+                                            <CardContent>
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex items-start gap-3">
+                                                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-default bg-border-default/50 text-text-secondary">
+                                                            <MapPin size={15} aria-hidden="true" />
+                                                        </span>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-text-primary">
+                                                                Adresse du commerce
+                                                            </p>
+                                                            <p className="mt-1 text-xs text-text-secondary">
+                                                                {address
+                                                                    ? "Utilisée pour vous positionner sur la carte de découverte."
+                                                                    : "Ajoutez une adresse pour apparaître aussi sur la carte de découverte des commerces à proximité."}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    {/* Keyed on the stored value: the field holds its
+                                                        own draft state, so it needs a remount to
+                                                        reflect a removal or a rollback. */}
+                                                    <AddressAutocomplete
+                                                        key={address ?? "none"}
+                                                        label="Adresse"
+                                                        initialValue={address ?? ""}
+                                                        onSelect={handleSelectAddress}
+                                                    />
+                                                    {address ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={handleRemoveAddress}
+                                                            className="self-start text-feedback-error"
+                                                        >
+                                                            <Trash2 size={14} aria-hidden="true" />
+                                                            Retirer l&apos;adresse
+                                                        </Button>
+                                                    ) : null}
+                                                    {locationError ? (
+                                                        <p className="text-sm text-feedback-error" role="alert">
+                                                            {locationError}
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ) : null}
+                                </div>
                             </SectionBlock>
 
                             <SectionBlock

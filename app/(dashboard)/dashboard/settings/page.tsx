@@ -71,6 +71,9 @@ export default async function SettingsPage() {
                         settings.approaching_time_threshold_min,
                     qrMode: settings.qr_mode,
                     isPublic: merchant.is_public,
+                    address: merchant.address,
+                    latitude: merchant.latitude,
+                    longitude: merchant.longitude,
                 }}
             />
         </div>

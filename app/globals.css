@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Imported globally (not from the MerchantsMap client component) to avoid
+   Turbopack CSS resolution issues with node_modules imports from client components. */
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 /* ─── WaitLight Design Tokens ─── */
 
@@ -226,4 +229,145 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ─── Discovery map markers (/carte) ───────────────────────────────────────
+   MapLibre builds marker DOM outside React, so these live here rather than in
+   MerchantsMap. The pin encodes availability, not just position: an open shop
+   gets the brand ring and a slow live halo, a closed one is desaturated and
+   still. That contrast is the map's actual payload — where can I go *now*. */
+
+.wl-pin {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.wl-pin__disc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: #ffffff;
+  /* Brand ring, then a white ring outside it: Voyager's basemap runs from pale
+     roads to green parks, and the white keeps the pin legible over all of it. */
+  box-shadow:
+    0 0 0 2px var(--color-brand-primary),
+    0 0 0 4px rgb(255 255 255 / 0.92),
+    0 4px 12px rgb(0 0 0 / 0.22);
+  transition: transform 160ms ease;
+}
+
+.wl-pin__disc img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Fallback when a merchant has no logo: their initial, set in the brand tint.
+   A generic placeholder icon would make every logo-less shop look identical —
+   the initial still distinguishes them at a glance. */
+.wl-pin__initial {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, #ffffff);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wl-pin__halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-brand-primary) 35%, transparent);
+  opacity: 0;
+}
+
+.wl-pin--open .wl-pin__halo {
+  animation: wl-pin-pulse 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Closed shops stay legible but visibly inert — no ring colour, no motion. */
+.wl-pin--closed .wl-pin__disc {
+  filter: grayscale(1);
+  opacity: 0.72;
+  box-shadow:
+    0 0 0 2px #9ca3af,
+    0 0 0 4px rgb(255 255 255 / 0.92),
+    0 2px 8px rgb(0 0 0 / 0.16);
+}
+
+.wl-pin { cursor: pointer; }
+
+.wl-pin:hover .wl-pin__disc,
+.wl-pin:focus-visible .wl-pin__disc {
+  transform: scale(1.09);
+}
+
+.wl-pin:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
+@keyframes wl-pin-pulse {
+  0% { opacity: 0.55; transform: scale(0.85); }
+  70% { opacity: 0; transform: scale(1.35); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+/* Hover label. MapLibre has no tooltip primitive, so the name rides along
+   inside the marker and is revealed here. */
+.wl-pin__label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 4px 9px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.10);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.wl-pin:hover .wl-pin__label,
+.wl-pin:focus-visible .wl-pin__label {
+  opacity: 1;
+}
+
+/* The popup body is a React tree; strip MapLibre's own text styling so the
+   design system's typography wins. */
+.maplibregl-popup-content {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--color-surface-card);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.14);
+  font: inherit;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--color-surface-card);
+  border-bottom-color: var(--color-surface-card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-pin--open .wl-pin__halo { animation: none; }
+  .wl-pin__disc,
+  .wl-pin__label { transition: none; }
 }
