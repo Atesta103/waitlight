@@ -1250,6 +1250,9 @@ export default function DesignSystemPage() {
                                     approachingTimeThresholdMin: 5,
                                     qrMode: "kiosk",
                                     isPublic: false,
+                                    address: null,
+                                    latitude: null,
+                                    longitude: null,
                                 }}
                             />
                         </SubSection>
