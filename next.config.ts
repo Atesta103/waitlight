@@ -13,7 +13,7 @@ const securityHeaders = [
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     {
         key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=()",
+        value: "camera=(), microphone=(), geolocation=(self)",
     },
     {
         key: "Content-Security-Policy",
@@ -21,8 +21,13 @@ const securityHeaders = [
             "default-src 'self'",
             `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
             "style-src 'self' 'unsafe-inline'",
-            `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "*"} wss://*.supabase.co https://*.supabase.co`,
-            `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://*.supabase.co"}`,
+            // tiles.openfreemap.org serves the /carte vector style, tiles,
+            // glyphs and sprite sheet; MapLibre fetches all of them by XHR.
+            `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "*"} wss://*.supabase.co https://*.supabase.co https://api-adresse.data.gouv.fr https://tiles.openfreemap.org`,
+            `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://*.supabase.co"} https://tiles.openfreemap.org`,
+            // MapLibre decodes vector tiles in a worker it creates from a blob.
+            "worker-src blob:",
+            "child-src blob:",
             "font-src 'self' data:",
             "frame-ancestors 'none'",
         ].join("; "),
