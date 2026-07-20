@@ -131,13 +131,13 @@ function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
 function MerchantsMap({ center, merchants }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
-    const popupRef = useRef<maplibregl.Popup | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
 
-    // The popup's body is a detached node that React portals into, so the popup
-    // content stays a real React tree rather than an HTML string.
-    const [popupHost, setPopupHost] = useState<HTMLDivElement | null>(null)
-    const [selected, setSelected] = useState<NearbyMerchant | null>(null)
+    // One portal host per merchant: each popup's body is a detached node React
+    // portals into, so the content stays a real React tree (Badge, Link) rather
+    // than an HTML string. MapLibre owns opening/closing the popup on marker
+    // click — hand-wiring that click was what broke.
+    const [popupHosts, setPopupHosts] = useState<Map<string, HTMLElement>>(new Map())
 
     // Map instance: created once. `center` changes are handled separately so a
     // new search pans the existing map instead of rebuilding it.
@@ -169,42 +169,41 @@ function MerchantsMap({ center, merchants }: MerchantsMapProps) {
         markersRef.current.forEach((marker) => marker.remove())
         markersRef.current = []
 
-        const host = document.createElement("div")
-        const popup = new maplibregl.Popup({
-            offset: 26,
-            closeButton: true,
-            maxWidth: "280px",
-        }).setDOMContent(host)
-
-        popupRef.current = popup
-        setPopupHost(host)
+        const hosts = new Map<string, HTMLElement>()
 
         markersRef.current = merchants.map((merchant) => {
+            const host = document.createElement("div")
+            hosts.set(merchant.slug, host)
+
+            const popup = new maplibregl.Popup({
+                offset: 26,
+                closeButton: true,
+                maxWidth: "280px",
+            }).setDOMContent(host)
+
             const element = createPinElement(merchant)
             const marker = new maplibregl.Marker({ element })
                 .setLngLat([merchant.longitude, merchant.latitude])
+                .setPopup(popup) // MapLibre toggles the popup on marker click
                 .addTo(map)
 
-            const open = () => {
-                setSelected(merchant)
-                popup.setLngLat([merchant.longitude, merchant.latitude]).addTo(map)
-            }
-
-            element.addEventListener("click", open)
+            // Keyboard parity: the pin is focusable, so Enter/Space must open the
+            // popup too. togglePopup() is the same path MapLibre runs on click.
             element.addEventListener("keydown", (event) => {
                 if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault()
-                    open()
+                    marker.togglePopup()
                 }
             })
 
             return marker
         })
 
+        setPopupHosts(hosts)
+
         return () => {
             markersRef.current.forEach((marker) => marker.remove())
             markersRef.current = []
-            popup.remove()
         }
     }, [merchants])
 
@@ -216,7 +215,12 @@ function MerchantsMap({ center, merchants }: MerchantsMapProps) {
     return (
         <>
             <div ref={containerRef} className="h-full w-full rounded-2xl" />
-            {popupHost && selected ? createPortal(<MerchantPopup merchant={selected} />, popupHost) : null}
+            {merchants.map((merchant) => {
+                const host = popupHosts.get(merchant.slug)
+                return host
+                    ? createPortal(<MerchantPopup merchant={merchant} />, host, merchant.slug)
+                    : null
+            })}
         </>
     )
 }
