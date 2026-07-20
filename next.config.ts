@@ -19,7 +19,10 @@ const securityHeaders = [
         key: "Content-Security-Policy",
         value: [
             "default-src 'self'",
-            `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+            // @vercel/analytics and @vercel/speed-insights inject their script
+            // tag from this host at mount; without it listed here they load
+            // nothing and report nothing, on every route.
+            `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
             "style-src 'self' 'unsafe-inline'",
             // tiles.openfreemap.org serves the /carte vector style, tiles,
             // glyphs and sprite sheet; MapLibre fetches all of them by XHR.
