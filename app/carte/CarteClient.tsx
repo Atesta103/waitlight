@@ -212,6 +212,16 @@ function CarteClient() {
 
             {status === "ready" && center && (
                 <>
+                    {/* Search elsewhere without leaving the map: plan a trip, or
+                        check what's open near someone else. Reuses the same
+                        loadNearby path as the initial search. */}
+                    <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+                        <AddressAutocomplete
+                            label="Chercher à une autre adresse"
+                            onSelect={(s) => loadNearby(s.latitude, s.longitude)}
+                        />
+                    </div>
+
                     <div className="h-[500px] w-full overflow-hidden rounded-2xl border border-[#E5E7EB] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
                         <MerchantsMap center={center} merchants={merchants} />
                     </div>
