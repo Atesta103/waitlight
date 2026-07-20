@@ -569,6 +569,25 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
         })
     }
 
+    /**
+     * Erases the stored address and coordinates. Turning off the public listing
+     * only hides the merchant; this is the one path that removes the data, which
+     * is what the privacy policy promises.
+     */
+    const handleRemoveAddress = () => {
+        const previous = address
+        setAddress(null) // optimistic
+        startLocationTransition(async () => {
+            const result = await updateMerchantLocationAction(null)
+            if ("error" in result) {
+                setLocationError(result.error)
+                setAddress(previous) // rollback
+            } else {
+                setLocationError(null)
+            }
+        })
+    }
+
     const [scheduleDirty, setScheduleDirty] = useState(false)
     const [notificationDirty, setNotificationDirty] = useState(false)
     const [embeddedEditorsReset, setEmbeddedEditorsReset] = useState(0)
@@ -1947,11 +1966,26 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                             </p>
                                                         </div>
                                                     </div>
+                                                    {/* Keyed on the stored value: the field holds its
+                                                        own draft state, so it needs a remount to
+                                                        reflect a removal or a rollback. */}
                                                     <AddressAutocomplete
+                                                        key={address ?? "none"}
                                                         label="Adresse"
                                                         initialValue={address ?? ""}
                                                         onSelect={handleSelectAddress}
                                                     />
+                                                    {address ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={handleRemoveAddress}
+                                                            className="self-start text-feedback-error"
+                                                        >
+                                                            <Trash2 size={14} aria-hidden="true" />
+                                                            Retirer l&apos;adresse
+                                                        </Button>
+                                                    ) : null}
                                                     {locationError ? (
                                                         <p className="text-sm text-feedback-error" role="alert">
                                                             {locationError}
