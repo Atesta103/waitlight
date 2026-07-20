@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { Loader2, LocateFixed, RotateCw, SearchX, Settings2 } from "lucide-react"
 import { AddressAutocomplete } from "@/components/composed/AddressAutocomplete"
@@ -113,7 +113,18 @@ function CarteClient() {
         requestGeolocation()
     }, [requestGeolocation])
 
+    // Fire the location request exactly once per mount. Without this guard,
+    // React StrictMode's dev-only double-invoke of the mount effect asks the
+    // browser for a position twice in quick succession — two stacked permission
+    // prompts, which is exactly what trips Chromium/Arc's "prompt ignored
+    // repeatedly" auto-block. That block then returns PERMISSION_DENIED even
+    // after the user allows location, and can leave the UI stuck on the spinner.
+    const didRequestLocation = useRef(false)
+
     useEffect(() => {
+        if (didRequestLocation.current) return
+        didRequestLocation.current = true
+
         if (!("geolocation" in navigator)) {
             // Defer to avoid a synchronous setState in the effect body.
             const t = setTimeout(() => {
