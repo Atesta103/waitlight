@@ -117,7 +117,11 @@ function createPinElement(merchant: NearbyMerchant): HTMLElement {
 /** Popup body. Kept in React so it reuses Badge, Link and the button classes. */
 function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     return (
-        <div className="flex flex-col gap-2 p-1 min-w-[200px]">
+        // Fixed width, not min-width: a long address (which wraps to two lines
+        // instead of truncating, so the info stays readable) must not change the
+        // card's width from one merchant to the next — only its height, which
+        // is fine since the popup is anchored to the pin, not the card's edge.
+        <div className="flex w-[240px] flex-col gap-2 p-1">
             <div className="flex items-center gap-2">
                 {merchant.logo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
