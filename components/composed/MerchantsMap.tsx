@@ -227,7 +227,11 @@ function buildMerchantMarker(
         anchor: "bottom",
         offset: 30,
         closeButton: true,
-        maxWidth: "280px",
+        // The card itself is a fixed 240px (see MerchantPopup); with the content
+        // wrapper's padding (14px left + 34px right, for the close button) that
+        // needs ~288px total. 280 was tighter than that — bumped so the fixed
+        // width is never the thing actually constraining the popup.
+        maxWidth: "320px",
         focusAfterOpen: false,
     }).setDOMContent(host)
 
