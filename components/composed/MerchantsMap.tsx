@@ -16,35 +16,10 @@ type MerchantsMapProps = {
     /** The visitor's GPS position, if geolocation succeeded. Drives the "you are
      *  here" marker and the recenter button; absent for a manual-only visitor. */
     userPosition?: { lat: number; lng: number } | null
-    /** Re-fetch results for a new center, called automatically once the map is
-     *  panned far enough from the loaded area. Omit to disable auto-refresh. */
-    onSearchArea?: (center: { lat: number; lng: number }) => void
 }
 
 /** Pins closer than this many screen pixels collapse into one cluster. */
 const CLUSTER_RADIUS_PX = 46
-
-/** How far the map must drift from the loaded center (km) before results are
- *  re-fetched automatically. Kept well inside the 25km search radius so new
- *  shops surface soon after panning, without refetching on every small move. */
-const AUTO_REFRESH_THRESHOLD_KM = 4
-
-/** Quiet period after the map settles before an auto-refresh fires, so a long
- *  drag or a pinch-zoom triggers one fetch at the end, not a burst. */
-const AUTO_REFRESH_DEBOUNCE_MS = 700
-
-/** Great-circle distance in km — used to decide when a re-search is worthwhile. */
-function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-    const R = 6371
-    const dLat = ((b.lat - a.lat) * Math.PI) / 180
-    const dLng = ((b.lng - a.lng) * Math.PI) / 180
-    const lat1 = (a.lat * Math.PI) / 180
-    const lat2 = (b.lat * Math.PI) / 180
-    const h =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
-    return 2 * R * Math.asin(Math.sqrt(h))
-}
 
 /**
  * OpenFreeMap's "Liberty" vector style — no API key, no billing. Vector tiles
@@ -64,7 +39,17 @@ function createClusterElement(count: number): HTMLElement {
     el.tabIndex = 0
     el.setAttribute("role", "button")
     el.setAttribute("aria-label", `${count} commerces regroupés, zoomer pour les séparer`)
-    el.textContent = String(count)
+
+    // The visual lives on an inner span. MapLibre positions the marker by
+    // writing `transform: translate(...)` onto the root element on every frame
+    // of a pan, so the root must carry no transform transition — otherwise the
+    // marker eases toward each new position and visibly lags the map. The hover
+    // scale therefore rides the inner span, which MapLibre never touches.
+    const inner = document.createElement("span")
+    inner.className = "wl-cluster__inner"
+    inner.textContent = String(count)
+    el.appendChild(inner)
+
     return el
 }
 
@@ -232,7 +217,7 @@ function buildClusterMarker(map: maplibregl.Map, members: NearbyMerchant[]): map
     return marker
 }
 
-function MerchantsMap({ center, merchants, userPosition, onSearchArea }: MerchantsMapProps) {
+function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
@@ -343,33 +328,6 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
             marker.remove()
         }
     }, [userPosition])
-
-    // Auto-refresh: once the map settles far enough from the center the current
-    // results were loaded for, re-fetch for where the visitor has panned — no
-    // button to press. Debounced so a long drag fires one fetch at the end. The
-    // refresh updates `center`, which re-runs this effect with the new baseline,
-    // so distance falls back to ~0 and it won't loop.
-    useEffect(() => {
-        const map = mapRef.current
-        if (!map || !onSearchArea) return
-
-        let timer: ReturnType<typeof setTimeout> | undefined
-
-        const onMoveEnd = () => {
-            const c = map.getCenter()
-            const point = { lat: c.lat, lng: c.lng }
-            if (distanceKm(center, point) <= AUTO_REFRESH_THRESHOLD_KM) return
-
-            clearTimeout(timer)
-            timer = setTimeout(() => onSearchArea(point), AUTO_REFRESH_DEBOUNCE_MS)
-        }
-        map.on("moveend", onMoveEnd)
-
-        return () => {
-            clearTimeout(timer)
-            map.off("moveend", onMoveEnd)
-        }
-    }, [center, onSearchArea])
 
     // Recenter on a new search without tearing the map down.
     useEffect(() => {
