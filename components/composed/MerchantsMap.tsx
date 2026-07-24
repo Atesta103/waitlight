@@ -25,10 +25,9 @@ type MerchantsMapProps = {
 const CLUSTER_RADIUS_PX = 46
 
 /** How far the map must drift from the loaded center (km) before results are
- *  re-fetched automatically. Roughly a third of the 25km search radius, so the
- *  loaded set always comfortably covers the viewport without refetching on
- *  every small pan. */
-const AUTO_REFRESH_THRESHOLD_KM = 8
+ *  re-fetched automatically. Kept well inside the 25km search radius so new
+ *  shops surface soon after panning, without refetching on every small move. */
+const AUTO_REFRESH_THRESHOLD_KM = 4
 
 /** Quiet period after the map settles before an auto-refresh fires, so a long
  *  drag or a pinch-zoom triggers one fetch at the end, not a burst. */
@@ -267,10 +266,12 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
     }, [])
 
     // Markers with pixel-proximity clustering. One portal host is created per
-    // merchant up front (stable while the result set holds), but the markers
-    // themselves are re-derived on every pan/zoom: pins that overlap at the
-    // current scale collapse into a counted cluster, and separate again as you
-    // zoom in. At most 30 merchants, so the O(n²) grouping is trivial.
+    // merchant up front (stable while the result set holds); the markers are
+    // re-derived on zoom, where pins that overlap at the new scale collapse into
+    // a counted cluster or split apart. NOT on pan: panning translates every
+    // point equally, so pairwise pixel distances — and thus the clustering — are
+    // unchanged, and rebuilding would only make the pins flicker out of place.
+    // At most 30 merchants, so the O(n²) grouping is trivial.
     useEffect(() => {
         const map = mapRef.current
         if (!map) return
@@ -313,11 +314,11 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
         }
 
         renderMarkers()
-        // Re-cluster after the map settles from any pan or zoom.
-        map.on("moveend", renderMarkers)
+        // Re-cluster on zoom only — pan leaves pixel distances unchanged.
+        map.on("zoomend", renderMarkers)
 
         return () => {
-            map.off("moveend", renderMarkers)
+            map.off("zoomend", renderMarkers)
             markersRef.current.forEach((marker) => marker.remove())
             markersRef.current = []
         }
