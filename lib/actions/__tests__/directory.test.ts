@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
-    rpc: vi.fn(),
-    ilikeLimit: vi.fn(),
+    /** Terminal resolver for any merchants query; each test sets its result. */
+    query: vi.fn(),
     checkRateLimit: vi.fn(),
     headerGet: vi.fn(),
     /** Captures the pattern handed to .ilike(), which no mock return value exposes. */
@@ -19,30 +19,31 @@ vi.mock("@/lib/utils/rate-limit", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
     createClient: vi.fn(async () => ({
-        rpc: mocks.rpc,
+        // A single chainable stub covering both query shapes:
+        //   search:  .select().eq().ilike().order().limit()
+        //   map:     .select().eq().not().not().limit()
         from: (table: string) => {
             if (table !== "merchants") {
                 throw new Error(`Unexpected table ${table}`)
             }
-            // .select().eq().ilike().order().limit()
-            return {
-                select: () => ({
-                    eq: () => ({
-                        ilike: (_column: string, pattern: string) => {
-                            mocks.captured.ilikePattern = pattern
-                            return {
-                                order: () => ({ limit: mocks.ilikeLimit }),
-                            }
-                        },
-                    }),
-                }),
+            const chain = {
+                select: () => chain,
+                eq: () => chain,
+                ilike: (_column: string, pattern: string) => {
+                    mocks.captured.ilikePattern = pattern
+                    return chain
+                },
+                order: () => chain,
+                not: () => chain,
+                limit: () => mocks.query(),
             }
+            return chain
         },
     })),
 }))
 
 import {
-    getNearbyMerchantsAction,
+    getAllPublicMerchantsAction,
     searchPublicMerchantsAction,
 } from "@/lib/actions/directory"
 
@@ -55,7 +56,6 @@ const merchantRow = {
     address: "1 Impasse Lucien Brocard 83136 Garéoult",
     latitude: 43.341036,
     longitude: 6.045869,
-    distance_km: 0.0113251881835722,
 }
 
 beforeEach(() => {
@@ -64,88 +64,39 @@ beforeEach(() => {
     mocks.headerGet.mockReturnValue(null)
 })
 
-describe("getNearbyMerchantsAction", () => {
-    it("returns merchants from the RPC unchanged", async () => {
-        mocks.rpc.mockResolvedValue({ data: [merchantRow], error: null })
+describe("getAllPublicMerchantsAction", () => {
+    it("returns every public merchant unchanged", async () => {
+        mocks.query.mockResolvedValue({ data: [merchantRow], error: null })
 
-        const result = await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        const result = await getAllPublicMerchantsAction()
 
         expect(result).toEqual({ data: [merchantRow] })
     })
 
-    it("passes exact coordinates through without blurring them", async () => {
-        // The full postal address ships in the same payload, so rounding the
-        // coordinates would imply a privacy guarantee the response never makes.
-        mocks.rpc.mockResolvedValue({ data: [merchantRow], error: null })
+    it("does not compute distance server-side (left to the client)", async () => {
+        mocks.query.mockResolvedValue({ data: [merchantRow], error: null })
 
-        const result = await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        const result = await getAllPublicMerchantsAction()
 
-        expect(result).toMatchObject({
-            data: [{ latitude: 43.341036, longitude: 6.045869 }],
-        })
+        expect("error" in result).toBe(false)
+        if (!("error" in result)) {
+            expect(result.data[0]).not.toHaveProperty("distance_km")
+        }
     })
 
-    it("clamps an oversized radius to the server maximum", async () => {
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
+    it("treats a null payload as an empty list", async () => {
+        mocks.query.mockResolvedValue({ data: null, error: null })
 
-        await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04, radiusKm: 5000 })
-
-        expect(mocks.rpc).toHaveBeenCalledWith(
-            "nearby_public_merchants",
-            expect.objectContaining({ p_radius_km: 25, p_limit: 30 }),
-        )
-    })
-
-    it("honours a smaller requested radius", async () => {
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
-
-        await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04, radiusKm: 5 })
-
-        expect(mocks.rpc).toHaveBeenCalledWith(
-            "nearby_public_merchants",
-            expect.objectContaining({ p_radius_km: 5 }),
-        )
-    })
-
-    it("defaults to the maximum radius when none is given", async () => {
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
-
-        await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
-
-        expect(mocks.rpc).toHaveBeenCalledWith(
-            "nearby_public_merchants",
-            expect.objectContaining({ p_radius_km: 25 }),
-        )
-    })
-
-    it("distinguishes an empty result from a failure", async () => {
-        // Regression guard: an empty list is a legitimate answer ("no shops
-        // nearby") and must never surface as an error, or the UI shows a fault
-        // where there is none.
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
-
-        const result = await getNearbyMerchantsAction({ lat: 48.85, lng: 2.35 })
-
-        expect(result).toEqual({ data: [] })
-        expect(result).not.toHaveProperty("error")
-    })
-
-    it("treats a null payload as an empty result", async () => {
-        mocks.rpc.mockResolvedValue({ data: null, error: null })
-
-        const result = await getNearbyMerchantsAction({ lat: 48.85, lng: 2.35 })
+        const result = await getAllPublicMerchantsAction()
 
         expect(result).toEqual({ data: [] })
     })
 
-    it("returns an error when the RPC fails", async () => {
-        mocks.rpc.mockResolvedValue({
-            data: null,
-            error: { code: "PGRST202", message: "Could not find the function" },
-        })
+    it("returns an error when the query fails", async () => {
+        mocks.query.mockResolvedValue({ data: null, error: { message: "boom" } })
         vi.spyOn(console, "error").mockImplementation(() => {})
 
-        const result = await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        const result = await getAllPublicMerchantsAction()
 
         expect(result).toHaveProperty("error")
         expect(result).not.toHaveProperty("data")
@@ -154,37 +105,35 @@ describe("getNearbyMerchantsAction", () => {
     it("rejects the request once the IP rate limit is exceeded", async () => {
         mocks.checkRateLimit.mockReturnValue(false)
 
-        const result = await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        const result = await getAllPublicMerchantsAction()
 
         expect(result).toEqual({
             error: "Trop de recherches. Veuillez patienter une minute.",
         })
-        expect(mocks.rpc).not.toHaveBeenCalled()
+        expect(mocks.query).not.toHaveBeenCalled()
     })
 
-    it("rate-limits nearby search separately from name search", async () => {
-        // Aggregate location data is more sensitive to scrape than a name
-        // lookup, so the two must not share a bucket.
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
+    it("rate-limits the map under its own key, keyed on the client IP", async () => {
+        mocks.query.mockResolvedValue({ data: [], error: null })
         mocks.headerGet.mockImplementation((name: string) =>
             name === "x-forwarded-for" ? "203.0.113.7" : null,
         )
 
-        await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        await getAllPublicMerchantsAction()
 
-        expect(mocks.checkRateLimit).toHaveBeenCalledWith("nearby:203.0.113.7", 10, 60_000)
+        expect(mocks.checkRateLimit).toHaveBeenCalledWith("map:203.0.113.7", 10, 60_000)
     })
 
     it("takes the first address from a forwarded-for chain", async () => {
-        mocks.rpc.mockResolvedValue({ data: [], error: null })
+        mocks.query.mockResolvedValue({ data: [], error: null })
         mocks.headerGet.mockImplementation((name: string) =>
             name === "x-forwarded-for" ? "203.0.113.7, 70.41.3.18" : null,
         )
 
-        await getNearbyMerchantsAction({ lat: 43.34, lng: 6.04 })
+        await getAllPublicMerchantsAction()
 
         expect(mocks.checkRateLimit).toHaveBeenCalledWith(
-            "nearby:203.0.113.7",
+            "map:203.0.113.7",
             expect.any(Number),
             expect.any(Number),
         )
@@ -201,7 +150,7 @@ describe("searchPublicMerchantsAction", () => {
 
     it("escapes LIKE wildcards so they match literally", async () => {
         // Without escaping, a query of "%" matches the entire directory.
-        mocks.ilikeLimit.mockResolvedValue({ data: [], error: null })
+        mocks.query.mockResolvedValue({ data: [], error: null })
 
         await searchPublicMerchantsAction("100% pizza")
 

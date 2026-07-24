@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import maplibregl from "maplibre-gl"
+import { LocateFixed } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { getButtonClasses } from "@/components/ui/button-classes"
 import { cn } from "@/lib/utils/cn"
@@ -12,7 +13,13 @@ import type { NearbyMerchant } from "@/lib/actions/directory"
 type MerchantsMapProps = {
     center: { lat: number; lng: number }
     merchants: NearbyMerchant[]
+    /** The visitor's GPS position, if geolocation succeeded. Drives the "you are
+     *  here" marker and the recenter button; absent for a manual-only visitor. */
+    userPosition?: { lat: number; lng: number } | null
 }
+
+/** Pins closer than this many screen pixels collapse into one cluster. */
+const CLUSTER_RADIUS_PX = 46
 
 /**
  * OpenFreeMap's "Liberty" vector style — no API key, no billing. Vector tiles
@@ -23,6 +30,38 @@ type MerchantsMapProps = {
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 const DEFAULT_ZOOM = 13
+
+/** The circle standing in for several overlapping pins, showing how many.
+ *  A shop's own logo would be misleading here, so the count carries it. */
+function createClusterElement(count: number): HTMLElement {
+    const el = document.createElement("div")
+    el.className = "wl-cluster"
+    el.tabIndex = 0
+    el.setAttribute("role", "button")
+    el.setAttribute("aria-label", `${count} commerces regroupés, zoomer pour les séparer`)
+
+    // The visual lives on an inner span. MapLibre positions the marker by
+    // writing `transform: translate(...)` onto the root element on every frame
+    // of a pan, so the root must carry no transform transition — otherwise the
+    // marker eases toward each new position and visibly lags the map. The hover
+    // scale therefore rides the inner span, which MapLibre never touches.
+    const inner = document.createElement("span")
+    inner.className = "wl-cluster__inner"
+    inner.textContent = String(count)
+    el.appendChild(inner)
+
+    return el
+}
+
+/** The "you are here" dot — deliberately unlike the merchant pins so the
+ *  visitor never mistakes their own position for a shop. Styled in globals.css. */
+function createUserDotElement(): HTMLElement {
+    const dot = document.createElement("div")
+    dot.className = "wl-userdot"
+    dot.setAttribute("aria-label", "Votre position")
+    dot.innerHTML = `<span class="wl-userdot__pulse"></span><span class="wl-userdot__core"></span>`
+    return dot
+}
 
 /**
  * Builds the DOM node MapLibre anchors at the merchant's coordinates. Styling
@@ -128,10 +167,103 @@ function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     )
 }
 
-function MerchantsMap({ center, merchants }: MerchantsMapProps) {
+/**
+ * Groups merchants whose pins fall within CLUSTER_RADIUS_PX of each other at
+ * the map's current scale. Greedy and O(n²), fine for ≤30 merchants. Returns
+ * one array of members per group (singletons included).
+ */
+function computeClusters(map: maplibregl.Map, merchants: NearbyMerchant[]): NearbyMerchant[][] {
+    const projected = merchants.map((merchant) => ({
+        merchant,
+        point: map.project([merchant.longitude, merchant.latitude]),
+    }))
+
+    const grouped = new Set<number>()
+    const groups: NearbyMerchant[][] = []
+
+    projected.forEach(({ merchant, point }, i) => {
+        if (grouped.has(i)) return
+        grouped.add(i)
+
+        const members = [merchant]
+        for (let j = i + 1; j < projected.length; j++) {
+            if (grouped.has(j)) continue
+            const other = projected[j].point
+            if (Math.hypot(point.x - other.x, point.y - other.y) < CLUSTER_RADIUS_PX) {
+                grouped.add(j)
+                members.push(projected[j].merchant)
+            }
+        }
+        groups.push(members)
+    })
+
+    return groups
+}
+
+/** A stable identity for a grouping, so markers are rebuilt only when the
+ *  grouping actually changes — not on every frame of a continuous zoom. */
+function clusterSignature(groups: NearbyMerchant[][]): string {
+    return groups
+        .map((members) => members.map((m) => m.slug).sort().join(","))
+        .sort()
+        .join("|")
+}
+
+/** A single merchant pin wired to its popup, with keyboard parity. */
+function buildMerchantMarker(
+    map: maplibregl.Map,
+    merchant: NearbyMerchant,
+    host: HTMLElement,
+): maplibregl.Marker {
+    const popup = new maplibregl.Popup({
+        offset: 26,
+        closeButton: true,
+        maxWidth: "280px",
+    }).setDOMContent(host)
+
+    const element = createPinElement(merchant)
+    const marker = new maplibregl.Marker({ element })
+        .setLngLat([merchant.longitude, merchant.latitude])
+        .setPopup(popup) // MapLibre toggles the popup on marker click
+        .addTo(map)
+
+    element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            marker.togglePopup()
+        }
+    })
+
+    return marker
+}
+
+/** A cluster bubble at the members' centroid; clicking zooms in to split it. */
+function buildClusterMarker(map: maplibregl.Map, members: NearbyMerchant[]): maplibregl.Marker {
+    const lng = members.reduce((sum, m) => sum + m.longitude, 0) / members.length
+    const lat = members.reduce((sum, m) => sum + m.latitude, 0) / members.length
+
+    const element = createClusterElement(members.length)
+    const marker = new maplibregl.Marker({ element }).setLngLat([lng, lat]).addTo(map)
+
+    const zoomIn = () => {
+        map.easeTo({ center: [lng, lat], zoom: map.getZoom() + 2, duration: 500 })
+    }
+    element.addEventListener("click", zoomIn)
+    element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            zoomIn()
+        }
+    })
+
+    return marker
+}
+
+function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
+    const clusterSigRef = useRef<string>("")
 
     // One portal host per merchant: each popup's body is a detached node React
     // portals into, so the content stays a real React tree (Badge, Link) rather
@@ -161,67 +293,109 @@ function MerchantsMap({ center, merchants }: MerchantsMapProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // Markers, rebuilt whenever the result set changes.
+    // Markers with pixel-proximity clustering. One portal host is created per
+    // merchant up front (stable while the result set holds). Clustering is
+    // recomputed live on zoom — pins that overlap at the new scale collapse into
+    // a counted cluster and split apart again — but the markers are only rebuilt
+    // when the grouping actually changes, keyed on a signature. That gives an
+    // instant response the moment two pins merge, without rebuilding (and
+    // flickering) every frame of a continuous zoom. Not recomputed on pan:
+    // panning translates every point equally, so pairwise distances hold.
+    // At most 30 merchants, so the O(n²) grouping is trivial.
     useEffect(() => {
         const map = mapRef.current
         if (!map) return
 
-        markersRef.current.forEach((marker) => marker.remove())
-        markersRef.current = []
-
         const hosts = new Map<string, HTMLElement>()
-
-        markersRef.current = merchants.map((merchant) => {
-            const host = document.createElement("div")
-            hosts.set(merchant.slug, host)
-
-            const popup = new maplibregl.Popup({
-                offset: 26,
-                closeButton: true,
-                maxWidth: "280px",
-            }).setDOMContent(host)
-
-            const element = createPinElement(merchant)
-            const marker = new maplibregl.Marker({ element })
-                .setLngLat([merchant.longitude, merchant.latitude])
-                .setPopup(popup) // MapLibre toggles the popup on marker click
-                .addTo(map)
-
-            // Keyboard parity: the pin is focusable, so Enter/Space must open the
-            // popup too. togglePopup() is the same path MapLibre runs on click.
-            element.addEventListener("keydown", (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    marker.togglePopup()
-                }
-            })
-
-            return marker
-        })
-
+        merchants.forEach((merchant) => hosts.set(merchant.slug, document.createElement("div")))
         setPopupHosts(hosts)
 
+        // Force the first pass to build (no grouping matches an empty signature).
+        clusterSigRef.current = ""
+
+        const renderMarkers = () => {
+            const groups = computeClusters(map, merchants)
+            const signature = clusterSignature(groups)
+            if (signature === clusterSigRef.current) return
+            clusterSigRef.current = signature
+
+            markersRef.current.forEach((marker) => marker.remove())
+            markersRef.current = groups.map((members) =>
+                members.length === 1
+                    ? buildMerchantMarker(map, members[0], hosts.get(members[0].slug)!)
+                    : buildClusterMarker(map, members),
+            )
+        }
+
+        renderMarkers()
+        // Live during a zoom for immediate merge/split; the signature check makes
+        // the per-frame calls cheap no-ops until the grouping flips.
+        map.on("zoom", renderMarkers)
+
         return () => {
+            map.off("zoom", renderMarkers)
             markersRef.current.forEach((marker) => marker.remove())
             markersRef.current = []
         }
     }, [merchants])
+
+    // The "you are here" dot. Created fresh with a cleanup that removes it —
+    // essential under StrictMode's mount/unmount/remount, where the map effect
+    // tears down and rebuilds the map between the two passes. Without this
+    // cleanup the marker would stay bound to the discarded first map and never
+    // reattach to the live one, so the dot would silently never appear.
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !userPosition) return
+
+        // setLngLat must precede addTo: addTo runs an internal _update that reads
+        // the position, so adding before setting throws on lngLat.
+        const marker = new maplibregl.Marker({ element: createUserDotElement() })
+            .setLngLat([userPosition.lng, userPosition.lat])
+            .addTo(map)
+
+        return () => {
+            marker.remove()
+        }
+    }, [userPosition])
 
     // Recenter on a new search without tearing the map down.
     useEffect(() => {
         mapRef.current?.easeTo({ center: [center.lng, center.lat], duration: 600 })
     }, [center])
 
+    const recenterOnUser = () => {
+        if (!userPosition) return
+        mapRef.current?.easeTo({
+            center: [userPosition.lng, userPosition.lat],
+            zoom: DEFAULT_ZOOM,
+            duration: 600,
+        })
+    }
+
     return (
-        <>
+        <div className="relative h-full w-full">
             <div ref={containerRef} className="h-full w-full rounded-2xl" />
+
+            {userPosition ? (
+                <button
+                    type="button"
+                    onClick={recenterOnUser}
+                    aria-label="Recentrer la carte sur ma position"
+                    title="Ma position"
+                    className="absolute bottom-4 right-4 z-[1] flex h-11 w-11 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#4F46E5] shadow-[0_2px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#F5F3FF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#6366F1] focus-visible:outline-offset-2"
+                >
+                    <LocateFixed size={20} aria-hidden="true" />
+                </button>
+            ) : null}
+
             {merchants.map((merchant) => {
                 const host = popupHosts.get(merchant.slug)
                 return host
                     ? createPortal(<MerchantPopup merchant={merchant} />, host, merchant.slug)
                     : null
             })}
-        </>
+        </div>
     )
 }
 
