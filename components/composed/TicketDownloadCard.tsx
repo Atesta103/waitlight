@@ -27,15 +27,19 @@ type TicketDownloadCardProps = {
 const DEFAULT_BRAND_COLOR = "#6366f1"
 
 /**
- * Extracts just the host from the recovery URL (e.g. "waitlight.fr"), so the
- * hint text always names whatever domain the QR code actually points to —
- * previously this was a hardcoded string that stayed "waitlight.app" even
- * when recoverUrl pointed somewhere else entirely (a Preview deployment, a
- * different environment), which is misleading on a real, physical ticket.
+ * Extracts the host + path from the recovery URL (e.g.
+ * "waitlight.fr/testa-crousty/retrouver") — enough to actually find the
+ * right page by hand, unlike the bare domain alone, which doesn't say which
+ * merchant's recovery page to look for. Drops the query string: it carries
+ * the name + code, already shown separately in large text just above, so
+ * repeating them here would only add clutter, not new information.
+ * Previously this was a hardcoded "waitlight.app" that stayed wrong on any
+ * environment other than the one that string happened to name.
  */
-function hostFromUrl(url: string): string {
+function hostAndPathFromUrl(url: string): string {
     try {
-        return new URL(url).host
+        const { host, pathname } = new URL(url)
+        return `${host}${pathname}`
     } catch {
         return ""
     }
@@ -139,7 +143,7 @@ const TicketDownloadCard = forwardRef<HTMLDivElement, TicketDownloadCardProps>(
                                 {recoveryCode}
                             </span>
                             <span className="text-[11px] text-text-secondary">
-                                Prénom + code sur {hostFromUrl(recoverUrl)}
+                                Prénom + code sur {hostAndPathFromUrl(recoverUrl)}
                             </span>
                         </div>
                         {/* SVG, not Canvas: html-to-image serializes the DOM/SVG
