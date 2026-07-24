@@ -1,184 +1,136 @@
 "use client"
 
-import { Card } from "@/components/ui/Card"
-import { Avatar } from "@/components/ui/Avatar"
-import { Button } from "@/components/ui/Button"
-import { Dropdown } from "@/components/ui/Dropdown"
+import { forwardRef } from "react"
+import { QRCodeCanvas } from "qrcode.react"
 import { cn } from "@/lib/utils/cn"
-import {
-    PhoneCall,
-    X,
-    CheckCircle2,
-    MoreVertical,
-    ShieldAlert,
-} from "lucide-react"
-
-type TicketStatus = "waiting" | "called" | "done" | "cancelled"
+import { formatArrivalTime } from "@/lib/utils/ticket-download"
 
 type TicketCardProps = {
-    id: string
+    merchantName: string
+    merchantLogoUrl: string | null
+    /** Falls back to the app's own brand color when the merchant has none set. */
+    merchantBrandColor: string | null
     customerName: string
-    entrySource?: "qr" | "manual" | "assisted"
-    status: TicketStatus
-    position?: number
-    joinedAt: string
-    onCall?: (id: string) => void
-    onComplete?: (id: string) => void
-    onCancel?: (id: string) => void
-    onReportName?: (id: string, name: string) => void
+    /**
+     * Live queue position at the moment the ticket was saved — a snapshot,
+     * never updated after. Null when unavailable (e.g. the ticket has
+     * already been called, when position is no longer meaningful).
+     */
+    position: number | null
+    arrivalTimeIso: string
+    recoveryCode: string
+    /** Full URL encoded in the QR code — see buildRecoverUrl. */
+    recoverUrl: string
     className?: string
 }
 
-function TicketCard({
-    id,
-    customerName,
-    entrySource,
-    status,
-    position,
-    joinedAt,
-    onCall,
-    onComplete,
-    onCancel,
-    onReportName,
-    className,
-}: TicketCardProps) {
-    const formattedTime = new Intl.DateTimeFormat("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(new Date(joinedAt))
+const DEFAULT_BRAND_COLOR = "#6366f1"
+
+/**
+ * The visual captured to PNG when a customer downloads their ticket. Pure
+ * presentation — no state, no network calls — so it renders identically
+ * whether shown live in a dialog or captured off-screen.
+ */
+const TicketCard = forwardRef<HTMLDivElement, TicketCardProps>(function TicketCard(
+    {
+        merchantName,
+        merchantLogoUrl,
+        merchantBrandColor,
+        customerName,
+        position,
+        arrivalTimeIso,
+        recoveryCode,
+        recoverUrl,
+        className,
+    },
+    ref,
+) {
+    const brandColor = merchantBrandColor ?? DEFAULT_BRAND_COLOR
 
     return (
-        <Card
-            as="article"
+        <div
+            ref={ref}
             className={cn(
-                // Effets de base : disposition parfaite flex
-                "relative flex items-center justify-between gap-4 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
-                // Mise en avant si appelé
-                status === "called" &&
-                    "border-status-called/30 bg-status-called-bg ring-1 ring-inset ring-status-called/50 shadow-sm",
+                // max-w rather than a fixed width: the ticket must still fit
+                // the Dialog's own width on a narrow phone (Dialog caps at
+                // calc(100%-2rem), ~288px on a 320px-wide screen) — a hard
+                // 340px would overflow there. html-to-image captures whatever
+                // size actually rendered, so shrinking here is harmless.
+                "flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-border-default bg-surface-card",
                 className,
             )}
         >
-            {/* Bloc de gauche : Avatar/Position + Nom/Temps */}
-            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                {position != null ? (
-                    <div
-                        className={cn(
-                            "flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-surface-base text-base sm:text-lg font-bold shadow-sm border border-border-default",
-                            status === "called"
-                                ? "border-status-called/30 text-status-called"
-                                : "text-text-primary",
-                        )}
-                    >
-                        #{position}
-                    </div>
+            <div
+                className="flex items-center gap-3 p-5"
+                style={{ backgroundColor: brandColor }}
+            >
+                {merchantLogoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={merchantLogoUrl}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                    />
                 ) : (
-                    <Avatar name={customerName} size="md" />
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20 text-lg font-bold text-white">
+                        {merchantName.trim().charAt(0).toUpperCase() || "?"}
+                    </span>
                 )}
+                <span className="truncate text-lg font-bold text-white">
+                    {merchantName}
+                </span>
+            </div>
 
-                <div className="flex min-w-0 flex-col">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-base font-semibold text-text-primary">
-                            {customerName}
-                        </p>
-                        {entrySource === "manual" && (
-                            <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold text-brand-primary">
-                                Ajout manuel
-                            </span>
-                        )}
-                        {entrySource === "assisted" && (
-                            <span className="rounded-full bg-feedback-success/10 px-2 py-0.5 text-[10px] font-semibold text-feedback-success">
-                                Scan assisté
-                            </span>
-                        )}
-                    </div>
-                    <p className="mt-0.5 text-xs sm:text-sm font-medium text-text-secondary">
-                        {status === "waiting" ? "Attente depuis " : "Appelé à "}
-                        <span className="font-semibold text-text-primary">
-                            {formattedTime}
+            <div className="flex flex-col gap-4 p-5">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 flex-col">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                            Client
                         </span>
-                    </p>
+                        <span className="truncate text-base font-bold text-text-primary">
+                            {customerName}
+                        </span>
+                    </div>
+                    {position !== null ? (
+                        <div className="flex shrink-0 flex-col items-end">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                                Position
+                            </span>
+                            <span className="text-base font-bold text-text-primary">
+                                #{position}
+                            </span>
+                        </div>
+                    ) : null}
+                </div>
+
+                <div className="flex flex-col">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        Arrivée
+                    </span>
+                    <span className="text-base font-bold text-text-primary">
+                        {formatArrivalTime(arrivalTimeIso)}
+                    </span>
+                </div>
+
+                <div className="my-1 border-t border-dashed border-border-default" />
+
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                            Code de suivi
+                        </span>
+                        <span className="font-mono text-2xl font-bold tracking-[0.25em] text-text-primary">
+                            {recoveryCode}
+                        </span>
+                        <span className="text-[11px] text-text-secondary">
+                            Prénom + code sur waitlight.app
+                        </span>
+                    </div>
+                    <QRCodeCanvas value={recoverUrl} size={84} />
                 </div>
             </div>
-
-            {/* Bloc de droite : Actions Primaires et au-delà */}
-            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                {/* Action en attente */}
-                {status === "waiting" && onCall && (
-                    <Button
-                        variant="primary"
-                        size="md"
-                        onClick={() => onCall(id)}
-                        aria-label={`Appeler ${customerName}`}
-                        className="flex h-10 w-10 items-center justify-center rounded-full px-0 sm:w-auto sm:rounded-md sm:px-4"
-                    >
-                        <PhoneCall size={18} aria-hidden="true" />
-                        <span className="hidden sm:inline">Appeler</span>
-                    </Button>
-                )}
-
-                {/* Action appelé */}
-                {status === "called" && onComplete && (
-                    <Button
-                        variant="primary"
-                        size="md"
-                        onClick={() => onComplete(id)}
-                        aria-label={`Terminer le ticket de ${customerName}`}
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-status-called px-0 text-white hover:bg-status-called/90 sm:w-auto sm:rounded-md sm:px-4"
-                        style={{ color: "white" }}
-                    >
-                        <CheckCircle2 size={18} aria-hidden="true" />
-                        <span className="hidden sm:inline">Terminer</span>
-                    </Button>
-                )}
-
-                {/* Option "Annuler" et "Signaler" masquées dans le Menu Dropdown */}
-                {(onCancel || onReportName) &&
-                    (status === "waiting" || status === "called") && (
-                        <Dropdown
-                            align="right"
-                            trigger={
-                                <Button
-                                    variant="ghost"
-                                    size="md"
-                                    className="flex h-10 w-10 items-center justify-center px-0 text-text-secondary hover:text-text-primary"
-                                    aria-label="Plus d'options"
-                                >
-                                    <MoreVertical size={18} />
-                                </Button>
-                            }
-                            items={[
-                                ...(onCancel
-                                    ? [
-                                          {
-                                              label: "Annuler le ticket",
-                                              icon: <X size={16} />,
-                                              variant: "destructive" as const,
-                                              onClick: () => onCancel(id),
-                                          },
-                                      ]
-                                    : []),
-                                ...(onReportName &&
-                                customerName !== "…" &&
-                                !customerName.startsWith("Client-")
-                                    ? [
-                                          {
-                                              label: "Signaler le prénom",
-                                              icon: <ShieldAlert size={16} />,
-                                              onClick: () =>
-                                                  onReportName(
-                                                      id,
-                                                      customerName,
-                                                  ),
-                                          },
-                                      ]
-                                    : []),
-                            ]}
-                        />
-                    )}
-            </div>
-        </Card>
+        </div>
     )
-}
+})
 
-export { TicketCard, type TicketCardProps, type TicketStatus }
+export { TicketCard, type TicketCardProps }
