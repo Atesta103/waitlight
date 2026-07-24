@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 import { Loader2, LocateFixed, RotateCw, SearchX, Settings2 } from "lucide-react"
 import { AddressAutocomplete } from "@/components/composed/AddressAutocomplete"
 import { Button } from "@/components/ui/Button"
-import { getNearbyMerchantsAction, type NearbyMerchant } from "@/lib/actions/directory"
+import { getAllPublicMerchantsAction, type NearbyMerchant } from "@/lib/actions/directory"
 
 // Leaflet touches `window` — must never render during SSR.
 const MerchantsMap = dynamic(
@@ -53,6 +53,18 @@ const GEOLOCATION_UNSUPPORTED = {
     retryLabel: "Réessayer",
 } as const
 
+/** Great-circle distance in km, for the "X km" shown in a merchant's popup. */
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+    const R = 6371
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180
+    const lat1 = (a.lat * Math.PI) / 180
+    const lat2 = (b.lat * Math.PI) / 180
+    const h =
+        Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+    return 2 * R * Math.asin(Math.sqrt(h))
+}
+
 function CarteClient() {
     const [status, setStatus] = useState<Status>("locating")
     const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
@@ -69,16 +81,26 @@ function CarteClient() {
         retryLabel: string
     } | null>(null)
 
-    const loadNearby = useCallback(async (lat: number, lng: number) => {
+    // Loads every public merchant once and centers the view at (lat, lng) — the
+    // visitor's position or a typed address. The whole set stays shown at any
+    // zoom, so panning and zooming never refetch; only the popup distances are
+    // relative to this origin. Called again only on an explicit new search.
+    const loadMerchants = useCallback(async (lat: number, lng: number) => {
         setStatus("loading-merchants")
         setCenter({ lat, lng })
-        const result = await getNearbyMerchantsAction({ lat, lng })
+        const result = await getAllPublicMerchantsAction()
         if ("error" in result) {
             setError(result.error)
             setStatus("error")
             return
         }
-        setMerchants(result.data)
+        const origin = { lat, lng }
+        setMerchants(
+            result.data.map((m) => ({
+                ...m,
+                distance_km: distanceKm(origin, { lat: m.latitude, lng: m.longitude }),
+            })),
+        )
         setStatus("ready")
     }, [])
 
@@ -96,7 +118,7 @@ function CarteClient() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                 })
-                loadNearby(position.coords.latitude, position.coords.longitude)
+                loadMerchants(position.coords.latitude, position.coords.longitude)
             },
             (geoError) => {
                 // PERMISSION_DENIED, POSITION_UNAVAILABLE, or TIMEOUT are all
@@ -109,7 +131,7 @@ function CarteClient() {
             },
             { timeout: GEOLOCATION_TIMEOUT_MS },
         )
-    }, [loadNearby])
+    }, [loadMerchants])
 
     /** Retry entry point — an event handler, so setState here is not a cascade. */
     const handleRetry = useCallback(() => {
@@ -191,7 +213,7 @@ function CarteClient() {
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => loadNearby(center.lat, center.lng)}
+                            onClick={() => loadMerchants(center.lat, center.lng)}
                             className="self-start"
                         >
                             <RotateCw size={14} aria-hidden="true" />
@@ -207,7 +229,7 @@ function CarteClient() {
 
                     <AddressAutocomplete
                         label="Votre adresse"
-                        onSelect={(s) => loadNearby(s.latitude, s.longitude)}
+                        onSelect={(s) => loadMerchants(s.latitude, s.longitude)}
                     />
                 </div>
             )}
@@ -223,11 +245,11 @@ function CarteClient() {
                 <>
                     {/* Search elsewhere without leaving the map: plan a trip, or
                         check what's open near someone else. Reuses the same
-                        loadNearby path as the initial search. */}
+                        loadMerchants path as the initial search. */}
                     <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
                         <AddressAutocomplete
                             label="Chercher à une autre adresse"
-                            onSelect={(s) => loadNearby(s.latitude, s.longitude)}
+                            onSelect={(s) => loadMerchants(s.latitude, s.longitude)}
                         />
                     </div>
 
@@ -243,7 +265,7 @@ function CarteClient() {
                         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#D1D5DB] p-6 text-center">
                             <SearchX size={20} className="text-[#6B7280]" aria-hidden="true" />
                             <p className="text-sm text-[#6B7280]">
-                                Aucun commerce WaitLight trouvé dans un rayon de 25 km.
+                                Aucun commerce WaitLight sur la carte pour le moment.
                             </p>
                         </div>
                     ) : null}

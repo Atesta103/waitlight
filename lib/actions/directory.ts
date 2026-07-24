@@ -12,9 +12,13 @@ import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { checkRateLimit } from "@/lib/utils/rate-limit"
 
-/** Server-enforced caps — any client-supplied value beyond these is ignored. */
-const MAX_RADIUS_KM = 25
-const MAX_NEARBY_RESULTS = 30
+/**
+ * Safety ceiling on the map payload. The public directory is small, so the map
+ * loads every geocoded merchant once rather than paging by area; this only
+ * guards against a pathological future size. Raise, or switch to viewport
+ * loading, if the directory ever approaches it.
+ */
+const MAX_MAP_MERCHANTS = 1000
 
 export type PublicMerchant = {
     slug: string
@@ -25,7 +29,7 @@ export type PublicMerchant = {
     address: string | null
 }
 
-export type NearbyMerchant = PublicMerchant & {
+export type MapMerchant = PublicMerchant & {
     /**
      * Exact geocoded position. Not blurred: the merchant's full postal address
      * ships in the same payload by design, so rounding the coordinates would
@@ -34,6 +38,10 @@ export type NearbyMerchant = PublicMerchant & {
      */
     latitude: number
     longitude: number
+}
+
+/** A map merchant with a distance, computed client-side from the view origin. */
+export type NearbyMerchant = MapMerchant & {
     distance_km: number
 }
 
@@ -86,67 +94,34 @@ export async function searchPublicMerchantsAction(
 }
 
 /**
- * Find publicly-listed, geocoded merchants near a given point, nearest first.
- * Powers the /carte discovery map. IP rate-limited more strictly than name
- * search given the sensitivity of aggregate location data — radius and
- * result count are capped server-side regardless of what's requested.
- *
- * @param input.lat - Latitude of the search origin (customer's position or manually picked address).
- * @param input.lng - Longitude of the search origin.
- * @param input.radiusKm - Desired search radius; clamped to {@link MAX_RADIUS_KM}.
+ * Every publicly-listed, geocoded merchant, for the /carte discovery map. The
+ * map loads the full set once and keeps it shown at any zoom — clustering
+ * handles density — rather than paging by area, so a visitor never has to
+ * refetch while exploring. Distances are computed client-side from wherever the
+ * visitor is looking. IP rate-limited to deter directory scraping.
  */
-export async function getNearbyMerchantsAction(input: {
-    lat: number
-    lng: number
-    radiusKm?: number
-}): Promise<{ data: NearbyMerchant[] } | { error: string }> {
+export async function getAllPublicMerchantsAction(): Promise<
+    { data: MapMerchant[] } | { error: string }
+> {
     const ip = getClientIp(await headers())
-    if (!checkRateLimit(`nearby:${ip}`, 10, 60_000)) {
+    if (!checkRateLimit(`map:${ip}`, 10, 60_000)) {
         return { error: "Trop de recherches. Veuillez patienter une minute." }
     }
 
-    const radiusKm = Math.min(input.radiusKm ?? MAX_RADIUS_KM, MAX_RADIUS_KM)
-
     const supabase = await createClient()
 
-    const { data, error } = await supabase.rpc("nearby_public_merchants", {
-        p_lat: input.lat,
-        p_lng: input.lng,
-        p_radius_km: radiusKm,
-        p_limit: MAX_NEARBY_RESULTS,
-    })
+    const { data, error } = await supabase
+        .from("merchants")
+        .select("slug, name, business_type, logo_url, is_open, address, latitude, longitude")
+        .eq("is_public", true)
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .limit(MAX_MAP_MERCHANTS)
 
     if (error) {
-        // Full shape (code + details + hint), not just `message` — PostgREST puts
-        // the actionable part in `code`/`hint` (e.g. PGRST202 for a function
-        // missing from the schema cache), and `message` alone hides it.
-        console.error("[getNearbyMerchantsAction] DB error:", {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-        })
-        // The cause is surfaced to the client in development only: in production
-        // it would leak schema internals to any visitor.
-        return {
-            error:
-                process.env.NODE_ENV === "development"
-                    ? `Impossible de charger les commerces à proximité. [dev] ${error.code ?? "?"}: ${error.message}`
-                    : "Impossible de charger les commerces à proximité.",
-        }
+        console.error("[getAllPublicMerchantsAction] DB error:", error.message)
+        return { error: "Impossible de charger les commerces." }
     }
 
-    const results: NearbyMerchant[] = (data ?? []).map((m) => ({
-        slug: m.slug,
-        name: m.name,
-        business_type: m.business_type,
-        logo_url: m.logo_url,
-        is_open: m.is_open,
-        address: m.address,
-        latitude: m.latitude,
-        longitude: m.longitude,
-        distance_km: m.distance_km,
-    }))
-
-    return { data: results }
+    return { data: (data ?? []) as MapMerchant[] }
 }
