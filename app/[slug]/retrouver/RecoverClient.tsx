@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card } from "@/components/ui/Card"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { findTicketByRecoveryCodeAction } from "@/lib/actions/queue"
+import { parseRecoverParams } from "@/lib/utils/ticket-download"
 import { Search } from "lucide-react"
 
 type RecoverClientProps = {
@@ -27,6 +28,21 @@ function RecoverClient({ slug, merchantName }: RecoverClientProps) {
     const [code, setCode] = useState("")
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+
+    // Pre-fill from a scanned ticket QR code (see buildRecoverUrl / TicketDownloadCard).
+    // Read directly from window.location rather than useSearchParams(), which
+    // avoids that hook's Suspense-boundary requirement and any hydration
+    // mismatch from differing server/client initial state — this runs once,
+    // client-side only, after the form's normal empty state has mounted.
+    useEffect(() => {
+        const { name, code: prefillCode } = parseRecoverParams(
+            new URLSearchParams(window.location.search),
+        )
+        if (name) setCustomerName(name)
+        if (prefillCode) setCode(prefillCode)
+        // Only ever want this once, on mount, to seed from a scanned link.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
