@@ -167,6 +167,48 @@ function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     )
 }
 
+/**
+ * Groups merchants whose pins fall within CLUSTER_RADIUS_PX of each other at
+ * the map's current scale. Greedy and O(n²), fine for ≤30 merchants. Returns
+ * one array of members per group (singletons included).
+ */
+function computeClusters(map: maplibregl.Map, merchants: NearbyMerchant[]): NearbyMerchant[][] {
+    const projected = merchants.map((merchant) => ({
+        merchant,
+        point: map.project([merchant.longitude, merchant.latitude]),
+    }))
+
+    const grouped = new Set<number>()
+    const groups: NearbyMerchant[][] = []
+
+    projected.forEach(({ merchant, point }, i) => {
+        if (grouped.has(i)) return
+        grouped.add(i)
+
+        const members = [merchant]
+        for (let j = i + 1; j < projected.length; j++) {
+            if (grouped.has(j)) continue
+            const other = projected[j].point
+            if (Math.hypot(point.x - other.x, point.y - other.y) < CLUSTER_RADIUS_PX) {
+                grouped.add(j)
+                members.push(projected[j].merchant)
+            }
+        }
+        groups.push(members)
+    })
+
+    return groups
+}
+
+/** A stable identity for a grouping, so markers are rebuilt only when the
+ *  grouping actually changes — not on every frame of a continuous zoom. */
+function clusterSignature(groups: NearbyMerchant[][]): string {
+    return groups
+        .map((members) => members.map((m) => m.slug).sort().join(","))
+        .sort()
+        .join("|")
+}
+
 /** A single merchant pin wired to its popup, with keyboard parity. */
 function buildMerchantMarker(
     map: maplibregl.Map,
@@ -221,6 +263,7 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
+    const clusterSigRef = useRef<string>("")
 
     // One portal host per merchant: each popup's body is a detached node React
     // portals into, so the content stays a real React tree (Badge, Link) rather
@@ -251,11 +294,13 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     }, [])
 
     // Markers with pixel-proximity clustering. One portal host is created per
-    // merchant up front (stable while the result set holds); the markers are
-    // re-derived on zoom, where pins that overlap at the new scale collapse into
-    // a counted cluster or split apart. NOT on pan: panning translates every
-    // point equally, so pairwise pixel distances — and thus the clustering — are
-    // unchanged, and rebuilding would only make the pins flicker out of place.
+    // merchant up front (stable while the result set holds). Clustering is
+    // recomputed live on zoom — pins that overlap at the new scale collapse into
+    // a counted cluster and split apart again — but the markers are only rebuilt
+    // when the grouping actually changes, keyed on a signature. That gives an
+    // instant response the moment two pins merge, without rebuilding (and
+    // flickering) every frame of a continuous zoom. Not recomputed on pan:
+    // panning translates every point equally, so pairwise distances hold.
     // At most 30 merchants, so the O(n²) grouping is trivial.
     useEffect(() => {
         const map = mapRef.current
@@ -265,45 +310,30 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         merchants.forEach((merchant) => hosts.set(merchant.slug, document.createElement("div")))
         setPopupHosts(hosts)
 
+        // Force the first pass to build (no grouping matches an empty signature).
+        clusterSigRef.current = ""
+
         const renderMarkers = () => {
+            const groups = computeClusters(map, merchants)
+            const signature = clusterSignature(groups)
+            if (signature === clusterSigRef.current) return
+            clusterSigRef.current = signature
+
             markersRef.current.forEach((marker) => marker.remove())
-            markersRef.current = []
-
-            const projected = merchants.map((merchant) => ({
-                merchant,
-                point: map.project([merchant.longitude, merchant.latitude]),
-            }))
-
-            const grouped = new Set<number>()
-
-            projected.forEach(({ merchant, point }, i) => {
-                if (grouped.has(i)) return
-                grouped.add(i)
-
-                const members = [merchant]
-                for (let j = i + 1; j < projected.length; j++) {
-                    if (grouped.has(j)) continue
-                    const other = projected[j].point
-                    if (Math.hypot(point.x - other.x, point.y - other.y) < CLUSTER_RADIUS_PX) {
-                        grouped.add(j)
-                        members.push(projected[j].merchant)
-                    }
-                }
-
-                if (members.length === 1) {
-                    markersRef.current.push(buildMerchantMarker(map, merchant, hosts.get(merchant.slug)!))
-                } else {
-                    markersRef.current.push(buildClusterMarker(map, members))
-                }
-            })
+            markersRef.current = groups.map((members) =>
+                members.length === 1
+                    ? buildMerchantMarker(map, members[0], hosts.get(members[0].slug)!)
+                    : buildClusterMarker(map, members),
+            )
         }
 
         renderMarkers()
-        // Re-cluster on zoom only — pan leaves pixel distances unchanged.
-        map.on("zoomend", renderMarkers)
+        // Live during a zoom for immediate merge/split; the signature check makes
+        // the per-frame calls cheap no-ops until the grouping flips.
+        map.on("zoom", renderMarkers)
 
         return () => {
-            map.off("zoomend", renderMarkers)
+            map.off("zoom", renderMarkers)
             markersRef.current.forEach((marker) => marker.remove())
             markersRef.current = []
         }
