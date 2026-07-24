@@ -445,7 +445,11 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
             )}
 
             {canDownloadTicket && (
-                <Dialog open={ticketDialogOpen} onClose={() => setTicketDialogOpen(false)}>
+                <Dialog
+                    open={ticketDialogOpen}
+                    onClose={() => setTicketDialogOpen(false)}
+                    closeOnBackdropClick
+                >
                     <DialogHeader onClose={() => setTicketDialogOpen(false)}>Votre ticket</DialogHeader>
                     <DialogContent>
                         <div className="flex flex-col items-center gap-4">
