@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import maplibregl from "maplibre-gl"
-import { LocateFixed } from "lucide-react"
+import { LocateFixed, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { getButtonClasses } from "@/components/ui/button-classes"
 import { cn } from "@/lib/utils/cn"
@@ -16,6 +16,29 @@ type MerchantsMapProps = {
     /** The visitor's GPS position, if geolocation succeeded. Drives the "you are
      *  here" marker and the recenter button; absent for a manual-only visitor. */
     userPosition?: { lat: number; lng: number } | null
+    /** Called with the map's current center when the visitor asks to re-search
+     *  the area they've panned to. Omit to hide the "search this area" button. */
+    onSearchArea?: (center: { lat: number; lng: number }) => void
+}
+
+/** Pins closer than this many screen pixels collapse into one cluster. */
+const CLUSTER_RADIUS_PX = 46
+
+/** How far the map must drift from the searched center (km) before offering a
+ *  re-search. Below this, the loaded results still cover what's on screen. */
+const SEARCH_AREA_THRESHOLD_KM = 3
+
+/** Great-circle distance in km — used to decide when a re-search is worthwhile. */
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+    const R = 6371
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180
+    const lat1 = (a.lat * Math.PI) / 180
+    const lat2 = (b.lat * Math.PI) / 180
+    const h =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+    return 2 * R * Math.asin(Math.sqrt(h))
 }
 
 /**
@@ -27,6 +50,18 @@ type MerchantsMapProps = {
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 const DEFAULT_ZOOM = 13
+
+/** The circle standing in for several overlapping pins, showing how many.
+ *  A shop's own logo would be misleading here, so the count carries it. */
+function createClusterElement(count: number): HTMLElement {
+    const el = document.createElement("div")
+    el.className = "wl-cluster"
+    el.tabIndex = 0
+    el.setAttribute("role", "button")
+    el.setAttribute("aria-label", `${count} commerces regroupés, zoomer pour les séparer`)
+    el.textContent = String(count)
+    return el
+}
 
 /** The "you are here" dot — deliberately unlike the merchant pins so the
  *  visitor never mistakes their own position for a shop. Styled in globals.css. */
@@ -142,7 +177,57 @@ function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     )
 }
 
-function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
+/** A single merchant pin wired to its popup, with keyboard parity. */
+function buildMerchantMarker(
+    map: maplibregl.Map,
+    merchant: NearbyMerchant,
+    host: HTMLElement,
+): maplibregl.Marker {
+    const popup = new maplibregl.Popup({
+        offset: 26,
+        closeButton: true,
+        maxWidth: "280px",
+    }).setDOMContent(host)
+
+    const element = createPinElement(merchant)
+    const marker = new maplibregl.Marker({ element })
+        .setLngLat([merchant.longitude, merchant.latitude])
+        .setPopup(popup) // MapLibre toggles the popup on marker click
+        .addTo(map)
+
+    element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            marker.togglePopup()
+        }
+    })
+
+    return marker
+}
+
+/** A cluster bubble at the members' centroid; clicking zooms in to split it. */
+function buildClusterMarker(map: maplibregl.Map, members: NearbyMerchant[]): maplibregl.Marker {
+    const lng = members.reduce((sum, m) => sum + m.longitude, 0) / members.length
+    const lat = members.reduce((sum, m) => sum + m.latitude, 0) / members.length
+
+    const element = createClusterElement(members.length)
+    const marker = new maplibregl.Marker({ element }).setLngLat([lng, lat]).addTo(map)
+
+    const zoomIn = () => {
+        map.easeTo({ center: [lng, lat], zoom: map.getZoom() + 2, duration: 500 })
+    }
+    element.addEventListener("click", zoomIn)
+    element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            zoomIn()
+        }
+    })
+
+    return marker
+}
+
+function MerchantsMap({ center, merchants, userPosition, onSearchArea }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
@@ -152,6 +237,10 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     // than an HTML string. MapLibre owns opening/closing the popup on marker
     // click — hand-wiring that click was what broke.
     const [popupHosts, setPopupHosts] = useState<Map<string, HTMLElement>>(new Map())
+
+    // Shown once the map has drifted far enough from the searched center that
+    // the loaded results may no longer cover what's on screen.
+    const [showSearchArea, setShowSearchArea] = useState(false)
 
     // Map instance: created once. `center` changes are handled separately so a
     // new search pans the existing map instead of rebuilding it.
@@ -175,47 +264,58 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // Markers, rebuilt whenever the result set changes.
+    // Markers with pixel-proximity clustering. One portal host is created per
+    // merchant up front (stable while the result set holds), but the markers
+    // themselves are re-derived on every pan/zoom: pins that overlap at the
+    // current scale collapse into a counted cluster, and separate again as you
+    // zoom in. At most 30 merchants, so the O(n²) grouping is trivial.
     useEffect(() => {
         const map = mapRef.current
         if (!map) return
 
-        markersRef.current.forEach((marker) => marker.remove())
-        markersRef.current = []
-
         const hosts = new Map<string, HTMLElement>()
-
-        markersRef.current = merchants.map((merchant) => {
-            const host = document.createElement("div")
-            hosts.set(merchant.slug, host)
-
-            const popup = new maplibregl.Popup({
-                offset: 26,
-                closeButton: true,
-                maxWidth: "280px",
-            }).setDOMContent(host)
-
-            const element = createPinElement(merchant)
-            const marker = new maplibregl.Marker({ element })
-                .setLngLat([merchant.longitude, merchant.latitude])
-                .setPopup(popup) // MapLibre toggles the popup on marker click
-                .addTo(map)
-
-            // Keyboard parity: the pin is focusable, so Enter/Space must open the
-            // popup too. togglePopup() is the same path MapLibre runs on click.
-            element.addEventListener("keydown", (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    marker.togglePopup()
-                }
-            })
-
-            return marker
-        })
-
+        merchants.forEach((merchant) => hosts.set(merchant.slug, document.createElement("div")))
         setPopupHosts(hosts)
 
+        const renderMarkers = () => {
+            markersRef.current.forEach((marker) => marker.remove())
+            markersRef.current = []
+
+            const projected = merchants.map((merchant) => ({
+                merchant,
+                point: map.project([merchant.longitude, merchant.latitude]),
+            }))
+
+            const grouped = new Set<number>()
+
+            projected.forEach(({ merchant, point }, i) => {
+                if (grouped.has(i)) return
+                grouped.add(i)
+
+                const members = [merchant]
+                for (let j = i + 1; j < projected.length; j++) {
+                    if (grouped.has(j)) continue
+                    const other = projected[j].point
+                    if (Math.hypot(point.x - other.x, point.y - other.y) < CLUSTER_RADIUS_PX) {
+                        grouped.add(j)
+                        members.push(projected[j].merchant)
+                    }
+                }
+
+                if (members.length === 1) {
+                    markersRef.current.push(buildMerchantMarker(map, merchant, hosts.get(merchant.slug)!))
+                } else {
+                    markersRef.current.push(buildClusterMarker(map, members))
+                }
+            })
+        }
+
+        renderMarkers()
+        // Re-cluster after the map settles from any pan or zoom.
+        map.on("moveend", renderMarkers)
+
         return () => {
+            map.off("moveend", renderMarkers)
             markersRef.current.forEach((marker) => marker.remove())
             markersRef.current = []
         }
@@ -241,6 +341,25 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         }
     }, [userPosition])
 
+    // Offer "search this area" once the map drifts from the searched center.
+    // A fresh search resets `center`, which hides the button until the next pan.
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !onSearchArea) return
+
+        setShowSearchArea(false)
+
+        const onMoveEnd = () => {
+            const c = map.getCenter()
+            setShowSearchArea(distanceKm(center, { lat: c.lat, lng: c.lng }) > SEARCH_AREA_THRESHOLD_KM)
+        }
+        map.on("moveend", onMoveEnd)
+
+        return () => {
+            map.off("moveend", onMoveEnd)
+        }
+    }, [center, onSearchArea])
+
     // Recenter on a new search without tearing the map down.
     useEffect(() => {
         mapRef.current?.easeTo({ center: [center.lng, center.lat], duration: 600 })
@@ -255,9 +374,28 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         })
     }
 
+    const handleSearchArea = () => {
+        const map = mapRef.current
+        if (!map || !onSearchArea) return
+        const c = map.getCenter()
+        setShowSearchArea(false)
+        onSearchArea({ lat: c.lat, lng: c.lng })
+    }
+
     return (
         <div className="relative h-full w-full">
             <div ref={containerRef} className="h-full w-full rounded-2xl" />
+
+            {showSearchArea ? (
+                <button
+                    type="button"
+                    onClick={handleSearchArea}
+                    className="absolute left-1/2 top-4 z-[1] flex -translate-x-1/2 items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#4F46E5] shadow-[0_2px_10px_rgba(0,0,0,0.14)] transition-colors hover:bg-[#F5F3FF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#6366F1] focus-visible:outline-offset-2"
+                >
+                    <RefreshCw size={15} aria-hidden="true" />
+                    Rechercher dans cette zone
+                </button>
+            ) : null}
 
             {userPosition ? (
                 <button

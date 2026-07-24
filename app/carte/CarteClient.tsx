@@ -82,6 +82,16 @@ function CarteClient() {
         setStatus("ready")
     }, [])
 
+    // "Search this area" from the map: refresh in place, keeping the map mounted
+    // rather than dropping to the loading screen — the visitor stays oriented on
+    // the spot they panned to. A failed refresh leaves the current results as-is.
+    const searchArea = useCallback(async (point: { lat: number; lng: number }) => {
+        setCenter(point)
+        const result = await getNearbyMerchantsAction({ lat: point.lat, lng: point.lng })
+        if ("error" in result) return
+        setMerchants(result.data)
+    }, [])
+
     /**
      * Deliberately free of synchronous `setState` — it is called straight from
      * the mount effect, and every state change it causes happens inside an
@@ -232,7 +242,12 @@ function CarteClient() {
                     </div>
 
                     <div className="h-[500px] w-full overflow-hidden rounded-2xl border border-[#E5E7EB] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-                        <MerchantsMap center={center} merchants={merchants} userPosition={userPosition} />
+                        <MerchantsMap
+                            center={center}
+                            merchants={merchants}
+                            userPosition={userPosition}
+                            onSearchArea={searchArea}
+                        />
                     </div>
 
                     {merchants.length === 0 ? (
