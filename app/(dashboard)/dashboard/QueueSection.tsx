@@ -128,7 +128,7 @@ export function QueueSection({
     )
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 lg:h-full lg:min-h-0 lg:gap-4">
             <UpgradeModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             <DashboardHeader
                 merchantName={merchantName}
@@ -148,7 +148,12 @@ export function QueueSection({
             )}
 
             {isOpen && (
-                <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_auto]">
+                // items-start below lg: (each column its natural height, as
+                // before); lg:items-stretch so both columns fill the row —
+                // QueueList uses that height for its own internal scroll, the
+                // QR panel just sits at the top of its (now taller) cell since
+                // it never asks to stretch its own content.
+                <div className="grid grid-cols-1 items-start gap-6 lg:flex-1 lg:min-h-0 lg:grid-cols-[1fr_auto] lg:items-stretch lg:gap-4">
                     {/* Left — full-width queue list, always rendered when open */}
                     <QueueList
                         merchantId={merchantId}

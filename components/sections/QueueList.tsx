@@ -307,7 +307,7 @@ function QueueList({
     ]
 
     return (
-        <div className={cn("flex flex-col gap-4", className)}>
+        <div className={cn("flex flex-col gap-4 lg:h-full lg:min-h-0", className)}>
             {/* Connection state banner — only shown when degraded */}
             {connectionState !== "connected" && (
                 <ConnectionStatus state={connectionState} />
@@ -331,7 +331,14 @@ function QueueList({
                     description={`Aucun ${wording.singular} n'attend pour le moment.`}
                 />
             ) : (
-                <div role="list" className="flex flex-col gap-3">
+                <div
+                    role="list"
+                    // The one scrollable region on lg:+ — everything above
+                    // (connection banner, live-region, header/QR panel via
+                    // ancestors) stays fixed. pr-1 keeps a scrollbar, if one
+                    // appears, from touching the ticket cards' right edge.
+                    className="flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1"
+                >
                     <AnimatePresence mode="popLayout">
                         {displayItems.map((item, index) => (
                             <motion.div

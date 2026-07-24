@@ -77,7 +77,12 @@ export default async function DashboardLayout({
         <QueryProvider>
             <div
                 id="dashboard-root"
-                className="min-h-screen bg-surface-base"
+                // lg: and up — a fixed-height app shell (dvh, not vh: correctly
+                // accounts for Safari's address bar showing/hiding on iPad)
+                // instead of natural document flow, so header + QR panel stay
+                // fixed and only the ticket list scrolls internally. Below lg:,
+                // untouched — normal page scroll, as before.
+                className="min-h-screen bg-surface-base lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
                 style={{
                     fontFamily: `var(--font-brand)`,
                     "--color-brand-primary": brandColor,
@@ -93,7 +98,7 @@ export default async function DashboardLayout({
                     "--radius-2xl": borderRadius,
                 } as React.CSSProperties}
             >
-                <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b lg:shrink-0">
                     <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
                         <div className="flex items-center gap-2 md:hidden">
                             <nav
@@ -184,7 +189,17 @@ export default async function DashboardLayout({
                         </div>
                     </div>
                 </header>
-                <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8">
+                {/* flex-1 + min-h-0 let this shrink below its content's natural
+                    height inside the fixed-height shell above — without min-h-0
+                    a flex item never shrinks past its content, and the overflow
+                    would never reach this box's own scrollbar. overflow-y-auto
+                    here is a generic fallback so Settings/Analytics (out of this
+                    feature's scope) keep scrolling exactly as before, just
+                    scoped to this box instead of the whole page; on the queue
+                    page specifically, nothing actually overflows this box —
+                    QueueList clips its own overflow first, so this scrollbar
+                    never appears there. */}
+                <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:py-4">
                     {children}
                 </main>
             </div>
