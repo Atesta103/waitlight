@@ -235,11 +235,16 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         }
 
         if (!userMarkerRef.current) {
+            // setLngLat must precede addTo: addTo runs an internal _update that
+            // reads the position, so adding before setting throws on lngLat.
             userMarkerRef.current = new maplibregl.Marker({
                 element: createUserDotElement(),
-            }).addTo(map)
+            })
+                .setLngLat([userPosition.lng, userPosition.lat])
+                .addTo(map)
+        } else {
+            userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat])
         }
-        userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat])
     }, [userPosition])
 
     // Recenter on a new search without tearing the map down.
