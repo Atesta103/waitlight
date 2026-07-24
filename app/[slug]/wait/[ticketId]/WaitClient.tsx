@@ -29,6 +29,8 @@ type Merchant = {
     default_prep_time_min: number
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
+    logo_url: string | null
+    brand_color: string | null
     settings: {
         notification_channels: NotificationChannels
         notification_sound: SoundChoice
