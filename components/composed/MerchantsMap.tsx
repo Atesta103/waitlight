@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import maplibregl from "maplibre-gl"
+import { LocateFixed } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { getButtonClasses } from "@/components/ui/button-classes"
 import { cn } from "@/lib/utils/cn"
@@ -12,6 +13,9 @@ import type { NearbyMerchant } from "@/lib/actions/directory"
 type MerchantsMapProps = {
     center: { lat: number; lng: number }
     merchants: NearbyMerchant[]
+    /** The visitor's GPS position, if geolocation succeeded. Drives the "you are
+     *  here" marker and the recenter button; absent for a manual-only visitor. */
+    userPosition?: { lat: number; lng: number } | null
 }
 
 /**
@@ -23,6 +27,16 @@ type MerchantsMapProps = {
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 const DEFAULT_ZOOM = 13
+
+/** The "you are here" dot — deliberately unlike the merchant pins so the
+ *  visitor never mistakes their own position for a shop. Styled in globals.css. */
+function createUserDotElement(): HTMLElement {
+    const dot = document.createElement("div")
+    dot.className = "wl-userdot"
+    dot.setAttribute("aria-label", "Votre position")
+    dot.innerHTML = `<span class="wl-userdot__pulse"></span><span class="wl-userdot__core"></span>`
+    return dot
+}
 
 /**
  * Builds the DOM node MapLibre anchors at the merchant's coordinates. Styling
@@ -128,10 +142,11 @@ function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     )
 }
 
-function MerchantsMap({ center, merchants }: MerchantsMapProps) {
+function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
+    const userMarkerRef = useRef<maplibregl.Marker | null>(null)
 
     // One portal host per merchant: each popup's body is a detached node React
     // portals into, so the content stays a real React tree (Badge, Link) rather
@@ -207,21 +222,63 @@ function MerchantsMap({ center, merchants }: MerchantsMapProps) {
         }
     }, [merchants])
 
+    // The "you are here" dot. Moved rather than recreated so its pulse animation
+    // survives re-renders; removed if the visitor never shared a position.
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map) return
+
+        if (!userPosition) {
+            userMarkerRef.current?.remove()
+            userMarkerRef.current = null
+            return
+        }
+
+        if (!userMarkerRef.current) {
+            userMarkerRef.current = new maplibregl.Marker({
+                element: createUserDotElement(),
+            }).addTo(map)
+        }
+        userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat])
+    }, [userPosition])
+
     // Recenter on a new search without tearing the map down.
     useEffect(() => {
         mapRef.current?.easeTo({ center: [center.lng, center.lat], duration: 600 })
     }, [center])
 
+    const recenterOnUser = () => {
+        if (!userPosition) return
+        mapRef.current?.easeTo({
+            center: [userPosition.lng, userPosition.lat],
+            zoom: DEFAULT_ZOOM,
+            duration: 600,
+        })
+    }
+
     return (
-        <>
+        <div className="relative h-full w-full">
             <div ref={containerRef} className="h-full w-full rounded-2xl" />
+
+            {userPosition ? (
+                <button
+                    type="button"
+                    onClick={recenterOnUser}
+                    aria-label="Recentrer la carte sur ma position"
+                    title="Ma position"
+                    className="absolute bottom-4 right-4 z-[1] flex h-11 w-11 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#4F46E5] shadow-[0_2px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#F5F3FF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#6366F1] focus-visible:outline-offset-2"
+                >
+                    <LocateFixed size={20} aria-hidden="true" />
+                </button>
+            ) : null}
+
             {merchants.map((merchant) => {
                 const host = popupHosts.get(merchant.slug)
                 return host
                     ? createPortal(<MerchantPopup merchant={merchant} />, host, merchant.slug)
                     : null
             })}
-        </>
+        </div>
     )
 }
 

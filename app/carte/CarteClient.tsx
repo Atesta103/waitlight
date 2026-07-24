@@ -56,6 +56,11 @@ const GEOLOCATION_UNSUPPORTED = {
 function CarteClient() {
     const [status, setStatus] = useState<Status>("locating")
     const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
+    // The visitor's actual GPS position, kept apart from `center` (which also
+    // moves to a typed address). This is what the "you are here" marker and the
+    // recenter button point at, so both stay meaningful after an address search.
+    // Null until geolocation succeeds — a manual-only visitor has no "me".
+    const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
     const [merchants, setMerchants] = useState<NearbyMerchant[]>([])
     const [error, setError] = useState<string | null>(null)
     const [geolocationError, setGeolocationError] = useState<{
@@ -87,6 +92,10 @@ function CarteClient() {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 setGeolocationError(null)
+                setUserPosition({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                })
                 loadNearby(position.coords.latitude, position.coords.longitude)
             },
             (geoError) => {
@@ -223,7 +232,7 @@ function CarteClient() {
                     </div>
 
                     <div className="h-[500px] w-full overflow-hidden rounded-2xl border border-[#E5E7EB] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-                        <MerchantsMap center={center} merchants={merchants} />
+                        <MerchantsMap center={center} merchants={merchants} userPosition={userPosition} />
                     </div>
 
                     {merchants.length === 0 ? (
