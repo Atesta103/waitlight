@@ -8,10 +8,13 @@ import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
+import { TicketDownloadCard } from "@/components/composed/TicketDownloadCard"
 import { type ConnectionState } from "@/components/composed/ConnectionStatus"
-import { BellRing, Smartphone, MessageSquare, AlertCircle } from "lucide-react"
+import { BellRing, Smartphone, MessageSquare, AlertCircle, Download } from "lucide-react"
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
 import { getBusinessWording } from "@/lib/utils/business-wording"
+import { buildRecoverUrl } from "@/lib/utils/ticket-download"
+import { toPng } from "html-to-image"
 
 type NotificationChannels = {
     sound: boolean
@@ -29,6 +32,8 @@ type Merchant = {
     default_prep_time_min: number
     /** Auto-computed average prep time. null = not enough data, fall back to default. */
     calculated_avg_prep_time: number | null
+    logo_url: string | null
+    brand_color: string | null
     settings: {
         notification_channels: NotificationChannels
         notification_sound: SoundChoice
@@ -80,7 +85,30 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         }
     })
 
+    const [ticketDialogOpen, setTicketDialogOpen] = useState(false)
+    const [isDownloading, setIsDownloading] = useState(false)
+    const [downloadError, setDownloadError] = useState<string | null>(null)
+    const ticketCardRef = useRef<HTMLDivElement>(null)
 
+    async function handleDownloadTicket() {
+        if (!ticketCardRef.current) return
+        setIsDownloading(true)
+        setDownloadError(null)
+        try {
+            const dataUrl = await toPng(ticketCardRef.current, { pixelRatio: 2 })
+            const link = document.createElement("a")
+            link.href = dataUrl
+            link.download = `ticket-${merchant.slug}.png`
+            link.click()
+        } catch (err) {
+            console.error("[WaitClient] Ticket image export failed:", err)
+            setDownloadError(
+                "Impossible de générer l'image. Notez le code ci-dessus pour retrouver votre place.",
+            )
+        } finally {
+            setIsDownloading(false)
+        }
+    }
 
 
     // ── TanStack Query ────────────────────────────────────────────────────────
@@ -355,6 +383,20 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
     // Check if we need to show the moderation warning dialog
     const showModerationWarning = ticket.name_flagged && !acknowledgedFlag
 
+    // Same lifecycle as the recovery-code card just below: a ticket can be
+    // saved while it's still active, not once it's done or cancelled.
+    const canDownloadTicket =
+        (ticket.status === "waiting" || ticket.status === "called") && !!ticket.recovery_code
+
+    const recoverUrl = ticket.recovery_code
+        ? buildRecoverUrl({
+              baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? "https://waitlight.app",
+              slug: merchant.slug,
+              customerName: ticket.customer_name,
+              code: ticket.recovery_code,
+          })
+        : ""
+
     return (
         <div className="flex flex-col gap-4">
             <CustomerWaitView
@@ -388,6 +430,51 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
                         </span>
                     </div>
                 )}
+
+            {canDownloadTicket && (
+                <Button
+                    variant="secondary"
+                    onClick={() => {
+                        setDownloadError(null)
+                        setTicketDialogOpen(true)
+                    }}
+                >
+                    <Download size={16} aria-hidden="true" />
+                    Enregistrer mon ticket
+                </Button>
+            )}
+
+            {canDownloadTicket && (
+                <Dialog open={ticketDialogOpen} onClose={() => setTicketDialogOpen(false)}>
+                    <DialogHeader>Votre ticket</DialogHeader>
+                    <DialogContent>
+                        <div className="flex flex-col items-center gap-4">
+                            <TicketDownloadCard
+                                ref={ticketCardRef}
+                                merchantName={merchant.name}
+                                merchantLogoUrl={merchant.logo_url}
+                                merchantBrandColor={merchant.brand_color}
+                                customerName={ticket.customer_name}
+                                position={ticket.status === "waiting" ? (position ?? null) : null}
+                                arrivalTimeIso={ticket.joined_at}
+                                recoveryCode={ticket.recovery_code ?? ""}
+                                recoverUrl={recoverUrl}
+                            />
+                            {downloadError ? (
+                                <p className="text-sm text-feedback-error" role="alert">
+                                    {downloadError}
+                                </p>
+                            ) : null}
+                        </div>
+                    </DialogContent>
+                    <DialogFooter>
+                        <Button onClick={handleDownloadTicket} isLoading={isDownloading}>
+                            <Download size={16} aria-hidden="true" />
+                            Télécharger l&apos;image
+                        </Button>
+                    </DialogFooter>
+                </Dialog>
+            )}
 
             {ticket.status === "called" && !calledReminderAcknowledged && (
                 <Dialog open onClose={() => setCalledReminderAcknowledged(true)}>
