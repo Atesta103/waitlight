@@ -296,6 +296,20 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
         mapRef.current = map
 
+        // MapLibre measures its container's size at construction time, which can
+        // land before the page's own layout (web fonts, flex/grid reflow) has
+        // settled — a container measured too early leaves MapLibre's cached
+        // dimensions wrong until something forces a re-measure. That stale cache
+        // is what threw off the very first popup opened after each load: it
+        // positioned against the wrong size, while later popups — opened once
+        // the map had settled — were fine. `resize()` forces a fresh
+        // measurement; called once the style has fully loaded, and again next
+        // frame to catch any layout that finished settling in between.
+        map.on("load", () => {
+            map.resize()
+            requestAnimationFrame(() => map.resize())
+        })
+
         return () => {
             map.remove()
             mapRef.current = null
