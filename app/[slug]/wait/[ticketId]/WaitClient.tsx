@@ -446,7 +446,7 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
 
             {canDownloadTicket && (
                 <Dialog open={ticketDialogOpen} onClose={() => setTicketDialogOpen(false)}>
-                    <DialogHeader>Votre ticket</DialogHeader>
+                    <DialogHeader onClose={() => setTicketDialogOpen(false)}>Votre ticket</DialogHeader>
                     <DialogContent>
                         <div className="flex flex-col items-center gap-4">
                             <TicketDownloadCard
