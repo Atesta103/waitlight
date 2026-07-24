@@ -4,7 +4,7 @@
 
 **Goal:** Let a customer waiting in a queue download a PNG ticket (merchant identity, name, position snapshot, arrival time, recovery code, QR code) so they can find their way back to their ticket from any device, not just the browser they joined from.
 
-**Architecture:** A pure-logic utils module (`lib/utils/ticket-download.ts`) backs a presentational `TicketCard` component (`components/composed/TicketCard.tsx`), captured to PNG client-side via `html-to-image` from a button on the existing `/wait` page. The QR code encodes a pre-filled link to the existing `/retrouver` recovery form.
+**Architecture:** A pure-logic utils module (`lib/utils/ticket-download.ts`) backs a presentational `TicketDownloadCard` component (`components/composed/TicketDownloadCard.tsx`), captured to PNG client-side via `html-to-image` from a button on the existing `/wait` page. The QR code encodes a pre-filled link to the existing `/retrouver` recovery form.
 
 **Tech Stack:** Next.js App Router, React, TypeScript, Tailwind, `qrcode.react` (existing dependency), `html-to-image` (new dependency), Vitest for unit tests.
 
@@ -210,21 +210,21 @@ git push origin dev
 
 ---
 
-### Task 3: TicketCard component
+### Task 3: TicketDownloadCard component
 
 **Files:**
-- Create: `components/composed/TicketCard.tsx`
-- Create: `stories/composed/TicketCard.stories.tsx`
+- Create: `components/composed/TicketDownloadCard.tsx`
+- Create: `stories/composed/TicketDownloadCard.stories.tsx`
 
 **Interfaces:**
 - Consumes: `formatArrivalTime` from `@/lib/utils/ticket-download` (Task 1), `cn` from `@/lib/utils/cn`, `QRCodeCanvas` from `qrcode.react`.
-- Produces: `TicketCard` — a `forwardRef<HTMLDivElement, TicketCardProps>` component; `type TicketCardProps` with fields `merchantName: string`, `merchantLogoUrl: string | null`, `merchantBrandColor: string | null`, `customerName: string`, `position: number | null`, `arrivalTimeIso: string`, `recoveryCode: string`, `recoverUrl: string`, `className?: string`. The forwarded ref attaches to the card's root `<div>` — Task 6 uses it as the capture target for `html-to-image`.
+- Produces: `TicketDownloadCard` — a `forwardRef<HTMLDivElement, TicketDownloadCardProps>` component; `type TicketDownloadCardProps` with fields `merchantName: string`, `merchantLogoUrl: string | null`, `merchantBrandColor: string | null`, `customerName: string`, `position: number | null`, `arrivalTimeIso: string`, `recoveryCode: string`, `recoverUrl: string`, `className?: string`. The forwarded ref attaches to the card's root `<div>` — Task 6 uses it as the capture target for `html-to-image`.
 
 No network calls, no internal state — pure presentation, so it's safe to capture identically wherever it's mounted.
 
 - [ ] **Step 1: Write the component**
 
-Create `components/composed/TicketCard.tsx`:
+Create `components/composed/TicketDownloadCard.tsx`:
 
 ```tsx
 "use client"
@@ -234,7 +234,7 @@ import { QRCodeCanvas } from "qrcode.react"
 import { cn } from "@/lib/utils/cn"
 import { formatArrivalTime } from "@/lib/utils/ticket-download"
 
-type TicketCardProps = {
+type TicketDownloadCardProps = {
     merchantName: string
     merchantLogoUrl: string | null
     /** Falls back to the app's own brand color when the merchant has none set. */
@@ -260,7 +260,7 @@ const DEFAULT_BRAND_COLOR = "#6366f1"
  * presentation — no state, no network calls — so it renders identically
  * whether shown live in a dialog or captured off-screen.
  */
-const TicketCard = forwardRef<HTMLDivElement, TicketCardProps>(function TicketCard(
+const TicketDownloadCard = forwardRef<HTMLDivElement, TicketDownloadCardProps>(function TicketDownloadCard(
     {
         merchantName,
         merchantLogoUrl,
@@ -362,7 +362,7 @@ const TicketCard = forwardRef<HTMLDivElement, TicketCardProps>(function TicketCa
     )
 })
 
-export { TicketCard, type TicketCardProps }
+export { TicketDownloadCard, type TicketDownloadCardProps }
 ```
 
 - [ ] **Step 2: Write the Storybook story**
@@ -373,16 +373,16 @@ every existing composed component (`MerchantsMap`, `AddressAutocomplete`) is
 verified visually via a Storybook story, not a render test. `Default` (no logo)
 and `WithLogo` below cover that spec line the same way.
 
-Create `stories/composed/TicketCard.stories.tsx`:
+Create `stories/composed/TicketDownloadCard.stories.tsx`:
 
 ```tsx
 import type { Meta, StoryObj } from "@storybook/react"
-import { TicketCard } from "@/components/composed/TicketCard"
+import { TicketDownloadCard } from "@/components/composed/TicketDownloadCard"
 import { buildRecoverUrl } from "@/lib/utils/ticket-download"
 
 const meta = {
-    title: "Composed/TicketCard",
-    component: TicketCard,
+    title: "Composed/TicketDownloadCard",
+    component: TicketDownloadCard,
     tags: ["autodocs"],
     parameters: { layout: "centered" },
     args: {
@@ -400,7 +400,7 @@ const meta = {
             code: "4F2K",
         }),
     },
-} satisfies Meta<typeof TicketCard>
+} satisfies Meta<typeof TicketDownloadCard>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -427,7 +427,7 @@ export const LongNames: Story = {
 
 - [ ] **Step 3: Typecheck and lint**
 
-Run: `npx tsc --noEmit && npx eslint components/composed/TicketCard.tsx`
+Run: `npx tsc --noEmit && npx eslint components/composed/TicketDownloadCard.tsx`
 Expected: no errors
 
 - [ ] **Step 4: Verify the app↔storybook contract check passes**
@@ -438,8 +438,8 @@ Expected: `✅ [contract] App ↔ design system contract OK`
 - [ ] **Step 5: Commit**
 
 ```bash
-git add components/composed/TicketCard.tsx stories/composed/TicketCard.stories.tsx
-git commit -m "feat(ticket): add TicketCard presentational component"
+git add components/composed/TicketDownloadCard.tsx stories/composed/TicketDownloadCard.stories.tsx
+git commit -m "feat(ticket): add TicketDownloadCard presentational component"
 git push origin dev
 ```
 
@@ -477,7 +477,7 @@ import { Search } from "lucide-react"
 Then, right after the existing `useState` declarations (`customerName`, `code`, `error`, `isLoading`), add:
 
 ```tsx
-    // Pre-fill from a scanned ticket QR code (see buildRecoverUrl / TicketCard).
+    // Pre-fill from a scanned ticket QR code (see buildRecoverUrl / TicketDownloadCard).
     // Read directly from window.location rather than useSearchParams(), which
     // avoids that hook's Suspense-boundary requirement and any hydration
     // mismatch from differing server/client initial state — this runs once,
@@ -621,7 +621,7 @@ git push origin dev
 - Modify: `app/[slug]/wait/[ticketId]/WaitClient.tsx:1-14` (imports), `:358-390` (JSX)
 
 **Interfaces:**
-- Consumes: `TicketCard` (Task 3), `buildRecoverUrl` (Task 1), `toPng` from `html-to-image` (Task 2), the `Merchant.logo_url`/`Merchant.brand_color` fields (Task 5).
+- Consumes: `TicketDownloadCard` (Task 3), `buildRecoverUrl` (Task 1), `toPng` from `html-to-image` (Task 2), the `Merchant.logo_url`/`Merchant.brand_color` fields (Task 5).
 
 This is the integration task — everything else was built and verified independently. `NEXT_PUBLIC_BASE_URL` is read the same way the existing join-QR code already does in `components/composed/QRCodeDisplay.tsx:45`, for consistency and because it's the SSR-safe way to get the app's own origin (`window.location.origin` would crash during this component's server render pass).
 
@@ -640,7 +640,7 @@ import { Spinner } from "@/components/ui/Spinner"
 import { StatusBanner } from "@/components/composed/StatusBanner"
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from "@/components/ui/Dialog"
 import { Button } from "@/components/ui/Button"
-import { TicketCard } from "@/components/composed/TicketCard"
+import { TicketDownloadCard } from "@/components/composed/TicketDownloadCard"
 import { type ConnectionState } from "@/components/composed/ConnectionStatus"
 import { BellRing, Smartphone, MessageSquare, AlertCircle, Download } from "lucide-react"
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
@@ -723,7 +723,7 @@ In `app/[slug]/wait/[ticketId]/WaitClient.tsx`, right after the existing recover
                     <DialogHeader>Votre ticket</DialogHeader>
                     <DialogContent>
                         <div className="flex flex-col items-center gap-4">
-                            <TicketCard
+                            <TicketDownloadCard
                                 ref={ticketCardRef}
                                 merchantName={merchant.name}
                                 merchantLogoUrl={merchant.logo_url}
