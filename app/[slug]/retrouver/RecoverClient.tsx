@@ -38,10 +38,14 @@ function RecoverClient({ slug, merchantName }: RecoverClientProps) {
         const { name, code: prefillCode } = parseRecoverParams(
             new URLSearchParams(window.location.search),
         )
-        if (name) setCustomerName(name)
-        if (prefillCode) setCode(prefillCode)
+        if (!name && !prefillCode) return
+        // Defer to avoid a synchronous setState in the effect body.
+        const t = setTimeout(() => {
+            if (name) setCustomerName(name)
+            if (prefillCode) setCode(prefillCode)
+        }, 0)
+        return () => clearTimeout(t)
         // Only ever want this once, on mount, to seed from a scanned link.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     async function handleSubmit(e: React.FormEvent) {
