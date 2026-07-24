@@ -14,7 +14,7 @@ import { BellRing, Smartphone, MessageSquare, AlertCircle, Download } from "luci
 import { playHapticBuzz, playSound, unlockAudio, type SoundChoice } from "@/lib/utils/notifications"
 import { getBusinessWording } from "@/lib/utils/business-wording"
 import { buildRecoverUrl } from "@/lib/utils/ticket-download"
-import { toPng } from "html-to-image"
+import { toBlob } from "html-to-image"
 
 type NotificationChannels = {
     sound: boolean
@@ -95,11 +95,21 @@ function WaitClient({ merchant, ticketId }: WaitClientProps) {
         setIsDownloading(true)
         setDownloadError(null)
         try {
-            const dataUrl = await toPng(ticketCardRef.current, { pixelRatio: 2 })
+            const blob = await toBlob(ticketCardRef.current, { pixelRatio: 2 })
+            if (!blob) throw new Error("toBlob returned null")
+            // A blob: object URL triggers a direct save reliably; a raw data:
+            // URL on the same <a download> does not — Safari treats an image
+            // data: URL as content to preview and offers "View or Download"
+            // instead of saving it, which is what surfaced this in testing.
+            const objectUrl = URL.createObjectURL(blob)
             const link = document.createElement("a")
-            link.href = dataUrl
+            link.href = objectUrl
             link.download = `ticket-${merchant.slug}.png`
             link.click()
+            // Revoking immediately can race the browser actually reading the
+            // blob (Safari in particular can be slow to pick it up) — give it
+            // a moment before freeing the URL.
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
         } catch (err) {
             console.error("[WaitClient] Ticket image export failed:", err)
             setDownloadError(
