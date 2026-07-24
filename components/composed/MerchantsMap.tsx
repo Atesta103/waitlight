@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import maplibregl from "maplibre-gl"
-import { LocateFixed, RefreshCw } from "lucide-react"
+import { LocateFixed } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { getButtonClasses } from "@/components/ui/button-classes"
 import { cn } from "@/lib/utils/cn"
@@ -16,17 +16,23 @@ type MerchantsMapProps = {
     /** The visitor's GPS position, if geolocation succeeded. Drives the "you are
      *  here" marker and the recenter button; absent for a manual-only visitor. */
     userPosition?: { lat: number; lng: number } | null
-    /** Called with the map's current center when the visitor asks to re-search
-     *  the area they've panned to. Omit to hide the "search this area" button. */
+    /** Re-fetch results for a new center, called automatically once the map is
+     *  panned far enough from the loaded area. Omit to disable auto-refresh. */
     onSearchArea?: (center: { lat: number; lng: number }) => void
 }
 
 /** Pins closer than this many screen pixels collapse into one cluster. */
 const CLUSTER_RADIUS_PX = 46
 
-/** How far the map must drift from the searched center (km) before offering a
- *  re-search. Below this, the loaded results still cover what's on screen. */
-const SEARCH_AREA_THRESHOLD_KM = 3
+/** How far the map must drift from the loaded center (km) before results are
+ *  re-fetched automatically. Roughly a third of the 25km search radius, so the
+ *  loaded set always comfortably covers the viewport without refetching on
+ *  every small pan. */
+const AUTO_REFRESH_THRESHOLD_KM = 8
+
+/** Quiet period after the map settles before an auto-refresh fires, so a long
+ *  drag or a pinch-zoom triggers one fetch at the end, not a burst. */
+const AUTO_REFRESH_DEBOUNCE_MS = 700
 
 /** Great-circle distance in km — used to decide when a re-search is worthwhile. */
 function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
@@ -238,10 +244,6 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
     // click — hand-wiring that click was what broke.
     const [popupHosts, setPopupHosts] = useState<Map<string, HTMLElement>>(new Map())
 
-    // Shown once the map has drifted far enough from the searched center that
-    // the loaded results may no longer cover what's on screen.
-    const [showSearchArea, setShowSearchArea] = useState(false)
-
     // Map instance: created once. `center` changes are handled separately so a
     // new search pans the existing map instead of rebuilding it.
     useEffect(() => {
@@ -341,21 +343,29 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
         }
     }, [userPosition])
 
-    // Offer "search this area" once the map drifts from the searched center.
-    // A fresh search resets `center`, which hides the button until the next pan.
+    // Auto-refresh: once the map settles far enough from the center the current
+    // results were loaded for, re-fetch for where the visitor has panned — no
+    // button to press. Debounced so a long drag fires one fetch at the end. The
+    // refresh updates `center`, which re-runs this effect with the new baseline,
+    // so distance falls back to ~0 and it won't loop.
     useEffect(() => {
         const map = mapRef.current
         if (!map || !onSearchArea) return
 
-        setShowSearchArea(false)
+        let timer: ReturnType<typeof setTimeout> | undefined
 
         const onMoveEnd = () => {
             const c = map.getCenter()
-            setShowSearchArea(distanceKm(center, { lat: c.lat, lng: c.lng }) > SEARCH_AREA_THRESHOLD_KM)
+            const point = { lat: c.lat, lng: c.lng }
+            if (distanceKm(center, point) <= AUTO_REFRESH_THRESHOLD_KM) return
+
+            clearTimeout(timer)
+            timer = setTimeout(() => onSearchArea(point), AUTO_REFRESH_DEBOUNCE_MS)
         }
         map.on("moveend", onMoveEnd)
 
         return () => {
+            clearTimeout(timer)
             map.off("moveend", onMoveEnd)
         }
     }, [center, onSearchArea])
@@ -374,28 +384,9 @@ function MerchantsMap({ center, merchants, userPosition, onSearchArea }: Merchan
         })
     }
 
-    const handleSearchArea = () => {
-        const map = mapRef.current
-        if (!map || !onSearchArea) return
-        const c = map.getCenter()
-        setShowSearchArea(false)
-        onSearchArea({ lat: c.lat, lng: c.lng })
-    }
-
     return (
         <div className="relative h-full w-full">
             <div ref={containerRef} className="h-full w-full rounded-2xl" />
-
-            {showSearchArea ? (
-                <button
-                    type="button"
-                    onClick={handleSearchArea}
-                    className="absolute left-1/2 top-4 z-[1] flex -translate-x-1/2 items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#4F46E5] shadow-[0_2px_10px_rgba(0,0,0,0.14)] transition-colors hover:bg-[#F5F3FF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#6366F1] focus-visible:outline-offset-2"
-                >
-                    <RefreshCw size={15} aria-hidden="true" />
-                    Rechercher dans cette zone
-                </button>
-            ) : null}
 
             {userPosition ? (
                 <button
