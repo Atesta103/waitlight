@@ -295,8 +295,12 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
             style: MAP_STYLE_URL,
             center: [center.lng, center.lat],
             zoom: DEFAULT_ZOOM,
-            attributionControl: { compact: true },
+            // Default attribution control lands bottom-right — the same corner
+            // as the recenter button below, where the two visibly overlapped.
+            // Disabled here and re-added explicitly at bottom-left instead.
+            attributionControl: false,
         })
+        map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left")
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
         mapRef.current = map
 
