@@ -117,7 +117,11 @@ function createPinElement(merchant: NearbyMerchant): HTMLElement {
 /** Popup body. Kept in React so it reuses Badge, Link and the button classes. */
 function MerchantPopup({ merchant }: { merchant: NearbyMerchant }) {
     return (
-        <div className="flex flex-col gap-2 p-1 min-w-[200px]">
+        // Fixed width, not min-width: a long address (which wraps to two lines
+        // instead of truncating, so the info stays readable) must not change the
+        // card's width from one merchant to the next — only its height, which
+        // is fine since the popup is anchored to the pin, not the card's edge.
+        <div className="flex w-[240px] flex-col gap-2 p-1">
             <div className="flex items-center gap-2">
                 {merchant.logo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -216,9 +220,19 @@ function buildMerchantMarker(
     host: HTMLElement,
 ): maplibregl.Marker {
     const popup = new maplibregl.Popup({
-        offset: 26,
+        // Anchor at the bottom so the card always opens above the pin, pointing
+        // down at it. Left to auto, MapLibre flips the side near screen edges,
+        // which is what made the card land inconsistently. Offset clears the
+        // 44px pin (radius 22 + a little gap).
+        anchor: "bottom",
+        offset: 30,
         closeButton: true,
-        maxWidth: "280px",
+        // The card itself is a fixed 240px (see MerchantPopup); with the content
+        // wrapper's padding (14px left + 34px right, for the close button) that
+        // needs ~288px total. 280 was tighter than that — bumped so the fixed
+        // width is never the thing actually constraining the popup.
+        maxWidth: "320px",
+        focusAfterOpen: false,
     }).setDOMContent(host)
 
     const element = createPinElement(merchant)
@@ -281,10 +295,28 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
             style: MAP_STYLE_URL,
             center: [center.lng, center.lat],
             zoom: DEFAULT_ZOOM,
-            attributionControl: { compact: true },
+            // Default attribution control lands bottom-right — the same corner
+            // as the recenter button below, where the two visibly overlapped.
+            // Disabled here and re-added explicitly at bottom-left instead.
+            attributionControl: false,
         })
+        map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left")
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
         mapRef.current = map
+
+        // MapLibre measures its container's size at construction time, which can
+        // land before the page's own layout (web fonts, flex/grid reflow) has
+        // settled — a container measured too early leaves MapLibre's cached
+        // dimensions wrong until something forces a re-measure. That stale cache
+        // is what threw off the very first popup opened after each load: it
+        // positioned against the wrong size, while later popups — opened once
+        // the map had settled — were fine. `resize()` forces a fresh
+        // measurement; called once the style has fully loaded, and again next
+        // frame to catch any layout that finished settling in between.
+        map.on("load", () => {
+            map.resize()
+            requestAnimationFrame(() => map.resize())
+        })
 
         return () => {
             map.remove()

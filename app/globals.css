@@ -352,9 +352,11 @@ html {
 }
 
 /* The popup body is a React tree; strip MapLibre's own text styling so the
-   design system's typography wins. */
+   design system's typography wins. Extra right padding leaves room for the
+   close button so it never overlaps the content. */
 .maplibregl-popup-content {
-  padding: 10px 12px;
+  padding: 12px 14px;
+  padding-right: 34px;
   border-radius: 12px;
   background: var(--color-surface-card);
   box-shadow: 0 6px 24px rgb(0 0 0 / 0.14);
@@ -364,6 +366,45 @@ html {
 .maplibregl-popup-tip {
   border-top-color: var(--color-surface-card);
   border-bottom-color: var(--color-surface-card);
+}
+
+/* MapLibre's default close button is a tiny "×" glyph jammed in the corner.
+   Replace it with a real, comfortably tappable target that sits clear of the
+   content. The glyph is hidden and a crisp "×" drawn with the ::before. */
+.maplibregl-popup-close-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 9999px;
+  color: transparent;
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.maplibregl-popup-close-button::before {
+  content: "×";
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+}
+
+.maplibregl-popup-close-button:hover {
+  background: var(--color-surface-base);
+}
+
+.maplibregl-popup-close-button:hover::before {
+  color: var(--color-text-primary);
+}
+
+.maplibregl-popup-close-button:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 1px;
 }
 
 /* Cluster bubble standing in for several overlapping pins. Brand indigo, sized
