@@ -27,7 +27,7 @@ Le téléchargement utilise `html-to-image` (nouvelle dépendance, légère, act
 | Logo | `merchant.logo_url` | **à ajouter** au select de `page.tsx` et au type `Merchant` de `WaitClient.tsx` |
 | Couleur de marque | `merchant.brand_color` | **à ajouter**, idem. Repli sur la couleur de marque par défaut de l'app si absente |
 | Prénom du client | `ticket.customer_name` | déjà disponible |
-| Numéro / position | state React existant (position en file) | **instantané figé** au moment du clic sur « Enregistrer » — jamais recalculé après coup, l'image ne ment pas sur une position qui aurait bougé |
+| Numéro / position | state React existant (position en file) | **en direct** tant que la fenêtre reste ouverte — la valeur capturée à l'image est celle affichée au moment du clic sur « Télécharger », donc toujours la plus à jour possible. Décision prise après revue finale du code : préféré à un gel au clic sur « Enregistrer », qui aurait pu figer une position déjà obsolète. `null` si le ticket a déjà été appelé (la position en file n'a alors plus de sens) |
 | Heure d'arrivée | `ticket.joined_at` | déjà disponible, formatée en heure locale lisible |
 | Code de récupération | `ticket.recovery_code` | déjà disponible, affiché en texte, gros, lisible |
 | QR code | généré côté client avec `qrcode.react` (déjà une dépendance du projet, utilisée pour le QR de rejoindre la file) | voir section dédiée |
