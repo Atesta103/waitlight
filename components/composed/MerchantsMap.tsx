@@ -216,9 +216,15 @@ function buildMerchantMarker(
     host: HTMLElement,
 ): maplibregl.Marker {
     const popup = new maplibregl.Popup({
-        offset: 26,
+        // Anchor at the bottom so the card always opens above the pin, pointing
+        // down at it. Left to auto, MapLibre flips the side near screen edges,
+        // which is what made the card land inconsistently. Offset clears the
+        // 44px pin (radius 22 + a little gap).
+        anchor: "bottom",
+        offset: 30,
         closeButton: true,
         maxWidth: "280px",
+        focusAfterOpen: false,
     }).setDOMContent(host)
 
     const element = createPinElement(merchant)
