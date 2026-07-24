@@ -146,7 +146,6 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mapRef = useRef<maplibregl.Map | null>(null)
     const markersRef = useRef<maplibregl.Marker[]>([])
-    const userMarkerRef = useRef<maplibregl.Marker | null>(null)
 
     // One portal host per merchant: each popup's body is a detached node React
     // portals into, so the content stays a real React tree (Badge, Link) rather
@@ -222,28 +221,23 @@ function MerchantsMap({ center, merchants, userPosition }: MerchantsMapProps) {
         }
     }, [merchants])
 
-    // The "you are here" dot. Moved rather than recreated so its pulse animation
-    // survives re-renders; removed if the visitor never shared a position.
+    // The "you are here" dot. Created fresh with a cleanup that removes it —
+    // essential under StrictMode's mount/unmount/remount, where the map effect
+    // tears down and rebuilds the map between the two passes. Without this
+    // cleanup the marker would stay bound to the discarded first map and never
+    // reattach to the live one, so the dot would silently never appear.
     useEffect(() => {
         const map = mapRef.current
-        if (!map) return
+        if (!map || !userPosition) return
 
-        if (!userPosition) {
-            userMarkerRef.current?.remove()
-            userMarkerRef.current = null
-            return
-        }
+        // setLngLat must precede addTo: addTo runs an internal _update that reads
+        // the position, so adding before setting throws on lngLat.
+        const marker = new maplibregl.Marker({ element: createUserDotElement() })
+            .setLngLat([userPosition.lng, userPosition.lat])
+            .addTo(map)
 
-        if (!userMarkerRef.current) {
-            // setLngLat must precede addTo: addTo runs an internal _update that
-            // reads the position, so adding before setting throws on lngLat.
-            userMarkerRef.current = new maplibregl.Marker({
-                element: createUserDotElement(),
-            })
-                .setLngLat([userPosition.lng, userPosition.lat])
-                .addTo(map)
-        } else {
-            userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat])
+        return () => {
+            marker.remove()
         }
     }, [userPosition])
 
