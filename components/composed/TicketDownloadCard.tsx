@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef } from "react"
-import { QRCodeCanvas } from "qrcode.react"
+import { QRCodeSVG } from "qrcode.react"
 import { cn } from "@/lib/utils/cn"
 import { formatArrivalTime } from "@/lib/utils/ticket-download"
 
@@ -127,7 +127,12 @@ const TicketDownloadCard = forwardRef<HTMLDivElement, TicketDownloadCardProps>(
                                 Prénom + code sur waitlight.app
                             </span>
                         </div>
-                        <QRCodeCanvas value={recoverUrl} size={84} />
+                        {/* SVG, not Canvas: html-to-image serializes the DOM/SVG
+                            tree to capture the ticket, but a <canvas>'s pixels are
+                            painted imperatively and can be missed or race the
+                            capture — an SVG element serializes natively, so it's
+                            reliably included in the exported PNG. */}
+                        <QRCodeSVG value={recoverUrl} size={84} />
                     </div>
                 </div>
             </div>
