@@ -9,9 +9,17 @@ type DialogProps = {
     onClose: () => void
     children: React.ReactNode
     className?: string
+    /**
+     * Lets a click on the backdrop dismiss the dialog, in addition to Escape
+     * and any explicit close control. Off by default: several dialogs in this
+     * app (e.g. the "called" reminder, the moderation warning) deliberately
+     * force an explicit acknowledgment, and a stray backdrop click must not
+     * dismiss those. Opt in only for dialogs that are purely informational.
+     */
+    closeOnBackdropClick?: boolean
 }
 
-function Dialog({ open, onClose, children, className }: DialogProps) {
+function Dialog({ open, onClose, children, className, closeOnBackdropClick = false }: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
     const previousFocusRef = useRef<HTMLElement | null>(null)
 
@@ -48,6 +56,17 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
     return (
         <dialog
             ref={dialogRef}
+            onClick={
+                closeOnBackdropClick
+                    ? (e) => {
+                          // A click on the ::backdrop registers as a click on the
+                          // <dialog> element itself (target === currentTarget);
+                          // a click on any actual content is a click on a
+                          // descendant, so this only fires for the backdrop.
+                          if (e.target === e.currentTarget) handleClose()
+                      }
+                    : undefined
+            }
             className={cn(
                 "m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-border-default bg-surface-card p-0 shadow-xl",
                 "backdrop:bg-surface-overlay",
