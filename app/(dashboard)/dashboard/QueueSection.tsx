@@ -9,6 +9,9 @@ import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
 import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
 import { UpgradeModal } from "@/components/composed/UpgradeModal"
 import { QrModeToggle } from "@/components/composed/QrModeToggle"
+import { Tabs } from "@/components/ui/Tabs"
+import { cn } from "@/lib/utils/cn"
+import { useMediaQuery } from "@/lib/hooks/use-media-query"
 import {
     toggleQueueOpenAction,
     getQueueAction,
@@ -16,6 +19,15 @@ import {
 } from "@/lib/actions/queue"
 import { getBusinessWording } from "@/lib/utils/business-wording"
 import type { QueueItem } from "@/lib/actions/queue"
+
+/**
+ * QRCodeDisplay's `size` is a canvas pixel size, not something CSS breakpoints
+ * can reflow — sized down below the lg: two-column layout (phone tab panel,
+ * tablet-portrait compact strip) so it doesn't crowd out the ticket list;
+ * full size at lg:+, matching the desktop layout's original size unchanged.
+ */
+const QR_SIZE_COMPACT = 150
+const QR_SIZE_FULL = 220
 
 type QueueSectionProps = {
     merchantId: string
@@ -48,6 +60,13 @@ export function QueueSection({
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
     const [displayMode, setDisplayMode] = useState<"kiosk" | "assisted">(initialQrMode)
+    // Phone only (< md:): which of the two panels is showing. Irrelevant at
+    // md:+, where both are always visible — the tab switcher itself is
+    // md:hidden, so this never affects layout there.
+    const [activeTab, setActiveTab] = useState<"queue" | "qr">("queue")
+    // Below lg: (phone tab panel, tablet-portrait strip) the QR code renders
+    // smaller — see QR_SIZE_COMPACT.
+    const isCompactQr = useMediaQuery("(max-width: 1023px)")
     const wording = getBusinessWording(businessType)
     // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
     // to share 'isOpen' across components without an actual HTTP request.
@@ -127,8 +146,24 @@ export function QueueSection({
         />
     )
 
+    const qrPanel = (
+        <>
+            <QRCodeDisplay
+                key={displayMode}
+                slug={merchantSlug}
+                size={isCompactQr ? QR_SIZE_COMPACT : QR_SIZE_FULL}
+                businessType={businessType}
+                mode={displayMode}
+            />
+            <div className="flex flex-wrap items-center justify-center gap-2">
+                {manualTicketDialog}
+                <QrModeToggle mode={displayMode} onModeChange={setDisplayMode} />
+            </div>
+        </>
+    )
+
     return (
-        <div className="flex flex-col gap-6 lg:h-full lg:min-h-0 lg:gap-4">
+        <div className="flex h-full min-h-0 flex-col gap-4">
             <UpgradeModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             <DashboardHeader
                 merchantName={merchantName}
@@ -148,34 +183,67 @@ export function QueueSection({
             )}
 
             {isOpen && (
-                // items-start below lg: (each column its natural height, as
-                // before); lg:items-stretch so both columns fill the row —
-                // QueueList uses that height for its own internal scroll, the
-                // QR panel just sits at the top of its (now taller) cell since
-                // it never asks to stretch its own content.
-                <div className="grid grid-cols-1 items-start gap-6 lg:flex-1 lg:min-h-0 lg:grid-cols-[1fr_auto] lg:items-stretch lg:gap-4">
-                    {/* Left — full-width queue list, always rendered when open */}
-                    <QueueList
-                        merchantId={merchantId}
-                        initialItems={initialItems}
-                        businessType={businessType}
+                <>
+                    {/* Phone only — the QR panel doesn't fit alongside the full
+                        list without page scroll on a short screen, so each is
+                        its own tab instead. Hidden md:+, where both panels are
+                        always shown together (see the grid below). */}
+                    <Tabs
+                        className="md:hidden"
+                        value={activeTab}
+                        onChange={(v) => setActiveTab(v as "queue" | "qr")}
+                        tabs={[
+                            {
+                                value: "queue",
+                                label: waitingCount > 0 ? `File (${waitingCount})` : "File",
+                            },
+                            { value: "qr", label: "QR code" },
+                        ]}
                     />
 
-                    {/* Right — QR code panel */}
-                    <div className="flex flex-col items-center gap-3">
-                        <QRCodeDisplay
-                            key={displayMode}
-                            slug={merchantSlug}
-                            size={220}
-                            businessType={businessType}
-                            mode={displayMode}
-                        />
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                            {manualTicketDialog}
-                            <QrModeToggle mode={displayMode} onModeChange={setDisplayMode} />
+                    {/*
+                        Three layouts in one grid, switched by breakpoint:
+                        - < md: one column, one row — only the active tab's
+                          panel is rendered visible (the other is `hidden`).
+                        - md: to < lg: one column, two rows (QR compact strip
+                          on top via order-1, list filling the rest below via
+                          order-2) — both panels always shown, ignoring
+                          activeTab (the md:flex below overrides the
+                          tab-driven hidden/flex).
+                        - lg:+: two columns, one row (list left via order-1,
+                          QR right via order-2) — the layout already in place
+                          before this change, untouched.
+                        grid-rows-[1fr] at every tier so the visible row(s)
+                        actually fill the grid's height rather than sizing to
+                        content — needed for QueueList's own h-full to resolve
+                        against a definite height.
+                    */}
+                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 md:grid-rows-[auto_1fr] lg:grid-cols-[1fr_auto] lg:grid-rows-[1fr]">
+                        {/* Queue list */}
+                        <div
+                            className={cn(
+                                "min-h-0 flex-col md:order-2 md:flex lg:order-1",
+                                activeTab === "queue" ? "flex" : "hidden",
+                            )}
+                        >
+                            <QueueList
+                                merchantId={merchantId}
+                                initialItems={initialItems}
+                                businessType={businessType}
+                            />
+                        </div>
+
+                        {/* QR code panel */}
+                        <div
+                            className={cn(
+                                "flex-col items-center gap-3 md:order-1 md:flex lg:order-2",
+                                activeTab === "qr" ? "flex" : "hidden",
+                            )}
+                        >
+                            {qrPanel}
                         </div>
                     </div>
-                </div>
+                </>
             )}
         </div>
     )
