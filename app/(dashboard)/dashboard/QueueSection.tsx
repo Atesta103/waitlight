@@ -248,10 +248,17 @@ export function QueueSection({
                             />
                         </div>
 
-                        {/* QR code panel */}
+                        {/* QR code panel. min-h-0 + overflow-y-auto: the card's
+                            content (header + QR image + footer buttons) has a
+                            natural minimum height that can't compress — on a
+                            row shorter than that minimum, h-full alone would
+                            just overflow and get clipped with no way to reach
+                            the rest of it. This is the same safety valve
+                            QueueList already has, so a too-short row scrolls
+                            instead of silently losing part of the card. */}
                         <div
                             className={cn(
-                                "flex-col items-center gap-3 md:order-1 md:flex lg:order-2",
+                                "min-h-0 flex-col items-center gap-3 overflow-y-auto md:order-1 md:flex lg:order-2",
                                 activeTab === "qr" ? "flex" : "hidden",
                             )}
                         >
