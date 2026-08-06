@@ -197,28 +197,22 @@ export default async function DashboardLayout({
                 </header>
                 {/* flex-1 + min-h-0 let this shrink below its content's natural
                     height inside the fixed-height shell above — without min-h-0
-                    a flex item never shrinks past its content, and the overflow
-                    would never reach this box's own scrollbar. overflow-y-auto
-                    here is a generic fallback so Settings/Analytics (out of this
-                    feature's scope) keep scrolling exactly as before, just
-                    scoped to this box instead of the whole page; on the queue
-                    page specifically, at every screen size, nothing actually
-                    overflows this box — QueueList clips its own overflow first
-                    (or, on phone, only the active tab's panel is rendered), so
-                    this scrollbar never appears there. pb-28 on mobile clears
-                    the fixed bottom header bar, which sits outside the flex
-                    flow (position: fixed takes it out of flow entirely, even
-                    inside a flex container). */}
+                    a flex item never shrinks past its content. <main> itself no
+                    longer scrolls (overflow-y-auto was removed): each dashboard
+                    page owns its own scroll container instead — QueueList /
+                    QueueSection on the queue page, and an h-full min-h-0
+                    overflow-y-auto wrapper on Settings/Analytics — so scroll
+                    lives where the content is, not on the whole page. pb-28 on
+                    mobile clears the fixed bottom header bar, which sits outside
+                    the flex flow (position: fixed takes it out of flow entirely,
+                    even inside a flex container). */}
                 {/* max-w-6xl is the right default for most dashboard pages
                     (Settings' form, Analytics' charts read better capped),
                     but the queue page opts out of it — see the full-bleed
                     wrapper in QueueSection.tsx. */}
-                {/* overflow-x-visible is explicit, not incidental: per the CSS
-                    overflow spec, setting only overflow-y (auto) makes
-                    overflow-x implicitly compute to 'auto' too rather than
-                    staying 'visible' — which could clip or make unreachable
-                    the queue page's full-bleed breakout (see QueueSection.tsx,
-                    which intentionally renders outside this box's edges). */}
+                {/* overflow-x-visible keeps the queue page's full-bleed
+                    breakout (see QueueSection.tsx, which intentionally renders
+                    outside this box's edges) from being clipped. */}
                 <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-x-visible px-4 py-4 pb-28 md:pb-4">
                     {children}
                 </main>
