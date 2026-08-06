@@ -22,12 +22,15 @@ import type { QueueItem } from "@/lib/actions/queue"
 
 /**
  * QRCodeDisplay's `size` is a canvas pixel size, not something CSS breakpoints
- * can reflow — sized down below the lg: two-column layout (phone tab panel,
- * tablet-portrait compact strip) so it doesn't crowd out the ticket list;
- * full size at lg:+, matching the desktop layout's original size unchanged.
+ * can reflow. Three tiers: full size at lg:+ (unchanged from before this
+ * feature); compact below lg:, where the tab panel has less room; extra
+ * compact below that on SHORT viewports specifically (an iPhone SE at
+ * 375×667 is the same width class as a 14 Pro at 393×852, but ~180px
+ * shorter — height, not width, is what actually breaks the fit there).
  */
-const QR_SIZE_COMPACT = 150
 const QR_SIZE_FULL = 220
+const QR_SIZE_COMPACT = 150
+const QR_SIZE_COMPACT_SM = 110
 
 type QueueSectionProps = {
     merchantId: string
@@ -60,13 +63,19 @@ export function QueueSection({
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
     const [displayMode, setDisplayMode] = useState<"kiosk" | "assisted">(initialQrMode)
-    // Phone only (< md:): which of the two panels is showing. Irrelevant at
-    // md:+, where both are always visible — the tab switcher itself is
-    // md:hidden, so this never affects layout there.
+    // Below lg: (phone, tablet portrait): which of the two panels is showing.
+    // Irrelevant at lg:+, where both are always visible side by side — the tab
+    // switcher itself is lg:hidden, so this never affects layout there.
     const [activeTab, setActiveTab] = useState<"queue" | "qr">("queue")
-    // Below lg: (phone tab panel, tablet-portrait strip) the QR code renders
-    // smaller — see QR_SIZE_COMPACT.
     const isCompactQr = useMediaQuery("(max-width: 1023px)")
+    // Height, not width, is what makes a small phone too tight to fit the QR
+    // card — see QR_SIZE_COMPACT_SM above.
+    const isShortViewport = useMediaQuery("(max-height: 700px)")
+    const qrSize = isCompactQr
+        ? isShortViewport
+            ? QR_SIZE_COMPACT_SM
+            : QR_SIZE_COMPACT
+        : QR_SIZE_FULL
     const wording = getBusinessWording(businessType)
     // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
     // to share 'isOpen' across components without an actual HTTP request.
@@ -155,7 +164,7 @@ export function QueueSection({
         <QRCodeDisplay
             key={displayMode}
             slug={merchantSlug}
-            size={isCompactQr ? QR_SIZE_COMPACT : QR_SIZE_FULL}
+            size={qrSize}
             businessType={businessType}
             mode={displayMode}
             className="h-full"
@@ -199,12 +208,13 @@ export function QueueSection({
 
             {isOpen && (
                 <>
-                    {/* Phone only — the QR panel doesn't fit alongside the full
-                        list without page scroll on a short screen, so each is
-                        its own tab instead. Hidden md:+, where both panels are
-                        always shown together (see the grid below). */}
+                    {/* Below lg: (phone AND tablet portrait) — neither panel
+                        reliably fits alongside the other without the page
+                        needing to scroll, so each is its own tab instead.
+                        Hidden at lg:+, where both are shown side by side (see
+                        the grid below). */}
                     <Tabs
-                        className="md:hidden"
+                        className="lg:hidden"
                         value={activeTab}
                         onChange={(v) => setActiveTab(v as "queue" | "qr")}
                         tabs={[
@@ -217,27 +227,29 @@ export function QueueSection({
                     />
 
                     {/*
-                        Three layouts in one grid, switched by breakpoint:
-                        - < md: one column, one row — only the active tab's
-                          panel is rendered visible (the other is `hidden`).
-                        - md: to < lg: one column, two rows (QR compact strip
-                          on top via order-1, list filling the rest below via
-                          order-2) — both panels always shown, ignoring
-                          activeTab (the md:flex below overrides the
-                          tab-driven hidden/flex).
+                        Two layouts in one grid, switched at lg: only:
+                        - < lg:: one column, one row — only the active tab's
+                          panel is rendered visible (the other is `hidden`),
+                          filling the full available height on its own.
                         - lg:+: two columns, one row (list left via order-1,
                           QR right via order-2) — the layout already in place
-                          before this change, untouched.
-                        grid-rows-[1fr] at every tier so the visible row(s)
+                          before this whole feature, untouched.
+                        grid-rows-[1fr] at both tiers so the visible row(s)
                         actually fill the grid's height rather than sizing to
                         content — needed for QueueList's own h-full to resolve
                         against a definite height.
                     */}
-                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 md:grid-rows-[auto_1fr] lg:grid-cols-[1fr_auto] lg:grid-rows-[1fr]">
-                        {/* Queue list */}
+                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 lg:grid-cols-[1fr_auto]">
+                        {/* Queue list. pb-28 below md: clears the mobile
+                            header, which is position: fixed at the viewport
+                            bottom there (out of the flex flow entirely) — that
+                            clearance lives on <main> for normal page scroll,
+                            but doesn't reach this nested internal scroll
+                            container, which is the actual scrolling context
+                            on this page now. */}
                         <div
                             className={cn(
-                                "min-h-0 flex-col md:order-2 md:flex lg:order-1",
+                                "min-h-0 flex-col pb-28 md:pb-0 lg:order-1 lg:flex",
                                 activeTab === "queue" ? "flex" : "hidden",
                             )}
                         >
@@ -255,10 +267,11 @@ export function QueueSection({
                             just overflow and get clipped with no way to reach
                             the rest of it. This is the same safety valve
                             QueueList already has, so a too-short row scrolls
-                            instead of silently losing part of the card. */}
+                            instead of silently losing part of the card.
+                            Same mobile pb-28 clearance as the list, above. */}
                         <div
                             className={cn(
-                                "min-h-0 flex-col items-center gap-3 overflow-y-auto md:order-1 md:flex lg:order-2",
+                                "min-h-0 flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0 lg:order-2 lg:flex",
                                 activeTab === "qr" ? "flex" : "hidden",
                             )}
                         >
