@@ -146,20 +146,26 @@ export function QueueSection({
         />
     )
 
+    // h-full: the QR card fills its column top to bottom, matching the ticket
+    // list's own full-height column — not just centered inside extra empty
+    // space, and not taller than that space either. The action buttons ride
+    // inside the same card via `footer` rather than as a sibling below it, so
+    // there's one bordered card, not two stacked ones.
     const qrPanel = (
-        <>
-            <QRCodeDisplay
-                key={displayMode}
-                slug={merchantSlug}
-                size={isCompactQr ? QR_SIZE_COMPACT : QR_SIZE_FULL}
-                businessType={businessType}
-                mode={displayMode}
-            />
-            <div className="flex flex-wrap items-center justify-center gap-2">
-                {manualTicketDialog}
-                <QrModeToggle mode={displayMode} onModeChange={setDisplayMode} />
-            </div>
-        </>
+        <QRCodeDisplay
+            key={displayMode}
+            slug={merchantSlug}
+            size={isCompactQr ? QR_SIZE_COMPACT : QR_SIZE_FULL}
+            businessType={businessType}
+            mode={displayMode}
+            className="h-full"
+            footer={
+                <>
+                    {manualTicketDialog}
+                    <QrModeToggle mode={displayMode} onModeChange={setDisplayMode} />
+                </>
+            }
+        />
     )
 
     return (
