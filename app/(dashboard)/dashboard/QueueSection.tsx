@@ -52,9 +52,10 @@ export function QueueSection({
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
     const [displayMode, setDisplayMode] = useState<"kiosk" | "assisted">(initialQrMode)
-    // Below lg: (phone, tablet portrait): which of the two panels is showing.
-    // Irrelevant at lg:+, where both are always visible side by side — the tab
-    // switcher itself is lg:hidden, so this never affects layout there.
+    // Below the side-by-side breakpoint (phone, tablet portrait): which of the
+    // two panels is showing. Irrelevant when side by side (landscape lg:+),
+    // where both are always visible — the tab switcher itself is
+    // lg:landscape:hidden, so this never affects layout there.
     const [activeTab, setActiveTab] = useState<"queue" | "qr">("queue")
     // The QR canvas size is derived from the QR panel's measured height so the
     // card fits without scrolling in the side-by-side layout (spec Part 2). In
@@ -194,11 +195,12 @@ export function QueueSection({
 
             {isOpen && (
                 <>
-                    {/* Below lg: (phone AND tablet portrait) — neither panel
-                        reliably fits alongside the other without the page
-                        needing to scroll, so each is its own tab instead.
-                        Hidden at lg:+, where both are shown side by side (see
-                        the grid below). */}
+                    {/* Below the side-by-side breakpoint (phone AND tablet
+                        portrait) — neither panel reliably fits alongside the
+                        other without the page needing to scroll, so each is its
+                        own tab instead. Hidden when side by side (landscape
+                        lg:+), where both are shown at once (see the grid
+                        below). */}
                     <Tabs
                         className="lg:landscape:hidden"
                         value={activeTab}
@@ -213,12 +215,14 @@ export function QueueSection({
                     />
 
                     {/*
-                        Two layouts in one grid, switched at lg: only:
-                        - < lg:: one column, one row — only the active tab's
-                          panel is rendered visible (the other is `hidden`),
-                          filling the full available height on its own.
-                        - lg:+: two columns, one row (list left via order-1,
-                          QR right via order-2) — the layout already in place
+                        Two layouts in one grid, switched on the side-by-side
+                        condition (landscape AND lg:+) only:
+                        - not side by side: one column, one row — only the
+                          active tab's panel is rendered visible (the other is
+                          `hidden`), filling the full available height on its own.
+                        - side by side (landscape lg:+): two columns, one row
+                          (list left via order-1, QR right via order-2) — the
+                          layout already in place
                           before this whole feature, untouched.
                         grid-rows-[1fr] at both tiers so the visible row(s)
                         actually fill the grid's height rather than sizing to
