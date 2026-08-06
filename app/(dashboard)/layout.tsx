@@ -98,7 +98,14 @@ export default async function DashboardLayout({
                 } as React.CSSProperties}
             >
                 <header className="fixed inset-x-0 bottom-0 z-40 shrink-0 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
-                    <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
+                    {/* Full-bleed, not mx-auto max-w-6xl: the queue page's
+                        content now stretches to fill the screen at lg:+ (see
+                        QueueSection.tsx), so a narrower centered header above
+                        it would visibly misalign. The header's own 3-column
+                        grid (nav / toggle / user menu) already spreads
+                        cleanly edge-to-edge at any width — this doesn't
+                        affect Settings/Analytics' own content, only this bar. */}
+                    <div className="px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
                         <div className="flex items-center gap-2 md:hidden">
                             <nav
                                 aria-label="Navigation du tableau de bord"
@@ -202,7 +209,17 @@ export default async function DashboardLayout({
                     the fixed bottom header bar, which sits outside the flex
                     flow (position: fixed takes it out of flow entirely, even
                     inside a flex container). */}
-                <main className="mx-auto flex min-h-0 max-w-6xl flex-1 flex-col overflow-y-auto px-4 py-4 pb-28 md:pb-4">
+                {/* max-w-6xl is the right default for most dashboard pages
+                    (Settings' form, Analytics' charts read better capped),
+                    but the queue page opts out of it — see the full-bleed
+                    wrapper in QueueSection.tsx. */}
+                {/* overflow-x-hidden guards against the queue page's
+                    full-bleed w-screen breakout (see QueueSection.tsx)
+                    occasionally being a few px wider than the visible
+                    viewport — 100vw can include the vertical scrollbar's own
+                    width on some browsers — which would otherwise show an
+                    unwanted horizontal scrollbar here. */}
+                <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto overflow-x-hidden px-4 py-4 pb-28 md:pb-4">
                     {children}
                 </main>
             </div>
