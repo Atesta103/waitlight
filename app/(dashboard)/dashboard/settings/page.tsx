@@ -18,7 +18,14 @@ export default async function SettingsPage() {
     const { merchant, settings } = result.data
 
     return (
-        <div className="flex flex-col gap-8">
+        // h-full + min-h-0 + overflow-y-auto: <main> in the dashboard layout no
+        // longer scrolls itself (that was removed as responsive groundwork), so
+        // this page needs its own scroll container — otherwise content taller
+        // than the viewport (very likely here, given how many sections this
+        // page has) would be clipped by #dashboard-root's overflow-hidden with
+        // no way to reach it. Mirrors the queue page's internal-scroll pattern
+        // (h-full inside the flex column).
+        <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto">
             <div className="flex items-center gap-4 border-b border-border-default pb-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-default bg-surface-card shadow-sm">
                     <Settings

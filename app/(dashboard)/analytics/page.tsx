@@ -23,9 +23,17 @@ export default async function AnalyticsPage() {
         "data" in analyticsResult ? analyticsResult.data : []
 
     return (
-        <AnalyticsDashboard
-            merchantId={user!.id}
-            initialData={initialData}
-        />
+        // h-full + min-h-0 + overflow-y-auto: <main> in the dashboard layout no
+        // longer scrolls itself (that was removed as responsive groundwork), so
+        // this page needs its own scroll container — otherwise content taller
+        // than the viewport would be clipped by #dashboard-root's
+        // overflow-hidden with no way to reach it. Mirrors the queue page's
+        // internal-scroll pattern (h-full inside the flex column).
+        <div className="h-full min-h-0 overflow-y-auto">
+            <AnalyticsDashboard
+                merchantId={user!.id}
+                initialData={initialData}
+            />
+        </div>
     )
 }

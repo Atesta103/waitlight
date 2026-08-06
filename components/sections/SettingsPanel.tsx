@@ -1453,7 +1453,10 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                 <Card className="p-6">
                                     <CardContent>
                                         <div className="flex flex-col gap-4 pt-1">
-                                            <div className="flex items-center justify-between gap-4">
+                                            {/* flex-col + sm:flex-row: the fixed w-[300px] switcher plus
+                                                this text don't fit side by side at 375px — stack below
+                                                sm, unchanged above it. */}
+                                            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <h4 className="text-sm font-medium text-text-primary">
                                                         Thème de
@@ -1465,7 +1468,7 @@ function SettingsPanel({ initialData, className }: SettingsPanelProps) {
                                                         le tableau de bord.
                                                     </p>
                                                 </div>
-                                                <div className="w-[300px] shrink-0">
+                                                <div className="w-full shrink-0 sm:w-[300px]">
                                                     <ThemeSwitcher />
                                                 </div>
                                             </div>
