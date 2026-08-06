@@ -142,11 +142,13 @@ export function QueueSection({
         />
     )
 
-    // h-full: the QR card fills its column top to bottom, matching the ticket
-    // list's own full-height column — not just centered inside extra empty
-    // space, and not taller than that space either. The action buttons ride
-    // inside the same card via `footer` rather than as a sibling below it, so
-    // there's one bordered card, not two stacked ones.
+    // The QR card takes its natural height and sticks to the top of its
+    // column rather than stretching to fill it — the column can be taller
+    // than the card (that empty space at the bottom is fine). `qrSize` still
+    // sizes the canvas to fit the available height so the card doesn't need
+    // to scroll. The action buttons ride inside the same card via `footer`
+    // rather than as a sibling below it, so there's one bordered card, not two
+    // stacked ones.
     const qrPanel = (
         <QRCodeDisplay
             key={displayMode}
@@ -154,7 +156,6 @@ export function QueueSection({
             size={qrSize}
             businessType={businessType}
             mode={displayMode}
-            className="h-full"
             footer={
                 <>
                     {manualTicketDialog}

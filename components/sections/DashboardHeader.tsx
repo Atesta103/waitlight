@@ -30,11 +30,17 @@ function DashboardHeader({
     return (
         <header
             className={cn(
-                "rounded-xl border border-border-default bg-surface-card px-4 py-4 sm:px-6",
+                "rounded-xl border border-border-default bg-surface-card px-3 py-3 sm:px-6 sm:py-4",
                 className,
             )}
         >
-            <div className="flex items-start justify-between gap-3 sm:items-center">
+            {/* Top row. On mobile this is the whole header: merchant identity
+                on the left, the open/close toggle on the right (the toggle
+                already conveys the state, and the waiting count lives in the
+                "File (N)" tab) — one compact row instead of two. On sm:+ the
+                right side shows the status badge and the fuller second row
+                below carries the counter + toggle, unchanged. */}
+            <div className="flex items-center justify-between gap-3">
                 {/* Merchant identity */}
                 <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary">
@@ -49,16 +55,27 @@ function DashboardHeader({
                     </span>
                 </div>
 
+                {/* Status badge — sm:+ only (on mobile the toggle shows state) */}
                 <Badge
                     status={isOpen ? "called" : "cancelled"}
                     showIcon={false}
-                    className="shrink-0"
+                    className="hidden shrink-0 sm:inline-flex"
                 >
                     {isOpen ? "Ouvert" : "Fermé"}
                 </Badge>
+
+                {/* Toggle — mobile only; on sm:+ it lives in the second row */}
+                <Toggle
+                    checked={isOpen}
+                    onChange={onToggleOpen}
+                    label={isOpen ? "Fermer la file" : "Ouvrir la file"}
+                    disabled={isUpdatingOpenState}
+                    className="shrink-0 sm:hidden"
+                />
             </div>
 
-            <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Second row — sm:+ only: waiting counter + toggle. */}
+            <div className="mt-4 hidden flex-row items-center justify-between gap-3 sm:flex">
                 {/* Waiting counter */}
                 <div
                     className="flex items-center gap-2 text-sm text-text-secondary"
@@ -75,20 +92,13 @@ function DashboardHeader({
                     </span>
                 </div>
 
-                {/* Action block */}
-                <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-base px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
-                    <span className="text-sm font-medium text-text-primary sm:hidden">
-                        {isOpen ? "File ouverte" : "File fermée"}
-                    </span>
-
-                    <Toggle
-                        checked={isOpen}
-                        onChange={onToggleOpen}
-                        label={isOpen ? "Fermer la file" : "Ouvrir la file"}
-                        disabled={isUpdatingOpenState}
-                        className="shrink-0"
-                    />
-                </div>
+                <Toggle
+                    checked={isOpen}
+                    onChange={onToggleOpen}
+                    label={isOpen ? "Fermer la file" : "Ouvrir la file"}
+                    disabled={isUpdatingOpenState}
+                    className="shrink-0"
+                />
             </div>
         </header>
     )
