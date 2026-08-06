@@ -25,7 +25,11 @@ export default async function SettingsPage() {
         // page has) would be clipped by #dashboard-root's overflow-hidden with
         // no way to reach it. Mirrors the queue page's internal-scroll pattern
         // (h-full inside the flex column).
-        <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto">
+        // overflow-x-hidden is explicit, not incidental — see the identical
+        // note in app/(dashboard)/analytics/page.tsx: without it, setting
+        // overflow-y makes overflow-x implicitly 'auto' too, so any stray
+        // horizontal overflow below would pan the whole page sideways.
+        <div className="flex h-full min-h-0 flex-col gap-8 overflow-x-hidden overflow-y-auto">
             <div className="flex items-center gap-4 border-b border-border-default pb-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-default bg-surface-card shadow-sm">
                     <Settings

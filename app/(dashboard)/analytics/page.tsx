@@ -29,7 +29,15 @@ export default async function AnalyticsPage() {
         // than the viewport would be clipped by #dashboard-root's
         // overflow-hidden with no way to reach it. Mirrors the queue page's
         // internal-scroll pattern (h-full inside the flex column).
-        <div className="h-full min-h-0 overflow-y-auto">
+        // overflow-x-hidden is explicit, not incidental: setting overflow-y to
+        // anything but visible makes overflow-x implicitly compute to 'auto'
+        // too (CSS overflow spec) — without this, the smallest horizontal
+        // overflow anywhere below (e.g. a rounding sliver in a flex/grid row)
+        // would make the WHOLE page pan sideways instead of staying put. The
+        // heatmap's own scoped overflow-x-auto (AnalyticsDashboard.tsx) is
+        // unaffected — an ancestor's overflow-x-hidden doesn't reach into a
+        // descendant's own scroll container.
+        <div className="h-full min-h-0 overflow-x-hidden overflow-y-auto">
             <AnalyticsDashboard
                 merchantId={user!.id}
                 initialData={initialData}
