@@ -11,7 +11,8 @@ import { UpgradeModal } from "@/components/composed/UpgradeModal"
 import { QrModeToggle } from "@/components/composed/QrModeToggle"
 import { Tabs } from "@/components/ui/Tabs"
 import { cn } from "@/lib/utils/cn"
-import { useMediaQuery } from "@/lib/hooks/use-media-query"
+import { useMeasuredHeight } from "@/lib/hooks/use-measured-height"
+import { computeQrSize } from "@/lib/utils/qr-size"
 import {
     toggleQueueOpenAction,
     getQueueAction,
@@ -19,18 +20,6 @@ import {
 } from "@/lib/actions/queue"
 import { getBusinessWording } from "@/lib/utils/business-wording"
 import type { QueueItem } from "@/lib/actions/queue"
-
-/**
- * QRCodeDisplay's `size` is a canvas pixel size, not something CSS breakpoints
- * can reflow. Three tiers: full size at lg:+ (unchanged from before this
- * feature); compact below lg:, where the tab panel has less room; extra
- * compact below that on SHORT viewports specifically (an iPhone SE at
- * 375×667 is the same width class as a 14 Pro at 393×852, but ~180px
- * shorter — height, not width, is what actually breaks the fit there).
- */
-const QR_SIZE_FULL = 220
-const QR_SIZE_COMPACT = 150
-const QR_SIZE_COMPACT_SM = 110
 
 type QueueSectionProps = {
     merchantId: string
@@ -67,15 +56,12 @@ export function QueueSection({
     // Irrelevant at lg:+, where both are always visible side by side — the tab
     // switcher itself is lg:hidden, so this never affects layout there.
     const [activeTab, setActiveTab] = useState<"queue" | "qr">("queue")
-    const isCompactQr = useMediaQuery("(max-width: 1023px)")
-    // Height, not width, is what makes a small phone too tight to fit the QR
-    // card — see QR_SIZE_COMPACT_SM above.
-    const isShortViewport = useMediaQuery("(max-height: 700px)")
-    const qrSize = isCompactQr
-        ? isShortViewport
-            ? QR_SIZE_COMPACT_SM
-            : QR_SIZE_COMPACT
-        : QR_SIZE_FULL
+    // The QR canvas size is derived from the QR panel's measured height so the
+    // card fits without scrolling in the side-by-side layout (spec Part 2). In
+    // the tabs layout the panel is full-height, so the QR is large there too; the
+    // card's own overflow-y-auto is only a safety valve for very short phones.
+    const [qrPanelRef, qrPanelHeight] = useMeasuredHeight<HTMLDivElement>()
+    const qrSize = computeQrSize(qrPanelHeight)
     const wording = getBusinessWording(businessType)
     // TANSTACK: useQuery is used here as a global state store (like Zustand/Redux)
     // to share 'isOpen' across components without an actual HTTP request.
@@ -214,7 +200,7 @@ export function QueueSection({
                         Hidden at lg:+, where both are shown side by side (see
                         the grid below). */}
                     <Tabs
-                        className="lg:hidden"
+                        className="lg:landscape:hidden"
                         value={activeTab}
                         onChange={(v) => setActiveTab(v as "queue" | "qr")}
                         tabs={[
@@ -239,7 +225,7 @@ export function QueueSection({
                         content — needed for QueueList's own h-full to resolve
                         against a definite height.
                     */}
-                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 lg:grid-cols-[1fr_auto]">
+                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 lg:landscape:grid-cols-[1fr_auto]">
                         {/* Queue list. pb-28 below md: clears the mobile
                             header, which is position: fixed at the viewport
                             bottom there (out of the flex flow entirely) — that
@@ -249,7 +235,7 @@ export function QueueSection({
                             on this page now. */}
                         <div
                             className={cn(
-                                "min-h-0 flex-col pb-28 md:pb-0 lg:order-1 lg:flex",
+                                "min-h-0 flex-col pb-28 md:pb-0 lg:landscape:order-1 lg:landscape:flex",
                                 activeTab === "queue" ? "flex" : "hidden",
                             )}
                         >
@@ -270,8 +256,9 @@ export function QueueSection({
                             instead of silently losing part of the card.
                             Same mobile pb-28 clearance as the list, above. */}
                         <div
+                            ref={qrPanelRef}
                             className={cn(
-                                "min-h-0 flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0 lg:order-2 lg:flex",
+                                "min-h-0 flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0 lg:landscape:order-2 lg:landscape:flex",
                                 activeTab === "qr" ? "flex" : "hidden",
                             )}
                         >
