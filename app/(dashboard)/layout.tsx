@@ -219,7 +219,7 @@ export default async function DashboardLayout({
                     staying 'visible' — which could clip or make unreachable
                     the queue page's full-bleed breakout (see QueueSection.tsx,
                     which intentionally renders outside this box's edges). */}
-                <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-x-visible overflow-y-auto px-4 py-4 pb-28 md:pb-4">
+                <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-x-visible px-4 py-4 pb-28 md:pb-4">
                     {children}
                 </main>
             </div>
