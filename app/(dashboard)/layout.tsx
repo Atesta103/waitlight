@@ -97,7 +97,13 @@ export default async function DashboardLayout({
                     "--radius-2xl": borderRadius,
                 } as React.CSSProperties}
             >
-                <header className="fixed inset-x-0 bottom-0 z-40 shrink-0 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                {/* overflow-x-hidden: this bar carries no viewport-width trick
+                    (unlike QueueSection's full-bleed content), so this is a
+                    pure safety net — if any child's content (e.g. the mobile
+                    queue-toggle button's label) ever fails to shrink with its
+                    flex container, it's clipped here rather than forcing
+                    horizontal scroll on the whole page. */}
+                <header className="fixed inset-x-0 bottom-0 z-40 shrink-0 overflow-x-hidden border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
                     {/* Full-bleed, not mx-auto max-w-6xl: the queue page's
                         content now stretches to fill the screen at lg:+ (see
                         QueueSection.tsx), so a narrower centered header above
