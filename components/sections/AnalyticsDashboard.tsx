@@ -141,7 +141,16 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
         // box that pushes every ancestor above it wider in turn.
         <div className="min-w-0 overflow-x-auto">
             {/* Accessible table behind the visual grid */}
-            <table className="sr-only" aria-label="Heatmap du volume par jour et heure">
+            {/* table-fixed is the actual fix here, pinpointed by bisection:
+                sr-only forces width:1px, but a <table> with the default
+                table-layout:auto sizes itself from its cells' content
+                regardless of any explicit width — 7 columns × 17 rows of "X
+                tickets" text computes a real layout box far wider than 1px,
+                which still counted toward the page's scrollable width even
+                though overflow:hidden + clip kept it invisible.
+                table-layout:fixed makes the table actually respect its
+                specified width instead of measuring its content. */}
+            <table className="sr-only table-fixed" aria-label="Heatmap du volume par jour et heure">
                 <caption>Nombre de tickets par créneau horaire</caption>
                 <thead>
                     <tr>
@@ -245,7 +254,10 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
     return (
         <div>
             {/* Accessible data table */}
-            <table className="sr-only" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
+            {/* table-fixed — same fix as the heatmap's accessible table
+                above and for the same reason: table-layout:auto ignores
+                sr-only's width:1px and sizes from cell content instead. */}
+            <table className="sr-only table-fixed" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
                 <caption>Volume de tickets par heure</caption>
                 <thead>
                     <tr>
