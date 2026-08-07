@@ -129,7 +129,17 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
     }, [rows])
 
     return (
-        <div className="overflow-x-auto">
+        // min-w-0 is the actual fix, pinpointed by bisection (hiding this
+        // exact div, and nothing else up the tree, dropped the page back to
+        // its real width): the div itself has no explicit width, so by
+        // default it shrinks-to-fit its child's min-w-[500px] instead of
+        // being constrained by its own parent and letting THAT child
+        // overflow into its own scrollbar. min-w-0 forces it to take
+        // whatever width its parent actually offers, so the 500px child
+        // overflows THIS box specifically — which is what turns overflow-x-
+        // auto into a real, contained scrollbar instead of a shrink-to-fit
+        // box that pushes every ancestor above it wider in turn.
+        <div className="min-w-0 overflow-x-auto">
             {/* Accessible table behind the visual grid */}
             <table className="sr-only" aria-label="Heatmap du volume par jour et heure">
                 <caption>Nombre de tickets par créneau horaire</caption>
