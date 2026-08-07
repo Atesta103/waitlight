@@ -37,7 +37,15 @@ export default async function AnalyticsPage() {
         // heatmap's own scoped overflow-x-auto (AnalyticsDashboard.tsx) is
         // unaffected — an ancestor's overflow-x-hidden doesn't reach into a
         // descendant's own scroll container.
-        <div className="h-full min-h-0 overflow-x-hidden overflow-y-auto">
+        // min-w-0 closes a separate hole: <main> is overflow-x-visible (it
+        // has to be, to let the queue page's full-bleed content past its own
+        // edges — see QueueSection.tsx), so it's not there to clip anything
+        // that spills past THIS box. Without min-w-0, this div — a plain flex
+        // child of main's flex-col — could itself grow wider than main's
+        // capped width to fit the heatmap's 500px-minimum content further
+        // down, and since nothing above clips that excess, it would render
+        // visibly past main's right edge instead of staying inside it.
+        <div className="h-full min-h-0 min-w-0 overflow-x-hidden overflow-y-auto">
             <AnalyticsDashboard
                 merchantId={user!.id}
                 initialData={initialData}

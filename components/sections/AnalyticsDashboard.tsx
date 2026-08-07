@@ -357,7 +357,7 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
             variants={wrapperVariants}
             initial="hidden"
             animate="visible"
-            className="flex flex-col gap-6"
+            className="min-w-0 flex flex-col gap-6"
         >
             {/* Top bar — always visible */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -486,10 +486,17 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                 )}
             </section>
 
-            {/* Heatmap card — shell always visible */}
+            {/* Heatmap card — shell always visible. min-w-0 is load-bearing:
+                the heatmap's own overflow-x-auto (min-w-[500px] grid inside
+                it) needs its ancestor chain to allow shrinking below that
+                500px, or the flex/grid default of min-width: auto lets each
+                nested flex-col level (this card → AnalyticsDashboard's root →
+                <main> → #dashboard-root) grow to fit it instead — bubbling
+                all the way up to real page-level horizontal overflow rather
+                than the intended contained scrollbar on just this card. */}
             <section
                 aria-labelledby="heatmap-title"
-                className="rounded-xl border border-border-default bg-surface-card p-5"
+                className="min-w-0 rounded-xl border border-border-default bg-surface-card p-5"
             >
                 <h3
                     id="heatmap-title"
