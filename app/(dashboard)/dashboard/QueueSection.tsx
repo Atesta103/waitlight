@@ -166,16 +166,22 @@ export function QueueSection({
     )
 
     return (
-        // Full-bleed: <main> (app/(dashboard)/layout.tsx) caps content at
-        // max-w-6xl, the right default for Settings/Analytics, but this page
-        // should use the full screen at lg:+ rather than leaving space unused
-        // on a wide monitor. `left: 50%` is computed against main's own
-        // (narrower, centered) width, then `-translate-x-1/2` shifts back by
-        // half of THIS element's width (100vw, from w-screen) — the two
-        // together net out to the viewport center regardless of how narrow
-        // main's own box is. A plain negative margin wouldn't: it would only
-        // re-center within main's bounds, not break out of them.
-        <div className="relative left-1/2 h-full w-screen min-h-0 -translate-x-1/2 flex flex-col gap-4 px-4 md:px-6 lg:px-8">
+        // Full-bleed at lg:+ only: <main> (app/(dashboard)/layout.tsx) caps
+        // content at max-w-6xl (1152px), the right default for
+        // Settings/Analytics, but this page should use the full screen at
+        // lg:+ rather than leaving space unused on a wide monitor. `left: 50%`
+        // is computed against main's own (narrower, centered) width, then
+        // `-translate-x-1/2` shifts back by half of THIS element's width
+        // (100vw, from w-screen) — the two together net out to the viewport
+        // center regardless of how narrow main's own box is. A plain negative
+        // margin wouldn't: it would only re-center within main's bounds, not
+        // break out of them.
+        // Not applied below lg: — main is already full-width on any screen
+        // ≤1152px (the cap is a no-op there), so there's nothing to break out
+        // of, and 100vw has a well-known quirk on mobile of measuring very
+        // slightly wider than the real visible width, which produced exactly
+        // the unwanted sliver of horizontal scroll this fixes.
+        <div className="flex h-full min-h-0 w-full flex-col gap-4 px-4 md:px-6 lg:relative lg:left-1/2 lg:w-screen lg:-translate-x-1/2 lg:px-8">
             <UpgradeModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             <DashboardHeader
                 merchantName={merchantName}
