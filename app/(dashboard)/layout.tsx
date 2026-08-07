@@ -103,7 +103,18 @@ export default async function DashboardLayout({
                     queue-toggle button's label) ever fails to shrink with its
                     flex container, it's clipped here rather than forcing
                     horizontal scroll on the whole page. */}
-                <header className="fixed inset-x-0 bottom-0 z-40 shrink-0 overflow-x-hidden border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                {/* w-screen on top of inset-x-0: verified in the browser
+                    (not just DevTools device emulation — a real narrowed
+                    window) that this fixed, inset-x-0 element was computing
+                    to a width matching its CONTENT's preferred size (~559px)
+                    rather than the actual viewport, with no transform/filter/
+                    contain anywhere in its ancestor chain to explain it —
+                    despite inset-x-0 being textbook correct for binding a
+                    fixed element's width to the viewport. Forcing width
+                    explicitly via 100vw sidesteps whatever in that
+                    auto-width resolution was misbehaving, rather than
+                    depending on it. */}
+                <header className="fixed inset-x-0 bottom-0 z-40 w-screen shrink-0 overflow-x-hidden border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
                     {/* mx-auto max-w-6xl, matching every dashboard page's own
                         content width (Settings, Analytics, and the queue
                         header row above its own full-bleed grid) — a
