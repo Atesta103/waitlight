@@ -141,7 +141,7 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
         // box that pushes every ancestor above it wider in turn.
         <div className="min-w-0 overflow-x-auto">
             {/* Accessible table behind the visual grid */}
-            {/* table-fixed is the actual fix here, pinpointed by bisection:
+            {/* table-fixed fixes the WIDTH side, pinpointed by bisection:
                 sr-only forces width:1px, but a <table> with the default
                 table-layout:auto sizes itself from its cells' content
                 regardless of any explicit width — 7 columns × 17 rows of "X
@@ -149,8 +149,18 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
                 which still counted toward the page's scrollable width even
                 though overflow:hidden + clip kept it invisible.
                 table-layout:fixed makes the table actually respect its
-                specified width instead of measuring its content. */}
-            <table className="sr-only table-fixed" aria-label="Heatmap du volume par jour et heure">
+                specified width instead of measuring its content.
+                The wrapping sr-only div fixes the HEIGHT side of the same
+                bug: a <table>'s specified height (sr-only sets height:1px)
+                is only a minimum per the table sizing algorithm — the box
+                still grows to fit 17 rows (~624px) regardless, and browsers
+                don't reliably let overflow:hidden clip a table back down to
+                that height either. That inflated (but invisible) box was
+                still contributing to the page's scrollable height. A plain
+                div has none of a table's special sizing rules, so putting
+                sr-only there instead clips the table down to nothing. */}
+            <div className="sr-only">
+            <table className="table-fixed" aria-label="Heatmap du volume par jour et heure">
                 <caption>Nombre de tickets par créneau horaire</caption>
                 <thead>
                     <tr>
@@ -180,6 +190,7 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
                     ))}
                 </tbody>
             </table>
+            </div>
 
             {/* Visual heatmap */}
             <div
@@ -254,10 +265,15 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
     return (
         <div>
             {/* Accessible data table */}
-            {/* table-fixed — same fix as the heatmap's accessible table
-                above and for the same reason: table-layout:auto ignores
-                sr-only's width:1px and sizes from cell content instead. */}
-            <table className="sr-only table-fixed" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
+            {/* table-fixed + wrapping sr-only div — same fix as the
+                heatmap's accessible table above and for the same reasons:
+                table-layout:auto ignores sr-only's width:1px and sizes from
+                cell content instead, and a table's own height similarly
+                ignores sr-only's height:1px (it's only a minimum per the
+                table sizing algorithm) — putting sr-only on a wrapping div
+                instead reliably clips both. */}
+            <div className="sr-only">
+            <table className="table-fixed" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
                 <caption>Volume de tickets par heure</caption>
                 <thead>
                     <tr>
@@ -276,6 +292,7 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
                     ))}
                 </tbody>
             </table>
+            </div>
 
             <ResponsiveContainer width="100%" height={220}>
                 <BarChart
