@@ -104,14 +104,14 @@ export default async function DashboardLayout({
                     flex container, it's clipped here rather than forcing
                     horizontal scroll on the whole page. */}
                 <header className="fixed inset-x-0 bottom-0 z-40 shrink-0 overflow-x-hidden border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
-                    {/* Full-bleed, not mx-auto max-w-6xl: the queue page's
-                        content now stretches to fill the screen at lg:+ (see
-                        QueueSection.tsx), so a narrower centered header above
-                        it would visibly misalign. The header's own 3-column
-                        grid (nav / toggle / user menu) already spreads
-                        cleanly edge-to-edge at any width — this doesn't
-                        affect Settings/Analytics' own content, only this bar. */}
-                    <div className="px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
+                    {/* mx-auto max-w-6xl, matching every dashboard page's own
+                        content width (Settings, Analytics, and the queue
+                        header row above its own full-bleed grid) — a
+                        full-bleed header previously looked visibly wider than
+                        Settings'/Analytics' own (still-capped) content below
+                        it, since only the queue page's content actually
+                        stretches past this width (see QueueSection.tsx). */}
+                    <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
                         <div className="flex items-center gap-2 md:hidden">
                             <nav
                                 aria-label="Navigation du tableau de bord"
