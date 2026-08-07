@@ -23,12 +23,15 @@ export default async function AnalyticsPage() {
         "data" in analyticsResult ? analyticsResult.data : []
 
     return (
-        // h-full + min-h-0 + overflow-y-auto: <main> in the dashboard layout no
-        // longer scrolls itself (that was removed as responsive groundwork), so
-        // this page needs its own scroll container — otherwise content taller
-        // than the viewport would be clipped by #dashboard-root's
-        // overflow-hidden with no way to reach it. Mirrors the queue page's
-        // internal-scroll pattern (h-full inside the flex column).
+        // max-h-full (not h-full) + min-h-0 + overflow-y-auto: <main> in the
+        // dashboard layout no longer scrolls itself (that was removed as
+        // responsive groundwork), so this page needs its own scroll
+        // container — otherwise content taller than the viewport would be
+        // clipped by #dashboard-root's overflow-hidden with no way to reach
+        // it. max-h-full caps this box at the available space so it scrolls
+        // when content is taller, WITHOUT forcing that full height when
+        // content is shorter — h-full did the former but also the latter,
+        // leaving dead space below short content down to the viewport edge.
         // overflow-x-hidden is explicit, not incidental: setting overflow-y to
         // anything but visible makes overflow-x implicitly compute to 'auto'
         // too (CSS overflow spec) — without this, the smallest horizontal
@@ -45,7 +48,7 @@ export default async function AnalyticsPage() {
         // capped width to fit the heatmap's 500px-minimum content further
         // down, and since nothing above clips that excess, it would render
         // visibly past main's right edge instead of staying inside it.
-        <div className="h-full min-h-0 min-w-0 overflow-x-hidden overflow-y-auto">
+        <div className="max-h-full min-h-0 min-w-0 overflow-x-hidden overflow-y-auto">
             <AnalyticsDashboard
                 merchantId={user!.id}
                 initialData={initialData}

@@ -18,13 +18,16 @@ export default async function SettingsPage() {
     const { merchant, settings } = result.data
 
     return (
-        // h-full + min-h-0 + overflow-y-auto: <main> in the dashboard layout no
-        // longer scrolls itself (that was removed as responsive groundwork), so
-        // this page needs its own scroll container — otherwise content taller
-        // than the viewport (very likely here, given how many sections this
-        // page has) would be clipped by #dashboard-root's overflow-hidden with
-        // no way to reach it. Mirrors the queue page's internal-scroll pattern
-        // (h-full inside the flex column).
+        // max-h-full (not h-full) + min-h-0 + overflow-y-auto: <main> in the
+        // dashboard layout no longer scrolls itself (that was removed as
+        // responsive groundwork), so this page needs its own scroll container
+        // — otherwise content taller than the viewport (very likely here,
+        // given how many sections this page has) would be clipped by
+        // #dashboard-root's overflow-hidden with no way to reach it.
+        // max-h-full caps this box at the available space (scroll kicks in
+        // when content is taller) without forcing that full height when
+        // content is shorter — h-full did the latter too, leaving dead space
+        // below short content (see the identical fix in analytics/page.tsx).
         // overflow-x-hidden is explicit, not incidental — see the identical
         // note in app/(dashboard)/analytics/page.tsx: without it, setting
         // overflow-y makes overflow-x implicitly 'auto' too, so any stray
@@ -35,7 +38,7 @@ export default async function SettingsPage() {
         // further down (a long unwrapped value, a wide embedded table), and
         // since main is overflow-x-visible (has to be, for the queue page's
         // full-bleed content), nothing above would clip that excess.
-        <div className="flex h-full min-h-0 min-w-0 flex-col gap-8 overflow-x-hidden overflow-y-auto">
+        <div className="flex max-h-full min-h-0 min-w-0 flex-col gap-8 overflow-x-hidden overflow-y-auto">
             <div className="flex items-center gap-4 border-b border-border-default pb-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-default bg-surface-card shadow-sm">
                     <Settings
