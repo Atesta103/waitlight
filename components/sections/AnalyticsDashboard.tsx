@@ -129,9 +129,38 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
     }, [rows])
 
     return (
-        <div className="overflow-x-auto">
+        // min-w-0 is the actual fix, pinpointed by bisection (hiding this
+        // exact div, and nothing else up the tree, dropped the page back to
+        // its real width): the div itself has no explicit width, so by
+        // default it shrinks-to-fit its child's min-w-[500px] instead of
+        // being constrained by its own parent and letting THAT child
+        // overflow into its own scrollbar. min-w-0 forces it to take
+        // whatever width its parent actually offers, so the 500px child
+        // overflows THIS box specifically — which is what turns overflow-x-
+        // auto into a real, contained scrollbar instead of a shrink-to-fit
+        // box that pushes every ancestor above it wider in turn.
+        <div className="min-w-0 overflow-x-auto">
             {/* Accessible table behind the visual grid */}
-            <table className="sr-only" aria-label="Heatmap du volume par jour et heure">
+            {/* table-fixed fixes the WIDTH side, pinpointed by bisection:
+                sr-only forces width:1px, but a <table> with the default
+                table-layout:auto sizes itself from its cells' content
+                regardless of any explicit width — 7 columns × 17 rows of "X
+                tickets" text computes a real layout box far wider than 1px,
+                which still counted toward the page's scrollable width even
+                though overflow:hidden + clip kept it invisible.
+                table-layout:fixed makes the table actually respect its
+                specified width instead of measuring its content.
+                The wrapping sr-only div fixes the HEIGHT side of the same
+                bug: a <table>'s specified height (sr-only sets height:1px)
+                is only a minimum per the table sizing algorithm — the box
+                still grows to fit 17 rows (~624px) regardless, and browsers
+                don't reliably let overflow:hidden clip a table back down to
+                that height either. That inflated (but invisible) box was
+                still contributing to the page's scrollable height. A plain
+                div has none of a table's special sizing rules, so putting
+                sr-only there instead clips the table down to nothing. */}
+            <div className="sr-only">
+            <table className="table-fixed" aria-label="Heatmap du volume par jour et heure">
                 <caption>Nombre de tickets par créneau horaire</caption>
                 <thead>
                     <tr>
@@ -161,6 +190,7 @@ function Heatmap({ rows, maxCount }: HeatmapProps) {
                     ))}
                 </tbody>
             </table>
+            </div>
 
             {/* Visual heatmap */}
             <div
@@ -235,7 +265,15 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
     return (
         <div>
             {/* Accessible data table */}
-            <table className="sr-only" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
+            {/* table-fixed + wrapping sr-only div — same fix as the
+                heatmap's accessible table above and for the same reasons:
+                table-layout:auto ignores sr-only's width:1px and sizes from
+                cell content instead, and a table's own height similarly
+                ignores sr-only's height:1px (it's only a minimum per the
+                table sizing algorithm) — putting sr-only on a wrapping div
+                instead reliably clips both. */}
+            <div className="sr-only">
+            <table className="table-fixed" aria-label={`Courbe de rush pour ${DAY_LABELS_FULL[selectedDay]}`}>
                 <caption>Volume de tickets par heure</caption>
                 <thead>
                     <tr>
@@ -254,6 +292,7 @@ function RushCurve({ rows, selectedDay, maxCount }: RushCurveProps) {
                     ))}
                 </tbody>
             </table>
+            </div>
 
             <ResponsiveContainer width="100%" height={220}>
                 <BarChart
@@ -357,7 +396,7 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
             variants={wrapperVariants}
             initial="hidden"
             animate="visible"
-            className="flex flex-col gap-6"
+            className="min-w-0 flex flex-col gap-6"
         >
             {/* Top bar — always visible */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -486,10 +525,17 @@ export function AnalyticsDashboard({ merchantId, initialData }: Props) {
                 )}
             </section>
 
-            {/* Heatmap card — shell always visible */}
+            {/* Heatmap card — shell always visible. min-w-0 is load-bearing:
+                the heatmap's own overflow-x-auto (min-w-[500px] grid inside
+                it) needs its ancestor chain to allow shrinking below that
+                500px, or the flex/grid default of min-width: auto lets each
+                nested flex-col level (this card → AnalyticsDashboard's root →
+                <main> → #dashboard-root) grow to fit it instead — bubbling
+                all the way up to real page-level horizontal overflow rather
+                than the intended contained scrollbar on just this card. */}
             <section
                 aria-labelledby="heatmap-title"
-                className="rounded-xl border border-border-default bg-surface-card p-5"
+                className="min-w-0 rounded-xl border border-border-default bg-surface-card p-5"
             >
                 <h3
                     id="heatmap-title"

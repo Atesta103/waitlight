@@ -36,6 +36,13 @@ type QRCodeDisplayProps = {
      * un client précis au moment de la prise en charge. Pas de rotation.
      */
     mode?: "kiosk" | "assisted"
+    /**
+     * Optional actions rendered inside this same card, below the QR zone,
+     * separated by a top border — lets a caller (e.g. the dashboard) anchor
+     * its own buttons to the bottom of the card when it's stretched to a
+     * given height via `className`, without a second, visually separate card.
+     */
+    footer?: React.ReactNode
 }
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
@@ -47,6 +54,7 @@ function QRCodeDisplay({
     className,
     mockMode = false,
     mode = "kiosk",
+    footer,
 }: QRCodeDisplayProps) {
     const isAssisted = mode === "assisted"
     const wording = getBusinessWording(businessType)
@@ -185,6 +193,7 @@ function QRCodeDisplay({
     return (
         <div
             className={cn(
+                "flex flex-col",
                 mockMode
                     ? "w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white shadow-md"
                     : "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
@@ -200,7 +209,12 @@ function QRCodeDisplay({
             </div>
 
             {/* ── QR zone ─────────────────────────────────────────────────── */}
-            <div className="flex flex-col items-center gap-6 px-6 py-8">
+            {/* flex-1 + justify-center: when the card is stretched taller than
+                its natural content (via className, e.g. h-full from a caller
+                matching a sibling's height), this is the block that absorbs
+                and centers in the extra space — header and footer keep their
+                natural height either side of it. */}
+            <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-8">
                 {/* Countdown Label - Centered above QR (kiosk mode only) */}
                 {isAssisted ? (
                     <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
@@ -299,6 +313,12 @@ function QRCodeDisplay({
                     </Button>
                 )}
             </div>
+
+            {footer ? (
+                <div className="flex flex-wrap items-center justify-center gap-2 border-t border-border-default px-6 py-4">
+                    {footer}
+                </div>
+            ) : null}
         </div>
     )
 }

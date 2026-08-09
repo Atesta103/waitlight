@@ -170,7 +170,11 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                         <div
                                             key={day.key}
                                             className={cn(
-                                                "flex items-center gap-3 rounded-xl border p-3.5 transition-all shadow-sm",
+                                                // flex-col + sm:flex-row: at 375px the day label, the two
+                                                // time inputs (w-24 each) and the toggle don't fit on one
+                                                // line without overflowing horizontally — stack them below
+                                                // sm, same as the row layout above sm (unchanged).
+                                                "flex flex-col items-stretch gap-3 rounded-xl border p-3.5 transition-all shadow-sm sm:flex-row sm:items-center",
                                                 isOpen
                                                     ? "border-border-default bg-surface-card"
                                                     : "border-transparent bg-surface-base/50 opacity-50",
@@ -263,7 +267,10 @@ const ScheduleEditor = forwardRef<ScheduleEditorHandle, ScheduleEditorProps>(fun
                                         {exceptions.map((ex, idx) => (
                                             <div
                                                 key={idx}
-                                                className="flex items-center gap-3 rounded-lg border border-border-default bg-surface-base p-3"
+                                                // flex-col + sm:flex-row: the date input, toggle, optional
+                                                // time inputs and delete button don't fit on one line at
+                                                // 375px — stack below sm, unchanged above it.
+                                                className="flex flex-col items-stretch gap-3 rounded-lg border border-border-default bg-surface-base p-3 sm:flex-row sm:items-center"
                                             >
                                                 <input
                                                     type="date"

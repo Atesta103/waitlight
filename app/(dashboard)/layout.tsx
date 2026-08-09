@@ -77,7 +77,11 @@ export default async function DashboardLayout({
         <QueryProvider>
             <div
                 id="dashboard-root"
-                className="min-h-screen bg-surface-base"
+                // Fixed-height app shell at every screen size (dvh, not vh:
+                // correctly accounts for Safari's address bar showing/hiding on
+                // iPad/iPhone) instead of natural document flow, so header + QR
+                // panel stay fixed and only the ticket list scrolls internally.
+                className="flex h-dvh flex-col overflow-hidden bg-surface-base"
                 style={{
                     fontFamily: `var(--font-brand)`,
                     "--color-brand-primary": brandColor,
@@ -93,7 +97,31 @@ export default async function DashboardLayout({
                     "--radius-2xl": borderRadius,
                 } as React.CSSProperties}
             >
-                <header className="fixed inset-x-0 bottom-0 z-40 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                {/* overflow-x-hidden: this bar carries no viewport-width trick
+                    (unlike QueueSection's full-bleed content), so this is a
+                    pure safety net — if any child's content (e.g. the mobile
+                    queue-toggle button's label) ever fails to shrink with its
+                    flex container, it's clipped here rather than forcing
+                    horizontal scroll on the whole page. */}
+                {/* w-screen on top of inset-x-0: verified in the browser
+                    (not just DevTools device emulation — a real narrowed
+                    window) that this fixed, inset-x-0 element was computing
+                    to a width matching its CONTENT's preferred size (~559px)
+                    rather than the actual viewport, with no transform/filter/
+                    contain anywhere in its ancestor chain to explain it —
+                    despite inset-x-0 being textbook correct for binding a
+                    fixed element's width to the viewport. Forcing width
+                    explicitly via 100vw sidesteps whatever in that
+                    auto-width resolution was misbehaving, rather than
+                    depending on it. */}
+                <header className="fixed inset-x-0 bottom-0 z-40 w-screen shrink-0 overflow-x-hidden border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                    {/* mx-auto max-w-6xl, matching every dashboard page's own
+                        content width (Settings, Analytics, and the queue
+                        header row above its own full-bleed grid) — a
+                        full-bleed header previously looked visibly wider than
+                        Settings'/Analytics' own (still-capped) content below
+                        it, since only the queue page's content actually
+                        stretches past this width (see QueueSection.tsx). */}
                     <div className="mx-auto max-w-6xl px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-4 md:py-2.5 md:pb-2.5">
                         <div className="flex items-center gap-2 md:hidden">
                             <nav
@@ -184,7 +212,25 @@ export default async function DashboardLayout({
                         </div>
                     </div>
                 </header>
-                <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-8">
+                {/* flex-1 + min-h-0 let this shrink below its content's natural
+                    height inside the fixed-height shell above — without min-h-0
+                    a flex item never shrinks past its content. <main> itself no
+                    longer scrolls (overflow-y-auto was removed): each dashboard
+                    page owns its own scroll container instead — QueueList /
+                    QueueSection on the queue page, and an h-full min-h-0
+                    overflow-y-auto wrapper on Settings/Analytics — so scroll
+                    lives where the content is, not on the whole page. pb-28 on
+                    mobile clears the fixed bottom header bar, which sits outside
+                    the flex flow (position: fixed takes it out of flow entirely,
+                    even inside a flex container). */}
+                {/* max-w-6xl is the right default for most dashboard pages
+                    (Settings' form, Analytics' charts read better capped),
+                    but the queue page opts out of it — see the full-bleed
+                    wrapper in QueueSection.tsx. */}
+                {/* overflow-x-visible keeps the queue page's full-bleed
+                    breakout (see QueueSection.tsx, which intentionally renders
+                    outside this box's edges) from being clipped. */}
+                <main className="mx-auto flex min-h-0 min-w-0 w-full max-w-6xl flex-1 flex-col overflow-x-visible px-4 py-4 pb-28 md:pb-4">
                     {children}
                 </main>
             </div>

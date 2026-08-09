@@ -93,9 +93,9 @@ if (!hasSubscription) {
                         "flex items-center justify-center gap-inherit w-full h-full",
                         toggleMutation.isPending ? "opacity-0" : "opacity-100"
                     )} style={{ gap: 'inherit' }}>
-                        <Play size={isMobile ? 16 : 18} aria-hidden="true" />
+                        <Play size={isMobile ? 16 : 18} aria-hidden="true" className="shrink-0" />
                         {isMobile ? (
-                            <span className="truncate">Ouvrir la file</span>
+                            <span className="min-w-0 truncate">Ouvrir la file</span>
                         ) : (
                             <>
                                 <span className="hidden sm:inline">Ouvrir la file</span>
@@ -120,9 +120,9 @@ if (!hasSubscription) {
             className={controlClasses}
             aria-label="Voir le QR code en plein écran"
         >
-            <QrCode size={isMobile ? 16 : 18} aria-hidden="true" />
+            <QrCode size={isMobile ? 16 : 18} aria-hidden="true" className="shrink-0" />
             {isMobile ? (
-                <span>Voir le QR</span>
+                <span className="min-w-0 truncate">Voir le QR</span>
             ) : (
                 <>
                     <span className="hidden sm:inline">Voir le QR</span>
