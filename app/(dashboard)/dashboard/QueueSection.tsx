@@ -9,8 +9,6 @@ import { ManualTicketDialog } from "@/components/composed/ManualTicketDialog"
 import { ClosedQueueGuidance } from "@/components/composed/ClosedQueueGuidance"
 import { UpgradeModal } from "@/components/composed/UpgradeModal"
 import { QrModeToggle } from "@/components/composed/QrModeToggle"
-import { Tabs } from "@/components/ui/Tabs"
-import { cn } from "@/lib/utils/cn"
 import { useMeasuredHeight } from "@/lib/hooks/use-measured-height"
 import { computeQrSize } from "@/lib/utils/qr-size"
 import {
@@ -52,11 +50,6 @@ export function QueueSection({
     const queryClient = useQueryClient()
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
     const [displayMode, setDisplayMode] = useState<"kiosk" | "assisted">(initialQrMode)
-    // Below the side-by-side breakpoint (phone, tablet portrait): which of the
-    // two panels is showing. Irrelevant when side by side (landscape lg:+),
-    // where both are always visible — the tab switcher itself is
-    // lg:landscape:hidden, so this never affects layout there.
-    const [activeTab, setActiveTab] = useState<"queue" | "qr">("queue")
     // The QR canvas size is derived from the QR panel's measured height so the
     // card fits without scrolling in the side-by-side layout (spec Part 2). In
     // the tabs layout the panel is full-height, so the QR is large there too; the
@@ -127,18 +120,31 @@ export function QueueSection({
         },
     })
 
+    const handleCreateManualTicket = async (customerName: string) => {
+        const result = await manualTicketMutation.mutateAsync(customerName)
+        if ("error" in result) {
+            return { error: result.error }
+        }
+        return { data: result.data }
+    }
+
+    // Two separate instances (not one shared element): mounting the same
+    // element in two places isn't possible in React, and each needs to live
+    // in a different spot depending on breakpoint — the QR panel's footer at
+    // lg:landscape (existing), or above the queue list below that (new, see
+    // below), since the QR panel itself doesn't render at all there anymore.
     const manualTicketDialog = (
         <ManualTicketDialog
             businessType={businessType}
             isSubmitting={manualTicketMutation.isPending}
-            onCreate={async (customerName) => {
-                const result =
-                    await manualTicketMutation.mutateAsync(customerName)
-                if ("error" in result) {
-                    return { error: result.error }
-                }
-                return { data: result.data }
-            }}
+            onCreate={handleCreateManualTicket}
+        />
+    )
+    const manualTicketDialogForQueue = (
+        <ManualTicketDialog
+            businessType={businessType}
+            isSubmitting={manualTicketMutation.isPending}
+            onCreate={handleCreateManualTicket}
         />
     )
 
@@ -202,38 +208,22 @@ export function QueueSection({
 
             {isOpen && (
                 <>
-                    {/* Below the side-by-side breakpoint (phone AND tablet
-                        portrait) — neither panel reliably fits alongside the
-                        other without the page needing to scroll, so each is its
-                        own tab instead. Hidden when side by side (landscape
-                        lg:+), where both are shown at once (see the grid
-                        below). */}
-                    <Tabs
-                        className="lg:landscape:hidden"
-                        value={activeTab}
-                        onChange={(v) => setActiveTab(v as "queue" | "qr")}
-                        tabs={[
-                            {
-                                value: "queue",
-                                label: waitingCount > 0 ? `File (${waitingCount})` : "File",
-                            },
-                            { value: "qr", label: "QR code" },
-                        ]}
-                    />
-
                     {/*
                         Two layouts in one grid, switched on the side-by-side
                         condition (landscape AND lg:+) only:
-                        - not side by side: one column, one row — only the
-                          active tab's panel is rendered visible (the other is
-                          `hidden`), filling the full available height on its own.
+                        - not side by side (phone, tablet portrait): one
+                          column, one row — only the queue list renders; the
+                          QR panel doesn't exist on this breakpoint at all
+                          (it's reachable via the "Voir le QR" fullscreen
+                          button in the header instead), so there's nothing
+                          to switch between and no tab UI needed.
                         - side by side (landscape lg:+): two columns, one row
                           (list left via order-1, QR right via order-2) — the
-                          layout already in place
-                          before this whole feature, untouched.
-                        grid-rows-[1fr] at both tiers so the visible row(s)
-                        actually fill the grid's height rather than sizing to
-                        content — needed for QueueList's own h-full to resolve
+                          layout already in place before this whole feature,
+                          untouched.
+                        grid-rows-[1fr] at both tiers so the row actually
+                        fills the grid's height rather than sizing to content
+                        — needed for QueueList's own h-full to resolve
                         against a definite height.
                     */}
                     <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[1fr] gap-4 lg:landscape:grid-cols-[1fr_auto]">
@@ -244,34 +234,37 @@ export function QueueSection({
                             but doesn't reach this nested internal scroll
                             container, which is the actual scrolling context
                             on this page now. */}
-                        <div
-                            className={cn(
-                                "min-h-0 flex-col pb-28 md:pb-0 lg:landscape:order-1 lg:landscape:flex",
-                                activeTab === "queue" ? "flex" : "hidden",
-                            )}
-                        >
-                            <QueueList
-                                merchantId={merchantId}
-                                initialItems={initialItems}
-                                businessType={businessType}
-                            />
+                        <div className="flex min-h-0 flex-col gap-3 pb-28 md:pb-0 lg:landscape:order-1">
+                            {/* Manual-add button, only below the side-by-side
+                                breakpoint: at lg:landscape it already lives in
+                                the QR panel's footer (still visible there),
+                                but the QR panel doesn't render at all below
+                                that breakpoint anymore, so this is now its
+                                only way to reach the manual-add flow. */}
+                            <div className="flex justify-end lg:landscape:hidden">
+                                {manualTicketDialogForQueue}
+                            </div>
+                            <div className="min-h-0 flex-1">
+                                <QueueList
+                                    merchantId={merchantId}
+                                    initialItems={initialItems}
+                                    businessType={businessType}
+                                />
+                            </div>
                         </div>
 
-                        {/* QR code panel. min-h-0 + overflow-y-auto: the card's
+                        {/* QR code panel — lg:landscape only (see comment
+                            above). min-h-0 + overflow-y-auto: the card's
                             content (header + QR image + footer buttons) has a
                             natural minimum height that can't compress — on a
                             row shorter than that minimum, h-full alone would
                             just overflow and get clipped with no way to reach
                             the rest of it. This is the same safety valve
                             QueueList already has, so a too-short row scrolls
-                            instead of silently losing part of the card.
-                            Same mobile pb-28 clearance as the list, above. */}
+                            instead of silently losing part of the card. */}
                         <div
                             ref={qrPanelRef}
-                            className={cn(
-                                "min-h-0 flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0 lg:landscape:order-2 lg:landscape:flex",
-                                activeTab === "qr" ? "flex" : "hidden",
-                            )}
+                            className="hidden min-h-0 flex-col items-center gap-3 overflow-y-auto lg:landscape:order-2 lg:landscape:flex"
                         >
                             {qrPanel}
                         </div>
