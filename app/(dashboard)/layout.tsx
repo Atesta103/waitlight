@@ -7,6 +7,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider"
 import { getContrastYIQ, isValidHexCode } from "@/lib/utils/color"
 import { UserMenu } from "@/components/composed/UserMenu"
 import { HeaderQueueControl } from "@/components/composed/HeaderQueueControl"
+import { DashboardShell } from "@/components/composed/DashboardShell"
 import { LayoutDashboard, BarChart2 } from "lucide-react"
 
 type DashboardLayoutProps = {
@@ -73,31 +74,24 @@ export default async function DashboardLayout({
     const fontFamily = merchant!.font_family || "Inter"
     const borderRadius = merchant!.border_radius || "0.5rem"
 
-    return (
-        <QueryProvider>
-            <div
-                id="dashboard-root"
-                // Fixed-height app shell at every screen size (dvh, not vh:
-                // correctly accounts for Safari's address bar showing/hiding on
-                // iPad/iPhone) instead of natural document flow, so header + QR
-                // panel stay fixed and only the ticket list scrolls internally.
-                className="flex h-dvh flex-col overflow-hidden bg-surface-base"
-                style={{
-                    fontFamily: `var(--font-brand)`,
-                    "--color-brand-primary": brandColor,
-                    "--color-brand-primary-hover": brandColor,
-                    "--color-border-focus": brandColor,
-                    "--color-text-on-primary": contrastColor,
-                    "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
-                    "--radius-brand": borderRadius,
-                    "--radius-sm": borderRadius,
-                    "--radius-md": borderRadius,
-                    "--radius-lg": borderRadius,
-                    "--radius-xl": borderRadius,
-                    "--radius-2xl": borderRadius,
-                } as React.CSSProperties}
-            >
-                {/* No overflow-x-hidden here (deliberately removed): the CSS
+    const shellStyle = {
+        fontFamily: `var(--font-brand)`,
+        "--color-brand-primary": brandColor,
+        "--color-brand-primary-hover": brandColor,
+        "--color-border-focus": brandColor,
+        "--color-text-on-primary": contrastColor,
+        "--font-brand": `var(--font-${fontFamily.toLowerCase().replace(" ", "-")})`,
+        "--radius-brand": borderRadius,
+        "--radius-sm": borderRadius,
+        "--radius-md": borderRadius,
+        "--radius-lg": borderRadius,
+        "--radius-xl": borderRadius,
+        "--radius-2xl": borderRadius,
+    } as React.CSSProperties
+
+    const header = (
+        <>
+            {/* No overflow-x-hidden here (deliberately removed): the CSS
                     overflow spec forces overflow-y to compute as 'auto'
                     whenever overflow-x isn't 'visible' — there is no way to
                     pair overflow-x:hidden with a real overflow-y:visible, the
@@ -218,28 +212,32 @@ export default async function DashboardLayout({
                         </div>
                     </div>
                 </header>
-                {/* flex-1 + min-h-0 let this shrink below its content's natural
-                    height inside the fixed-height shell above — without min-h-0
-                    a flex item never shrinks past its content. <main> itself no
-                    longer scrolls (overflow-y-auto was removed): each dashboard
-                    page owns its own scroll container instead — QueueList /
-                    QueueSection on the queue page, and an h-full min-h-0
-                    overflow-y-auto wrapper on Settings/Analytics — so scroll
-                    lives where the content is, not on the whole page. pb-28 on
-                    mobile clears the fixed bottom header bar, which sits outside
-                    the flex flow (position: fixed takes it out of flow entirely,
-                    even inside a flex container). */}
-                {/* max-w-6xl is the right default for most dashboard pages
-                    (Settings' form, Analytics' charts read better capped),
-                    but the queue page opts out of it — see the full-bleed
-                    wrapper in QueueSection.tsx. */}
-                {/* overflow-x-visible keeps the queue page's full-bleed
-                    breakout (see QueueSection.tsx, which intentionally renders
-                    outside this box's edges) from being clipped. */}
-                <main className="mx-auto flex min-h-0 min-w-0 w-full max-w-6xl flex-1 flex-col overflow-x-visible px-4 py-4 pb-28 md:pb-4">
-                    {children}
-                </main>
-            </div>
+        </>
+    )
+
+    // flex-1 + min-h-0 on <main> (DashboardShell) let it shrink below its
+    // content's natural height inside the fixed-height shell — without
+    // min-h-0 a flex item never shrinks past its content. <main> itself
+    // doesn't scroll on most pages: each owns its own scroll container
+    // instead — QueueList/QueueSection on the queue page, an h-full min-h-0
+    // overflow-y-auto wrapper on Settings — so scroll lives where the
+    // content is, not on the whole page. Analytics is the one exception
+    // (DashboardShell drops the fixed-height/overflow-hidden constraints
+    // there so the real page scrolls instead, per its own requirements).
+    // pb-28 on mobile clears the fixed bottom header bar, which sits outside
+    // the flex flow (position: fixed takes it out of flow entirely, even
+    // inside a flex container).
+    // max-w-6xl is the right default for most dashboard pages (Settings'
+    // form, Analytics' charts read better capped), but the queue page opts
+    // out of it — see the full-bleed wrapper in QueueSection.tsx.
+    // overflow-x-visible (non-Analytics only) keeps the queue page's
+    // full-bleed breakout (QueueSection.tsx, which intentionally renders
+    // outside this box's edges) from being clipped.
+    return (
+        <QueryProvider>
+            <DashboardShell header={header} style={shellStyle}>
+                {children}
+            </DashboardShell>
         </QueryProvider>
     )
 }
