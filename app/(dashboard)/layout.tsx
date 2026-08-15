@@ -97,19 +97,18 @@ export default async function DashboardLayout({
                     "--radius-2xl": borderRadius,
                 } as React.CSSProperties}
             >
-                {/* overflow-x-hidden: this bar carries no viewport-width trick
-                    (unlike QueueSection's full-bleed content), so this is a
-                    pure safety net — if any child's content (e.g. the mobile
-                    queue-toggle button's label) ever fails to shrink with its
-                    flex container, it's clipped here rather than forcing
-                    horizontal scroll on the whole page.
-                    overflow-y-visible is explicit, not incidental: setting
-                    only overflow-x makes overflow-y implicitly compute to
-                    'auto' too (same CSS overflow spec quirk noted on the
-                    analytics/settings pages) — that silently turned this bar
-                    into a clipping container, hiding the account dropdown
-                    (UserMenu) that pops out above/below its trigger inside
-                    the header instead of floating over the page. */}
+                {/* No overflow-x-hidden here (deliberately removed): the CSS
+                    overflow spec forces overflow-y to compute as 'auto'
+                    whenever overflow-x isn't 'visible' — there is no way to
+                    pair overflow-x:hidden with a real overflow-y:visible, the
+                    browser always turns it into 'hidden auto'. That silently
+                    made this bar a clipping container, hiding the account
+                    dropdown (UserMenu) which intentionally renders outside
+                    the header's own box (top-full/bottom-full). The
+                    horizontal safety net this used to provide is redundant
+                    now anyway — HeaderQueueControl's icons/labels already
+                    have shrink-0/truncate, so nothing here should overflow
+                    horizontally in the first place. */}
                 {/* w-screen on top of inset-x-0: verified in the browser
                     (not just DevTools device emulation — a real narrowed
                     window) that this fixed, inset-x-0 element was computing
@@ -121,7 +120,7 @@ export default async function DashboardLayout({
                     explicitly via 100vw sidesteps whatever in that
                     auto-width resolution was misbehaving, rather than
                     depending on it. */}
-                <header className="fixed inset-x-0 bottom-0 z-40 w-screen shrink-0 overflow-x-hidden overflow-y-visible border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+                <header className="fixed inset-x-0 bottom-0 z-40 w-screen shrink-0 border-t border-border-default bg-surface-card/95 backdrop-blur-sm md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b">
                     {/* mx-auto max-w-6xl, matching every dashboard page's own
                         content width (Settings, Analytics, and the queue
                         header row above its own full-bleed grid) — a
