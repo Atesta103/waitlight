@@ -37,12 +37,18 @@ type QRCodeDisplayProps = {
      */
     mode?: "kiosk" | "assisted"
     /**
-     * Optional actions rendered inside this same card, below the QR zone,
-     * separated by a top border — lets a caller (e.g. the dashboard) anchor
-     * its own buttons to the bottom of the card when it's stretched to a
-     * given height via `className`, without a second, visually separate card.
+     * Optional actions rendered below the QR zone, in the same row as the
+     * "Générer un nouveau QR" button (assisted mode) — lets a caller (e.g.
+     * the dashboard) anchor its own buttons there too, without a second,
+     * visually separate block.
      */
     footer?: React.ReactNode
+    /**
+     * Drops the card chrome (border, background, shadow, rounded corners) —
+     * just the QR content on the page's own background. Used by the
+     * fullscreen kiosk display, where the QR is the page, not a card on it.
+     */
+    bare?: boolean
 }
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
@@ -55,6 +61,7 @@ function QRCodeDisplay({
     mockMode = false,
     mode = "kiosk",
     footer,
+    bare = false,
 }: QRCodeDisplayProps) {
     const isAssisted = mode === "assisted"
     const wording = getBusinessWording(businessType)
@@ -194,14 +201,21 @@ function QRCodeDisplay({
         <div
             className={cn(
                 "flex flex-col",
-                mockMode
-                    ? "w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white shadow-md"
-                    : "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
+                bare
+                    ? "w-full max-w-sm"
+                    : mockMode
+                      ? "w-full max-w-sm rounded-2xl border border-[#E5E7EB] bg-white shadow-md"
+                      : "w-full max-w-sm rounded-2xl border border-border-default bg-surface-card shadow-md",
                 className,
             )}
         >
             {/* ── Header ──────────────────────────────────────────────────── */}
-            <div className="flex flex-col items-center gap-0.5 border-b border-border-default px-6 py-4">
+            <div
+                className={cn(
+                    "flex flex-col items-center gap-0.5 px-6 py-4",
+                    !bare && "border-b border-border-default",
+                )}
+            >
                 <p className={cn("text-center text-sm font-semibold", mockMode ? "text-[#111827]" : "text-text-primary")}>
                     Scannez pour {wording.joinCta.toLowerCase()}
                 </p>
@@ -214,13 +228,11 @@ function QRCodeDisplay({
                 matching a sibling's height), this is the block that absorbs
                 and centers in the extra space — header and footer keep their
                 natural height either side of it. */}
-            <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-8">
-                {/* Countdown Label - Centered above QR (kiosk mode only) */}
-                {isAssisted ? (
-                    <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
-                        QR à usage unique
-                    </span>
-                ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8">
+                {/* Countdown label — kiosk mode only. Assisted mode has no
+                    equivalent label above the QR (it doesn't rotate on a
+                    timer, so there's nothing to count down or narrate). */}
+                {!isAssisted && (
                     <div className="flex flex-col items-center gap-1">
                         <span
                             className="text-2xl font-bold tabular-nums transition-colors duration-300"
@@ -306,16 +318,28 @@ function QRCodeDisplay({
                     <Camera size={14} aria-hidden="true" className="shrink-0" />
                     <span>Flashez ce code avec votre appareil photo</span>
                 </div>
-
-                {isAssisted && !mockMode && (
-                    <Button type="button" variant="secondary" size="sm" onClick={fetchToken}>
-                        Générer un nouveau QR
-                    </Button>
-                )}
             </div>
 
-            {footer ? (
-                <div className="flex flex-wrap items-center justify-center gap-2 border-t border-border-default px-6 py-4">
+            {/* ── Actions row ─────────────────────────────────────────────── */}
+            {/* "Générer un nouveau QR" (assisted mode) lives here rather than
+                inside the QR zone above, so it sits in the same row as any
+                caller-supplied footer actions (e.g. the mode toggle) instead
+                of stacked above them. flex-wrap: if both don't fit side by
+                side (narrow phones), they wrap to their own line instead of
+                overflowing or getting clipped. */}
+            {(isAssisted && !mockMode) || footer ? (
+                <div
+                    className={cn(
+                        "flex flex-wrap items-center justify-center gap-2",
+                        !bare && "border-t border-border-default px-6 py-4",
+                        bare && "pt-2",
+                    )}
+                >
+                    {isAssisted && !mockMode && (
+                        <Button type="button" variant="secondary" size="sm" onClick={fetchToken}>
+                            Générer un nouveau QR
+                        </Button>
+                    )}
                     {footer}
                 </div>
             ) : null}
