@@ -228,13 +228,11 @@ function QRCodeDisplay({
                 matching a sibling's height), this is the block that absorbs
                 and centers in the extra space — header and footer keep their
                 natural height either side of it. */}
-            <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-8">
-                {/* Countdown Label - Centered above QR (kiosk mode only) */}
-                {isAssisted ? (
-                    <span className={cn("text-[10px] uppercase tracking-wider", mockMode ? "text-[#6B7280]" : "text-text-secondary")}>
-                        QR à usage unique
-                    </span>
-                ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8">
+                {/* Countdown label — kiosk mode only. Assisted mode has no
+                    equivalent label above the QR (it doesn't rotate on a
+                    timer, so there's nothing to count down or narrate). */}
+                {!isAssisted && (
                     <div className="flex flex-col items-center gap-1">
                         <span
                             className="text-2xl font-bold tabular-nums transition-colors duration-300"
