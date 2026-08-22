@@ -1,16 +1,16 @@
-# Feature 10: Multichannel Authentication (Google / Apple SSO)
+# Feature 10: Multichannel Authentication (Google SSO)
 
 ## 1. Metadata
 
-- Feature: Social Login (Google & Apple SSO)
+- Feature: Social Login (Google SSO; Apple postponed — see §3)
 - Owner: Founding Team
-- Status: `proposed` <!-- Code scaffolding exists (FR-1–FR-5); blocked on external OAuth provider config -->
-- Last updated: 2026-03-23
+- Status: `implemented` <!-- Google provider configured and live. Apple deliberately out of scope: requires a paid Apple Developer Program membership ($99/yr), not worth it yet. -->
+- Last updated: 2026-08-22
 - Related issue/epic: TBD
 - Value to user: 3
 - Strategic priority: 3
 - Time to code: 3
-- Readiness score: 65/100
+- Readiness score: 90/100
 - Interest score: 60/100
 - Source of truth:
   - Schema: `supabase/migrations/20260302000000_initial_schema.sql`
@@ -38,38 +38,36 @@ Merchants can sign up and sign in with one tap via Google or Apple — no passwo
 ### In scope
 
 - Google OAuth via Supabase Auth provider
-- Apple OAuth via Supabase Auth provider
 - PKCE flow via `/auth/callback` route
 - Error mapping (cancelled, provider error) to user-friendly messages
 - Onboarding redirect for new OAuth users
 
 ### Out of scope
 
-- Apple Private Relay email masking (planned)
+- **Apple OAuth** — code path exists (`SocialAuthButtons`, `oauthSignInAction` are provider-agnostic) but the Apple provider is deliberately not enabled: it requires a paid Apple Developer Program membership ($99/yr), which isn't worth it yet. Revisit if merchant demand justifies the cost.
+- Apple Private Relay email masking (blocked on the above)
 - Account linking between email/password and OAuth (planned)
 - Customer SSO (customers are anonymous)
 
 ## 4. User Stories
 
 - As a merchant, I want to sign in with Google so that I don't need to remember a password.
-- As a merchant, I want to sign in with Apple so that I can use Face ID / Touch ID.
 - As a merchant, I want my OAuth account linked to my existing email/password account so that I can switch between methods.
 
 ## 5. Functional Requirements
 
-<!-- NOTE: FR-1–FR-5 are code-complete (components + actions exist in codebase).
-     Feature remains `proposed` because Google/Apple providers are not yet configured
-     in Supabase Auth dashboard, and redirect URIs are not whitelisted. -->
-- [x] FR-1: `SocialAuthButtons` molecule — Google + Apple buttons on `/login` and `/register`
+<!-- FR-1–FR-6, FR-8 are done (Google is live). FR-7/FR-10 (Apple) are on hold —
+     needs a paid Apple Developer Program membership, not worth it yet. -->
+- [x] FR-1: `SocialAuthButtons` molecule — Google (+ Apple button present, inert until FR-7) on `/login` and `/register`
 - [x] FR-2: `oauthSignInAction` — calls `supabase.auth.signInWithOAuth()`, returns redirect URL (PKCE-safe)
 - [x] FR-3: `/auth/callback` handler — PKCE code exchange; maps `?error=access_denied` → `oauth_cancelled`
 - [x] FR-4: Session refresh via root `proxy.ts` middleware (`updateSession` on every request)
 - [x] FR-5: OAuth users land on `/onboarding` if no `merchants` row exists
-- [ ] FR-6: Enable Google provider in Supabase Auth panel + configure OAuth credentials
-- [ ] FR-7: Enable Apple provider in Supabase Auth panel + configure OAuth credentials
-- [ ] FR-8: Whitelist production redirect URI in both Google Cloud Console and Apple Developer Portal
+- [x] FR-6: Enable Google provider in Supabase Auth panel + configure OAuth credentials
+- [ ] FR-7 (on hold — cost): Enable Apple provider in Supabase Auth panel + configure OAuth credentials — requires Apple Developer Program ($99/yr)
+- [x] FR-8: Whitelist production redirect URI in Google Cloud Console
 - [ ] FR-9: Account linking for existing email/password users trying OAuth with same email
-- [ ] FR-10: Handle Apple Private Relay email (`...@privaterelay.appleid.com`)
+- [ ] FR-10 (on hold — blocked on FR-7): Handle Apple Private Relay email (`...@privaterelay.appleid.com`)
 
 ## 6. Data Contracts
 
@@ -113,7 +111,7 @@ For each route:
 - Loading state: Button in loading state during OAuth redirect
 - Empty state: n/a
 - Error state: `AuthErrorBanner` — distinct message for cancelled vs provider error
-- Accessibility notes: Google button uses official brand colors (4-path G logo); Apple button uses monochrome logo — both comply with provider guidelines; buttons have `aria-label`
+- Accessibility notes: Google button uses official brand colors (4-path G logo), complies with provider guidelines; has `aria-label`. Apple button exists in the component but is inert (provider not enabled — see §3).
 
 ## 9. Security and Privacy
 
@@ -150,20 +148,22 @@ For each route:
 
 ## 12. Implementation Plan
 
-1. Milestone 1: Enable Google/Apple in Supabase Auth dashboard + configure OAuth credentials
-2. Milestone 2: Configure redirect URIs in Google Cloud Console + Apple Developer Portal
-3. Milestone 3: Account linking + Apple Private Relay handling
+1. ~~Milestone 1: Enable Google in Supabase Auth dashboard + configure OAuth credentials~~ — done
+2. ~~Milestone 2: Configure redirect URI in Google Cloud Console~~ — done
+3. Milestone 3 (on hold): Enable Apple provider once the Developer Program membership is worth the cost — then Apple redirect URI + Apple Private Relay handling
+4. Milestone 4: Account linking (email/password ↔ OAuth, same email)
 
 ## 13. Rollout and Backfill
 
-- Feature flag needed: yes — OAuth providers disabled until credentials configured in Supabase
+- Feature flag needed: no — Google is live for all merchants
 - Backfill required: no
-- Rollback plan: Disable Google/Apple providers in Supabase Auth dashboard — existing email/password accounts unaffected
+- Rollback plan: Disable the Google provider in Supabase Auth dashboard — existing email/password accounts unaffected
 
 ## 14. Definition of Done
 
-- [ ] Implementation merged to main
+- [x] Implementation merged to main (Google)
 - [ ] Relevant unit and integration tests added and passing
 - [ ] End-user or internal documentation updated
 - [ ] `.env.example` updated (if needed)
-- [ ] Dashboard/Storybook layout and behavior visually validated
+- [x] Dashboard/Storybook layout and behavior visually validated
+- [ ] Apple: revisit once Developer Program cost is justified (see FR-7, FR-10, Milestone 3)

@@ -6,9 +6,9 @@
 | Status | Feature | Value | Priority | Effort | Readiness | Interest Score |
 |--------|---------|-------|----------|--------|-----------|----------------|
 | 🔶 | [16. Site Vitrine (One-Page Landing)](./01_site_vitrine.md) | 5/5 | 5/5 | 3/5 | 100% | 92 |
-| ⬜ | [Feature 10: Multichannel Authentication (Google / Apple SSO)](./02_sso_auth.md) | 3/5 | 3/5 | 3/5 | 65% | 58 |
+| ✅ | [Feature 10: Multichannel Authentication (Google SSO)](./02_sso_auth.md) | 3/5 | 3/5 | 3/5 | 90% | 58 |
 | ⬜ | [Feature 11: Internationalization (i18n) — next-intl](./03_i18n_next_intl.md) | 3/5 | 4/5 | 5/5 | 25% | 58 |
-| ❓ | [06_offre_groupe.md](./04_offre_groupe.md) | 3/5 | 3/5 | 3/5 | 0% | 58 |
+| ❓ | [04_offre_groupe.md](./04_offre_groupe.md) | 3/5 | 3/5 | 3/5 | 0% | 58 |
 | ❓ | [Feature 09: POS Integration (Point of Sale)](./05_pos_integration.md) | 5/5 | 1/5 | 4/5 | 20% | 54 |
 
 ## Legend
